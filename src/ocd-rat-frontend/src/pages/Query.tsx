@@ -1,6 +1,6 @@
 import { QueryInput } from "@/components/QueryInput";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 
 interface Message {
@@ -13,13 +13,29 @@ interface Message {
 export function Query() {
 
     const [messages, setMessages] = useState<Message[]>([]);
+    const [tableData, setTableData] = useState<any[] | null>(null);
     const showIntroMessage = messages?.length == 0;
 
+    const fetchData = async (Usertext: string) => {
+      try{
+        const params = {
+            query_type: 'NLP',
+            text: Usertext
+        };
+        const url = new URL('http://localhost:8000');
+        url.search = new URLSearchParams(params).toString();
 
-    const dummyBotResponse = () => {
+        const response = await fetch(url)
+        return await response.json()
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+        }
+
+    const dummyBotResponse = async () => {
         const botResponse: Message = {
             id: new Date().toISOString(),
-            text: 'I am a bot responding to your prompt!',
+            text: "Scroll down to view your results!",
             sender: 'bot'
         }
         const delay = 1000;
@@ -31,9 +47,13 @@ export function Query() {
     }
 
 
-    const handleSendMessage = (messageText: string) => {
+    const handleSendMessage = async (messageText: string) => {
+
+        const data = await fetchData(messageText);
+        setTableData(data);
 
         const newMessage: Message = {
+            
             id: new Date().toISOString(),
             text: messageText,
             sender: 'user'
@@ -95,9 +115,39 @@ export function Query() {
             <div className="flex w-1/2 min-w-80 shrink-0 my-4 ">
                 <QueryInput onSendMessage={handleSendMessage} />
             </div>
+            {tableData && (
+  <div style={{ marginTop: "2rem", overflowX: "auto",minWidth: "100%", whiteSpace: "nowrap",
+    width: "100vw",
+        maxWidth: "none", 
+        marginLeft: "calc(50% - 50vw)",
+  }}>
+    <h2>Results</h2>
+  
+    <table cellPadding="6" style={{borderCollapse: "collapse" }}>
+      <thead>
+        <tr>
+          {Object.keys(tableData[0]).map(col => (
+            <th style={{ border: "1px solid #ccc" }} key={col}>{col}</th>
+          ))}
+        </tr>
+      </thead>
+
+      <tbody>
+        {tableData.map((row, idx) => (
+          <tr key={idx}>
+            {Object.values(row).map((val, i) => (
+              <td style={{ border: "1px solid #ccc" }} key={i}>{String(val)}</td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>)}
 
 
         </div>
+
+        
     );
 }
 

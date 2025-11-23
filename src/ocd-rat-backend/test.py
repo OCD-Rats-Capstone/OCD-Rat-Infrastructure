@@ -45,7 +45,7 @@ def query_filter_rules(query_filters):
         match filter_components[1]:
             case "IN":
                 [low,high] = filter_components[2][1:-1].split("$")
-                sql_extras.append(filter_components[0] + " >= "+low + " AND "+ Query_name+"."+filter_components[0] + " <= "+ high)
+                sql_extras.append(filter_components[0] + " >= "+low + " AND "+ filter_components[0] + " <= "+ high)
             case "=":
                 sql_extras.append(filter_components[0] + " = "+filter_components[2])
             case ">=":
@@ -79,7 +79,12 @@ def augment_query(sql_query,extra_sql):
 
     
 
-def main():
+def main(query_type,query_string):
+
+    #Only have NLP active for now
+    if (query_type != "NLP"):
+         return
+    
     try:
     ### Connection to your local postgres SQL thing (may need to set own password)###
         cnxn = psycopg2.connect(
@@ -99,8 +104,8 @@ def main():
         #filters = str(input("Enter filters in the form [<Filter Subject>,<Operator>,<Relevant values ([low$high] for a range)>]. Seperate each filter as such [<filter1>];[<filter2>]"))
 
         ###Generate filters with NLP ###
-        natural_input = str(input("Enter Natural Language Filter"))
-        filters = nlp_module(natural_input)
+        # natural_input = str(input("Enter Natural Language Filter"))
+        filters = nlp_module(query_string)
 
         extra_sql = query_filter_rules(filters)
 
@@ -113,7 +118,7 @@ def main():
     "LEFT OUTER JOIN apparatus_patterns as AP1 ON AP1.pattern_ID = E1.pattern_ID) " \
     "LEFT OUTER JOIN testing_rooms as TR1 ON TR1.Room_ID = E1.Room_ID) " \
     "LEFT OUTER JOIN session_drug_details as SDD1 ON SDD1.Session_ID = E1.Session_ID) "\
-    "LEFT OUTER JOIN session_data_files as SDF1 ON SDF1.Session_ID = E1.Session_ID)"
+    "LEFT OUTER JOIN session_data_files as SDF1 ON SDF1.Session_ID = E1.Session_ID)" \
         
         sql_query = augment_query(sql_query,extra_sql)
 
