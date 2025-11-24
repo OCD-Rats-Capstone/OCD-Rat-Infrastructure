@@ -3,6 +3,8 @@
 import pandas as pd
 import numpy as np
 import os
+import requests # type: ignore
+from urllib.request import urlretrieve
 
 #### Set API KEY, Enter secret key ###
 #os.environ['OPENAI_API_KEY']
@@ -77,6 +79,29 @@ def augment_query(sql_query,extra_sql):
         sql_query = sql_query + ")"
     return sql_query
 
+def FRDR_download(cnxn,cursor,file_ids,file_types):
+    temp_dir = "temp"
+    url_query = "SELECT repo_file_url FROM data_file_locations " \
+    "WHERE data_file_id IN %s;"
+    files_tuple = tuple(file_ids)
+    cursor.execute(url_query,(files_tuple,))
+    data = cursor.fetchall()
+    filtered_data = []
+    for item in data:
+        if "https" not in str(item[0]) or ".csv" not in str(item[0]):
+            pass
+        else:
+            filtered_data.append(item[0])
+    if os.path.isdir(temp_dir):
+         os.rmdir(temp_dir)
+
+    os.makedirs(temp_dir)
+    for s in filtered_data:  
+          temp_file_name = str(s).split('/')[-1]
+          urlretrieve(str(s),temp_dir + "/" + temp_file_name)
+    
+        
+
     
 
 def main(query_type,query_string):
@@ -101,11 +126,11 @@ def main(query_type,query_string):
 
         ###Input filters manually, (requires table alias in <Filter Subject>)###
 
-        #filters = str(input("Enter filters in the form [<Filter Subject>,<Operator>,<Relevant values ([low$high] for a range)>]. Seperate each filter as such [<filter1>];[<filter2>]"))
+        filters = str(input("Enter filters in the form [<Filter Subject>,<Operator>,<Relevant values ([low$high] for a range)>]. Seperate each filter as such [<filter1>];[<filter2>]"))
 
         ###Generate filters with NLP ###
         # natural_input = str(input("Enter Natural Language Filter"))
-        filters = nlp_module(query_string)
+        #filters = nlp_module(query_string)
 
         extra_sql = query_filter_rules(filters)
 
@@ -134,6 +159,13 @@ def main(query_type,query_string):
         df = df.replace([np.inf, -np.inf], np.nan)
         df = df.fillna("None")
 
+        file_ids = df['data_file_id'].tolist()
+
+
+        ##Uncomment this to activate File download to a temporary directory##
+
+        #FRDR_download(cnxn,cursor,file_ids,'csv')
+
         print(df)
 
     except psycopg2.Error as e:
@@ -145,6 +177,9 @@ def main(query_type,query_string):
                 print("PostgreSQL connection closed.")
 
     return df
+
+main("NLP","a")
+
 
 
 
