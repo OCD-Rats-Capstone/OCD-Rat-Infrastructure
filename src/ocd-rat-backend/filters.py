@@ -3,6 +3,7 @@
 import pandas as pd
 import numpy as np
 import os
+from urllib.request import urlretrieve
 
 #### Set API KEY, Enter secret key ###
 # os.environ['default_value']
@@ -45,7 +46,7 @@ def query_filter_rules(query_filters):
         match filter_components[1]:
             case "IN":
                 [low,high] = filter_components[2][1:-1].split("$")
-                sql_extras.append(filter_components[0] + " >= "+low + " AND "+ Query_name+"."+filter_components[0] + " <= "+ high)
+                sql_extras.append(filter_components[0] + " >= "+low + " AND "+"."+filter_components[0] + " <= "+ high)
             case "=":
                 sql_extras.append(filter_components[0] + " = "+filter_components[2])
             case ">=":
@@ -77,16 +78,39 @@ def augment_query(sql_query,extra_sql):
         sql_query = sql_query + ")"
     return sql_query
 
+def FRDR_download(cnxn,cursor,file_ids,file_types):
+    print("Starting Download!")
+    temp_dir = "temp"
+    url_query = "SELECT repo_file_url FROM data_file_locations " \
+    "WHERE data_file_id IN %s;"
+    files_tuple = tuple(file_ids)
+    cursor.execute(url_query,(files_tuple,))
+    data = cursor.fetchall()
+    filtered_data = []
+    for item in data:
+        if "https" not in str(item[0]) or str(item[0])[-4:] not in file_types:
+            pass
+        else:
+            filtered_data.append(item[0])
+    if os.path.isdir(temp_dir):
+         os.rmdir(temp_dir)
+
+    os.makedirs(temp_dir)
+    for s in filtered_data:  
+          print("downloaded file")
+          temp_file_name = str(s).split('/')[-1]
+          urlretrieve(str(s),temp_dir + "/" + temp_file_name)
+
     
 
-def main(filters_json):
+def main(filters_json,csvChecked):
     try:
     ### Connection to your local postgres SQL thing (may need to set own password)###
         cnxn = psycopg2.connect(
                 host="localhost",
                 database="postgres",
-                user="jer",
-                password="",
+                user="postgres",
+                password="Gouda",
                 port=5432
             )
         print("Connection to PostgreSQL successful!")
@@ -98,7 +122,7 @@ def main(filters_json):
        
         str = "["
         for fil in filters_json:
-            str += "E1.rat_id" + "," + fil.operator + "," + fil.value + "]"
+            str += fil.field + "," + fil.operator + "," + fil.value + "]"
         print(str)
             
         filters = str
@@ -134,6 +158,13 @@ def main(filters_json):
 
         df = df.replace([np.inf, -np.inf], np.nan)
         df = df.fillna("None")
+
+        file_ids = df['data_file_id'].tolist()
+
+
+        ##Uncomment this to activate File download to a temporary directory##
+        if csvChecked:
+            FRDR_download(cnxn,cursor,file_ids,['.csv'])
 
         print(df)
 

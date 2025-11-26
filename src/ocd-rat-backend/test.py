@@ -3,7 +3,6 @@
 import pandas as pd
 import numpy as np
 import os
-import requests # type: ignore
 from urllib.request import urlretrieve
 
 #### Set API KEY, Enter secret key ###
@@ -126,11 +125,11 @@ def main(query_type,query_string):
 
         ###Input filters manually, (requires table alias in <Filter Subject>)###
 
-        filters = str(input("Enter filters in the form [<Filter Subject>,<Operator>,<Relevant values ([low$high] for a range)>]. Seperate each filter as such [<filter1>];[<filter2>]"))
+        #filters = str(input("Enter filters in the form [<Filter Subject>,<Operator>,<Relevant values ([low$high] for a range)>]. Seperate each filter as such [<filter1>];[<filter2>]"))
 
         ###Generate filters with NLP ###
         # natural_input = str(input("Enter Natural Language Filter"))
-        #filters = nlp_module(query_string)
+        filters = nlp_module(query_string)
 
         extra_sql = query_filter_rules(filters)
 
@@ -177,8 +176,6 @@ def main(query_type,query_string):
                 print("PostgreSQL connection closed.")
 
     return df
-
-main("NLP","a")
 
 
 
