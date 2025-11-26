@@ -75,7 +75,7 @@ def augment_query(sql_query,extra_sql):
                 sql_query = sql_query + " AND "
             sql_query = sql_query + s
             start_flag = 1
-        sql_query = sql_query + ")"
+        sql_query = sql_query + ") "
     return sql_query
 
 def FRDR_download(cnxn,cursor,file_ids,file_types):
@@ -157,6 +157,8 @@ def main(query_type,query_string):
 
         df = df.replace([np.inf, -np.inf], np.nan)
         df = df.fillna("None")
+
+        df = df.truncate(after = 25)
 
         file_ids = df['data_file_id'].tolist()
 

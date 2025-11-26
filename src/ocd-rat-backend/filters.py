@@ -3,6 +3,7 @@
 import pandas as pd
 import numpy as np
 import os
+import shutil
 from urllib.request import urlretrieve
 
 #### Set API KEY, Enter secret key ###
@@ -75,7 +76,7 @@ def augment_query(sql_query,extra_sql):
                 sql_query = sql_query + " AND "
             sql_query = sql_query + s
             start_flag = 1
-        sql_query = sql_query + ")"
+        sql_query = sql_query + ") "
     return sql_query
 
 def FRDR_download(cnxn,cursor,file_ids,file_types):
@@ -93,7 +94,12 @@ def FRDR_download(cnxn,cursor,file_ids,file_types):
         else:
             filtered_data.append(item[0])
     if os.path.isdir(temp_dir):
-         os.rmdir(temp_dir)
+        try:
+            os.chmod(temp_dir,0o777)
+            shutil.rmtree(temp_dir)
+        except Exception as e:
+            print("Could not remove directory")
+
 
     os.makedirs(temp_dir)
     for s in filtered_data:  
@@ -114,15 +120,18 @@ def main(filters_json,csvChecked):
                 port=5432
             )
         print("Connection to PostgreSQL successful!")
-
+        print("bruh")
         # You can now create a cursor and execute queries
         cursor = cnxn.cursor()
 
+        print("bruh")
         ###Input filters manually, (requires table alias in <Filter Subject>)###
-       
-        str = "["
+        str = ""
         for fil in filters_json:
-            str += fil.field + "," + fil.operator + "," + fil.value + "]"
+            print(fil)
+            str += "[" + fil.field + "," + fil.operator + "," + fil.value + "]" + ";"
+            print(str)
+        str = str[:-1]
         print(str)
             
         filters = str
@@ -159,6 +168,8 @@ def main(filters_json,csvChecked):
         df = df.replace([np.inf, -np.inf], np.nan)
         df = df.fillna("None")
 
+        df = df.truncate(after=25)
+
         file_ids = df['data_file_id'].tolist()
 
 
@@ -175,5 +186,8 @@ def main(filters_json,csvChecked):
             if cnxn:
                 cnxn.close()
                 print("PostgreSQL connection closed.")
+
+    print("bruh")
+    print(df)
 
     return df
