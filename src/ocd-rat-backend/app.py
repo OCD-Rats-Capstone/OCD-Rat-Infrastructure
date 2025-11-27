@@ -1,7 +1,7 @@
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-#import test as test
+import test as test
 import visualization
 
 app = FastAPI()
@@ -21,14 +21,11 @@ async def root(query_type: str = "NLP", text: str = "select all records where th
     jsonified = df.to_dict(orient='records')
     return jsonified
 
-# ===== Visualization Endpoints =====
+#  Visualization
 
 @app.get("/api/brain-lesion-data")
 async def get_brain_lesion_data():
-    """
-    Get brain lesion data grouped by drug for visualization.
-    Returns left and right hemisphere damage data for each drug treatment.
-    """
+
     try:
         result = visualization.get_brain_lesion_data()
         return result
@@ -40,10 +37,7 @@ async def get_brain_lesion_data():
 
 @app.get("/api/test-connection")
 async def test_connection():
-    """
-    Test database connection and return status.
-    Useful for debugging connection issues.
-    """
+
     result = visualization.test_connection()
     if result['status'] == 'Failed':
         raise HTTPException(status_code=500, detail=result)
@@ -51,10 +45,7 @@ async def test_connection():
 
 @app.get("/api/stats")
 async def get_stats():
-    """
-    Get summary statistics about the database.
-    Returns counts of drugs, rats, sessions, etc.
-    """
+
     try:
         result = visualization.get_database_stats()
         return result
@@ -66,10 +57,7 @@ async def get_stats():
 
 @app.get("/api/validate-data")
 async def validate_data():
-    """
-    Validate that database has required data for visualizations.
-    Checks data completeness and relationships.
-    """
+
     try:
         result = visualization.validate_data()
         return result
@@ -81,9 +69,6 @@ async def validate_data():
 
 @app.get("/api/drugs")
 async def get_drugs():
-    """
-    Get list of all drugs in the database.
-    """
     try:
         result = visualization.get_drugs_list()
         return result
@@ -95,9 +80,6 @@ async def get_drugs():
 
 @app.get("/api/brain-regions")
 async def get_brain_regions():
-    """
-    Get list of all brain regions in the database.
-    """
     try:
         result = visualization.get_brain_regions_list()
         return result
@@ -112,9 +94,6 @@ async def get_brain_regions():
 # ===== Health Check =====
 @app.get("/health")
 async def health_check():
-    """
-    Simple health check endpoint.
-    """
     return {
         "status": "healthy",
         "message": "Szechtman Lab API is running"
