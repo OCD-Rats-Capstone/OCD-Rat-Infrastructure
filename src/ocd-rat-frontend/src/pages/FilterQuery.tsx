@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Trash2, Plus } from 'lucide-react';
 
@@ -21,6 +22,7 @@ export function Filter() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<unknown[]>([]);
+  const [CsvChecked, SetCsvChecked] = useState(false);
 
   const operators: Array<'>' | '=' | '<' | '>=' | '<='> = ['>', '=', '<', '>=', '<='];
 
@@ -58,7 +60,9 @@ export function Filter() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ filters: activeFilters }),
+        body: JSON.stringify({ filters: activeFilters,
+                               CsvChecked: CsvChecked,
+        }),
       });
 
       if (!response.ok) {
@@ -165,6 +169,18 @@ export function Filter() {
           >
             Clear All
           </Button>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="downloadCsv"
+              checked={CsvChecked}
+              onCheckedChange={(val) => SetCsvChecked(val === true)}
+              />
+            <label htmlFor="downloadCsv" className="text-sm font-medium leading-none">
+              Download Relevant CSVs
+            </label>
+          </div>
+          
         </div>
       </Card>
 
