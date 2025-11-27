@@ -119,7 +119,7 @@ function BrainLesionDrugViz() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:3001/api/brain-lesion-data');
+        const response = await fetch('http://localhost:8000/api/brain-lesion-data');
         
         if (!response.ok) {
           throw new Error(`Server returned ${response.status}: ${response.statusText}`);
@@ -131,20 +131,17 @@ function BrainLesionDrugViz() {
         if (result.success && result.data) {
           if (result.data.length === 0) {
             setError('No data found in database. Please check if histology results are linked to active drugs.');
-            setData(sampleData);
           } else {
             setData(result.data);
             setError(null);
-            console.log(`✅ Loaded ${result.drug_count} drugs with ${result.total_sessions} sessions`);
+            console.log(`Loaded ${result.drug_count} drugs with ${result.total_sessions} sessions`);
           }
         } else {
           throw new Error(result.error || 'Invalid response format');
         }
       } catch (err: any) {
-        console.error('❌ Error fetching data:', err);
+        console.error('Error fetching data:', err);
         setError(err.message);
-        // Fallback to sample data
-        setData(sampleData);
       } finally {
         setLoading(false);
       }
@@ -152,45 +149,6 @@ function BrainLesionDrugViz() {
     
     fetchData();
   }, []);
-  
-  const sampleData: DrugData[] = [
-    {
-      drug_name: "Quinpirole",
-      drug_abbreviation: "QNP",
-      sessions: [
-        { left_damage: 45, right_damage: 52, region: "Nucleus Accumbens", rat_id: "R001" },
-        { left_damage: 38, right_damage: 41, region: "Nucleus Accumbens", rat_id: "R002" },
-        { left_damage: 55, right_damage: 48, region: "Nucleus Accumbens", rat_id: "R003" },
-      ]
-    },
-    {
-      drug_name: "Amphetamine",
-      drug_abbreviation: "AMPH",
-      sessions: [
-        { left_damage: 62, right_damage: 58, region: "Striatum", rat_id: "R004" },
-        { left_damage: 71, right_damage: 68, region: "Striatum", rat_id: "R005" },
-        { left_damage: 49, right_damage: 54, region: "Striatum", rat_id: "R006" },
-      ]
-    },
-    {
-      drug_name: "Saline",
-      drug_abbreviation: "SAL",
-      sessions: [
-        { left_damage: 15, right_damage: 18, region: "Prefrontal Cortex", rat_id: "R007" },
-        { left_damage: 22, right_damage: 20, region: "Prefrontal Cortex", rat_id: "R008" },
-        { left_damage: 12, right_damage: 16, region: "Prefrontal Cortex", rat_id: "R009" },
-      ]
-    },
-    {
-      drug_name: "Haloperidol",
-      drug_abbreviation: "HAL",
-      sessions: [
-        { left_damage: 35, right_damage: 42, region: "Basolateral Amygdala", rat_id: "R010" },
-        { left_damage: 28, right_damage: 33, region: "Basolateral Amygdala", rat_id: "R011" },
-        { left_damage: 41, right_damage: 38, region: "Basolateral Amygdala", rat_id: "R012" },
-      ]
-    },
-  ];
 
   const aggregatedData = data.map((drug) => {
     const avgLeft = drug.sessions.reduce((sum, s) => sum + s.left_damage, 0) / drug.sessions.length;
@@ -227,12 +185,21 @@ function BrainLesionDrugViz() {
           region: s.region
         })) || [];
 
-  const drugColors: Record<string, string> = {
-    'QNP': '#3b82f6',
-    'AMPH': '#ef4444',
-    'SAL': '#10b981',
-    'HAL': '#f59e0b'
+  // Generate colors dynamically for all drugs
+  const generateColor = (index: number) => {
+    const colors = [
+      '#3b82f6', '#ef4444', '#10b981', '#f59e0b', 
+      '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16',
+      '#f97316', '#6366f1', '#14b8a6', '#a855f7',
+      '#fb923c', '#22d3ee', '#4ade80', '#facc15'
+    ];
+    return colors[index % colors.length];
   };
+
+  const drugColors: Record<string, string> = {};
+  data.forEach((drug, index) => {
+    drugColors[drug.drug_abbreviation] = generateColor(index);
+  });
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
@@ -286,13 +253,13 @@ function BrainLesionDrugViz() {
               </p>
               <p className="text-sm text-yellow-800 mb-2">{error}</p>
               <p className="text-xs text-yellow-700">
-                Showing sample data. To see real data:
+                To connect to your data:
               </p>
               <ul className="text-xs text-yellow-700 list-disc list-inside mt-1">
                 <li>Ensure PostgreSQL is running</li>
-                <li>Start backend server: <code className="bg-yellow-100 px-1 rounded">node server.js</code></li>
-                <li>Check database credentials in server.js</li>
-                <li>Visit <a href="http://localhost:3001/api/test-connection" target="_blank" className="underline">http://localhost:3001/api/test-connection</a></li>
+                <li>Start backend server: <code className="bg-yellow-100 px-1 rounded">python app.py</code></li>
+                <li>Check database credentials in visualization.py</li>
+                <li>Visit <a href="http://localhost:8000/api/test-connection" target="_blank" className="underline">http://localhost:8000/api/test-connection</a></li>
               </ul>
             </div>
           </div>
@@ -392,12 +359,12 @@ function BrainLesionDrugViz() {
               <Legend />
               
               {selectedDrug === 'all' ? (
-                Object.keys(drugColors).map(drug => (
+                data.map((drugData) => (
                   <Scatter
-                    key={drug}
-                    name={drug}
-                    data={scatterData.filter((d) => d.drug === drug)}
-                    fill={drugColors[drug]}
+                    key={drugData.drug_abbreviation}
+                    name={drugData.drug_abbreviation}
+                    data={scatterData.filter((d) => d.drug === drugData.drug_abbreviation)}
+                    fill={drugColors[drugData.drug_abbreviation]}
                   />
                 ))
               ) : (
