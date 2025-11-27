@@ -5,6 +5,8 @@ import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Trash2, Plus } from 'lucide-react';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 export interface FilterItem {
   id: string;
   field: string;
@@ -14,8 +16,11 @@ export interface FilterItem {
 
 export function Filter() {
   const [filters, setFilters] = useState<FilterItem[]>([
-    { id: '1', field: 'id', operator: '=', value: '' }
+    { id: '1', field: '', operator: '=', value: '' }
   ]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [results, setResults] = useState<unknown[]>([]);
 
   const operators: Array<'>' | '=' | '<' | '>=' | '<='> = ['>', '=', '<', '>=', '<='];
 
@@ -36,14 +41,47 @@ export function Filter() {
     ));
   };
 
-  const handleApplyFilters = () => {
+  const handleApplyFilters = async () => {
     const activeFilters = filters.filter(f => f.field && f.value);
-    console.log('Applying filters:', activeFilters);
-    // TODO: Send filters to backend
+    
+    if (activeFilters.length === 0) {
+      setError('Please enter at least one filter');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/filters`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ filters: activeFilters }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `API error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      setResults(data);
+      console.log('Filter results:', data);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to apply filters';
+      setError(errorMessage);
+      console.error('Error applying filters:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleClearFilters = () => {
-    setFilters([{ id: '1', field: 'id', operator: '=', value: '' }]);
+    setFilters([{ id: '1', field: '', operator: '=', value: '' }]);
+    setResults([]);
+    setError(null);
   };
 
   return (
@@ -114,11 +152,11 @@ export function Filter() {
             className="flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            Add FilterItem
+            Add Filter
           </Button>
           
-          <Button onClick={handleApplyFilters} className="flex-1">
-            Apply Filters
+          <Button onClick={handleApplyFilters} className="flex-1" disabled={loading}>
+            {loading ? 'Loading...' : 'Apply Filters'}
           </Button>
 
           <Button
@@ -130,6 +168,13 @@ export function Filter() {
         </div>
       </Card>
 
+      {error && (
+        <Card className="w-full max-w-2xl p-4 mt-4 bg-red-50 border-red-200">
+          <p className="text-red-800 font-semibold">Error</p>
+          <p className="text-red-700">{error}</p>
+        </Card>
+      )}
+
       <div className="mt-8 text-sm text-muted-foreground max-w-2xl">
         <p className="font-semibold mb-2">Tips:</p>
         <ul className="list-disc list-inside space-y-1">
@@ -139,6 +184,36 @@ export function Filter() {
           <li>Click Apply Filters to execute the query</li>
         </ul>
       </div>
+
+      {results.length > 0 && (
+        <Card className="w-full p-6 mt-8">
+          <h2 className="text-2xl font-semibold mb-6">Results ({results.length})</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="bg-gray-100 border-b-2 border-gray-300">
+                  {Object.keys(results[0] as Record<string, unknown>).map((key) => (
+                    <th key={key} className="text-left py-3 px-4 font-semibold text-gray-700">
+                      {key}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {results.map((row, idx) => (
+                  <tr key={idx} className="border-b border-gray-200 hover:bg-blue-50 transition-colors">
+                    {Object.values(row as Record<string, unknown>).map((val, vidx) => (
+                      <td key={vidx} className="py-3 px-4 text-gray-800">
+                        {String(val)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
     </div>
   );
 }

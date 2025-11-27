@@ -1,7 +1,8 @@
-
+from pydantic import BaseModel
+import test as test
+import filters as filters_module
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-import test as test
 import visualization
 
 app = FastAPI()
@@ -13,6 +14,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+class FilterItem(BaseModel):
+    id: str
+    field: str
+    operator: str
+    value: str
+
+class FilterRequest(BaseModel):
+    filters: list[FilterItem]
 
 @app.get("/")
 async def root(query_type: str = "NLP", text: str = "select all records where the rat id is equal to 8"):
@@ -91,10 +101,20 @@ async def get_brain_regions():
 
 # Run with: fastapi dev app.py
 
-# ===== Health Check =====
+#  Health Check
 @app.get("/health")
 async def health_check():
     return {
         "status": "healthy",
         "message": "Szechtman Lab API is running"
     }
+@app.post("/filters")
+async def apply_filters(request: FilterRequest):
+    """Apply filters to the dataset using the filters module"""
+    try:
+        
+        df = filters_module.main(request.filters)
+        jsonified = df.to_dict(orient='records')
+        return jsonified
+    except Exception as e:
+        return {"error": str(e)}
