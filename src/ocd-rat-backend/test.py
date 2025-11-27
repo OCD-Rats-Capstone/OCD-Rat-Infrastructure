@@ -8,7 +8,6 @@ from urllib.request import urlretrieve
 #### Set API KEY, Enter secret key ###
 #os.environ['OPENAI_API_KEY']
 
-import pyodbc
 import psycopg2
 from openai import OpenAI
 
