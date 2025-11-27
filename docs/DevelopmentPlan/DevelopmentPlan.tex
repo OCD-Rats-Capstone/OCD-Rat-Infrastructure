@@ -176,18 +176,27 @@ What is the main risk, or risks, for the success of your project?  What will you
 demonstrate during your proof of concept demonstration to convince yourself that
 you will be able to overcome this risk?
 
-\par{The main risk arises when dealing with the integration and management of the public OCD rat data set with our application.
- The data set is quite large and heterogeneous, with approximately 20,000 trials worth of data contaning video recordings, trajectory data, 
- and detailed metadata corresponding to the trials. Thus, the main risk stems from our system architecture and database design. 
- If our overall architecture proves to be inadequate, we risk having poor performance in querying and loading data, as well as incorrect 
- and inconsistent results in our natural language querying and when integrating related complex data types. \newline \indent
- Our proof of concept will address these risks by demonstrating that data from a representative subset of the dataset, 
- containing roughly 1000 trials, can be queried and visualized in a manner that is both efficient and user-friendly. 
- We will specifically demonstrate that trial data can be filtered based on metadata corresponding to experimental variables, videos 
- can be synchronized with their corresponding trajectories, all of which can be done through a simple Minimal Viable Product (MVP) 
- user interface. Implementing these features on a small scale will demonstrate evidence that our design will perform and 
- be consistent at scale, and most importantly will lay the foundations to upscale to the full data set while supporting 
- natural language querying.}
+\par{The main risk arises when dealing with the integration and management of the public OCD rat data set with our application. 
+The risk comes from availability of the Federated Research Data Repository (FRDR) and its reliability throughout the project. 
+FRDR represents a single external point of dependency, and any outages, maintenance periods, API changes, or access restrictions 
+could disrupt our ability to retrieve and update dataset files. In addition, large-scale data transfers depend heavily on network 
+bandwidth and FRDR’s download performance, meaning that slowdowns or throttling on their end would directly affect our workflow, 
+system responsiveness, and our ability to maintain consistent development and testing environments. These uncertainties introduce the 
+risk of delays in preprocessing, synchronization challenges across different development machines, and potential version mismatches 
+if updated data becomes temporarily inaccessible. Furthermore, we risk having poor performance in querying, loading, and downloading the data set as it is large and heterogeneous, with 
+approximately 20,000 trials worth of data contaning video recordings, trajectory data, and detailed metadata corresponding to the trials. The last risk would be incorrect 
+and inconsistent results in our natural language querying and when integrating related complex data types. \newline \indent
+
+
+Our proof of concept will address these risks by demonstrating that data from a representative subset of the dataset 
+can be queried and visualized in a manner that is both efficient and user-friendly. We will specifically demonstrate 
+that trial data can be filtered based on metadata corresponding to experimental variables, rendered into basic data 
+visualizations, accessed through NLP-generated SQL queries, and supported by an improved and intuitive user interface, 
+all of which will be delivered through a simple Minimal Viable Product (MVP). Implementing these features on a small 
+scale will provide evidence that our design will perform reliably and consistently at full scale, and most importantly, 
+will establish a strong foundation for expanding to the full dataset while supporting robust natural language querying.
+}
+
 
 \section{Expected Technology}
 
