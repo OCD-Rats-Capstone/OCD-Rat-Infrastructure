@@ -184,20 +184,19 @@ bandwidth and FRDR’s download performance, meaning that slowdowns or throttlin
 system responsiveness, and our ability to maintain consistent development and testing environments. These uncertainties introduce the 
 risk of delays in preprocessing, synchronization challenges across different development machines, and potential version mismatches 
 if updated data becomes temporarily inaccessible. Furthermore, we risk having poor performance in querying, loading, and downloading the data set as it is large and heterogeneous, with 
- approximately 20,000 trials worth of data contaning video recordings, trajectory data, and detailed metadata corresponding to the trials. The last risk would be incorrect 
- and inconsistent results in our natural language querying and when integrating related complex data types. \newline \indent
+approximately 20,000 trials worth of data contaning video recordings, trajectory data, and detailed metadata corresponding to the trials. The last risk would be incorrect 
+and inconsistent results in our natural language querying and when integrating related complex data types. \newline \indent
 
- Our proof of concept will address these risks by demonstrating that data from a representative subset of the dataset, 
- containing roughly REMOVE:1000 trials, can be queried and visualized in a manner that is both efficient and user-friendly. 
- We will specifically demonstrate that trial data can be filtered based on metadata corresponding to experimental variables, 
- 
- Rendering basic data visualizations
- Using NLP to create SQL queries
- 
- , all of which can be done through a simple Minimal Viable Product (MVP) 
- user interface. Implementing these features on a small scale will demonstrate evidence that our design will perform and 
- be consistent at scale, and most importantly will lay the foundations to upscale to the full data set while supporting 
- natural language querying.}
+
+Our proof of concept will address these risks by demonstrating that data from a representative subset of the dataset 
+can be queried and visualized in a manner that is both efficient and user-friendly. We will specifically demonstrate 
+that trial data can be filtered based on metadata corresponding to experimental variables, rendered into basic data 
+visualizations, accessed through NLP-generated SQL queries, and supported by an improved and intuitive user interface, 
+all of which will be delivered through a simple Minimal Viable Product (MVP). Implementing these features on a small 
+scale will provide evidence that our design will perform reliably and consistently at full scale, and most importantly, 
+will establish a strong foundation for expanding to the full dataset while supporting robust natural language querying.
+}
+
 
 \section{Expected Technology}
 
