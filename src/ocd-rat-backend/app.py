@@ -13,14 +13,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-'''
+
 @app.get("/")
 async def root(query_type: str = "NLP", text: str = "select all records where the rat id is equal to 8"):
 
     df = test.main(query_type,text)
     jsonified = df.to_dict(orient='records')
     return jsonified
-'''
+
 # ===== Visualization Endpoints =====
 
 @app.get("/api/brain-lesion-data")
