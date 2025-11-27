@@ -1,85 +1,135 @@
 # RatBat 2
 
-Developer Names: Aidan Goodyer, Jeremy Orr, Leo Vugert, Nathan Perry, Timothy Pokanai
+> A research data platform for OCD behavioral studies in rats
 
-Date of project start: September 13th, 2025
+**Team Members:** Aidan Goodyer, Jeremy Orr, Leo Vugert, Nathan Perry, Timothy Pokanai  
+**Project Start:** September 13th, 2025
+
+---
 
 ## Introduction
 
-Rat Bat 2 is a research data platform designed to support research based on behavioral trials of rats, with a focus on obsessive-compulsive disorder (OCD)–related behavioural studies. The primary goal of the system is to enable researchers to explore, query, analyze, and visualize behavioural trial datasets in a flexible, secure, and reproducible environment.
+**RatBat 2** is a comprehensive research data platform designed to support behavioral studies of rats with a focus on obsessive-compulsive disorder (OCD) research. The system enables researchers to explore, query, analyze, and visualize behavioral trial datasets in a flexible, secure, and reproducible environment.
 
-This project was initiated as part of our capstone commitment to build a web application with an infrastructure that allows easy ingestion of our supervisor's, Dr. Henry Szechtman and Dr. Anna Dvorkin-Gheva, datasets, normalization of metadata and schema, and subsequent analysis and visualization. We want OCD-Rat-System to serve as a unified platform where:
+### Key Goals
+
+Built as a capstone project in collaboration with **Dr. Henry Szechtman** and **Dr. Anna Dvorkin-Gheva**, this platform serves as a unified solution for:
+
+- Easy data ingestion from multiple sources
+- Metadata normalization and schema standardization
+- Advanced querying and filtering capabilities
+- Data visualization and analysis tools
+- Secure access and reproducible workflows
+
+---
 
 ## Project Structure
 
-The folders and files for this project are as follows:
+```
+OCD-Rat-Infrastructure/
+├── docs/              # Documentation and guides
+├── refs/              # Reference materials and papers
+├── src/
+│   ├── ocd-rat-backend/    # FastAPI backend
+│   └── ocd-rat-frontend/   # React frontend
+├── test/              # Test cases
+└── README.md          # This file
+```
 
-docs - Documentation for the project
-refs - Reference material used for the project, including papers
-src - Source code
-test - Test cases
-etc.
+---
 
-## Project Setup
+## Getting Started
 
-Follow these steps exactly in order to start the POC for Mac:
+Follow these steps to set up the development environment on macOS.
 
-### Local database setup
+### Prerequisites
 
+- Node.js (for frontend)
+- Python 3.x (for backend)
+- PostgreSQL (for database)
+- Homebrew (for macOS package management)
+
+---
+
+## Setup Instructions
+
+### Local Database Setup
+
+Install and start PostgreSQL:
+
+```bash
 brew install postgres
-
 brew services restart postgresql
-
 psql postgres
-
 psql -U postgres
-
 createdb postgres
+```
 
+Download the database export from [SharePoint](https://mcmasteru365-my.sharepoint.com/personal/szechtma_mcmaster_ca/_layouts/15/onedrive.aspx?id=%2Fpersonal%2Fszechtma%5Fmcmaster%5Fca%2FDocuments%2FCapstoneProject2024%2D25%2FPostgreSQL%2FExported%5Fszechtman%5Flab%5Fdatabase&viewid=4971addc%2Dbc56%2D49ba%2D8ac1%2Da8ad91132272&csf=1&web=1&e=r4ngWU&CID=82c9bc55%2D11d8%2D464d%2Daf27%2D22085573ed7f&FolderCTID=0x0120000D047C8EA8138E4F8A5F6E0E8106AF73&view=0)
 
+Import the schema:
 
-Downlaod these files
-https://mcmasteru365-my.sharepoint.com/personal/szechtma_mcmaster_ca/_layouts/15/onedrive.aspx?id=%2Fpersonal%2Fszechtma%5Fmcmaster%5Fca%2FDocuments%2FCapstoneProject2024%2D25%2FPostgreSQL%2FExported%5Fszechtman%5Flab%5Fdatabase&viewid=4971addc%2Dbc56%2D49ba%2D8ac1%2Da8ad91132272&csf=1&web=1&e=r4ngWU&CID=82c9bc55%2D11d8%2D464d%2Daf27%2D22085573ed7f&FolderCTID=0x0120000D047C8EA8138E4F8A5F6E0E8106AF73&view=0
-
-
+```bash
 psql -U postgres -d postgres -f OneDrive_1_2025-11-18/szechtman_lab_schema.sql
+```
 
-DEBUG
-If this doesnt work go into 
-\l
-\du
-- with du see what users you have, use the one us see
-DEBUG
+**Troubleshooting:**
+- List databases: `\l`
+- List users: `\du`
+- Select appropriate user if needed
 
-Should work
+### Backend Setup
 
-### Back end setup
+Create and activate virtual environment:
 
-Then make your own env 
-
+```bash
+cd src/ocd-rat-backend
 python3 -m venv venv
-
 source venv/bin/activate
+```
 
+Install dependencies:
+
+```bash
 pip install -r requirements.txt
+```
 
-Go here
+Run the server:
 
-https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/pull/332
+```bash
+fastapi dev app.py
+```
 
+The API will be available at `http://localhost:8000`
 
-Run this: fastapi dev app.py 
+For detailed API documentation, check [Pull Request #332](https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/pull/332)
 
-Go to local server that is shows you
+### Frontend Setup
 
+Install Node.js:
 
-
-### Front end setup
-
+```bash
 brew install node
+```
 
-npm run dev 
+Install dependencies:
 
-npm install -g vite   
+```bash
+cd src/ocd-rat-frontend
+npm install
+npm install -g vite
+```
 
-npm run dev    
+Run the development server:
+
+```bash
+npm run dev
+```
+
+The frontend will be available at `http://localhost:5173` (or as shown in your terminal)
+
+---
+
+## License
+
+This project is licensed under the [MIT License](LICENSE)
