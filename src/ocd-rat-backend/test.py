@@ -7,7 +7,6 @@ import os
 #### Set API KEY, Enter secret key ###
 #os.environ['OPENAI_API_KEY']
 
-import pyodbc
 import psycopg2
 from openai import OpenAI
 
@@ -145,6 +144,7 @@ def main(query_type,query_string):
                 print("PostgreSQL connection closed.")
 
     return df
+
 
 
 

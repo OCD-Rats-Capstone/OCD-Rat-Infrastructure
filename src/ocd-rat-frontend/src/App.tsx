@@ -9,6 +9,7 @@ import { Experiments } from "./pages/Experiments";
 import { About } from "./pages/About";
 import { Query } from "./pages/Query";
 import { Filter } from "./pages/FilterQuery";
+import { DataVisualization } from "./pages/DataVisualization";
 
 <Route path="*" element={<NotFound />} />
 
@@ -26,6 +27,7 @@ function App() {
           <Route path="/experiments" element={<Experiments />} />
           <Route path="/about" element={<About />} />
           <Route path="/filter" element={<Filter />} />
+          <Route path="/visualize" element={<DataVisualization />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
