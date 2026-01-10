@@ -1,13 +1,12 @@
 services:
   db:
-    image: postgres:18
+    build: ./src/ocd-rat-backend/db
     restart: always
     environment:
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-Gouda}
       POSTGRES_DB: ${DB_NAME:-postgres}
     volumes:
-      - ./src/ocd-rat-backend/db:/docker-entrypoint-initdb.d
       - postgres_data:/var/lib/postgresql
     ports:
       - "5433:5432"
@@ -24,10 +23,27 @@ services:
       - DB_NAME=${DB_NAME:-postgres}
       - DB_PORT=5432
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - LLM_BASE_URL=${LLM_BASE_URL}
+      - LLM_MODEL=${LLM_MODEL}
     depends_on:
-      - db
+      db:
+        condition: service_started
+      ollama:
+        condition: service_started
+        required: false
     env_file:
       - .env
+
+  ollama:
+    profiles: ["llm"]
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+      - ./src/ollama/start.sh:/start.sh
+    entrypoint: ["/bin/bash", "/start.sh"]
+    restart: always
 
   # Frontend service - requires Dockerfile in src/ocd-rat-frontend
   frontend:
@@ -40,3 +56,4 @@ services:
 
 volumes:
   postgres_data:
+  ollama_data:
