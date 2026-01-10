@@ -2,7 +2,11 @@
 # import xmltodict, json
 import pandas as pd
 import numpy as np
+import numpy as np
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 #### Set API KEY, Enter secret key ###
 #os.environ['OPENAI_API_KEY']
@@ -13,7 +17,7 @@ from openai import OpenAI
 
 
 ### Init NLP stuff ###
-client = OpenAI()
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 nlp_message = "Note the following query: SELECT * FROM ((((((((experimental_sessions as E1 LEFT" \
 " OUTER JOIN rats as R1 ON R1.rat_id = E1.rat_id) " \
 "LEFT OUTER JOIN brain_manipulations as B1 ON B1.rat_id = E1.rat_id) LEFT OUTER JOIN testers as T1 ON T1.tester_id = E1.tester_id) " \
@@ -88,11 +92,11 @@ def main(query_type,query_string):
     try:
     ### Connection to your local postgres SQL thing (may need to set own password)###
         cnxn = psycopg2.connect(
-                host="localhost",
-                database="postgres",
-                user="postgres",
-                password="Gouda",
-                port=5432
+                host=os.getenv("DB_HOST", "localhost"),
+                database=os.getenv("DB_NAME", "postgres"),
+                user=os.getenv("DB_USER", "postgres"),
+                password=os.getenv("DB_PASSWORD", ""),
+                port=os.getenv("DB_PORT", "5432")
             )
         print("Connection to PostgreSQL successful!")
 

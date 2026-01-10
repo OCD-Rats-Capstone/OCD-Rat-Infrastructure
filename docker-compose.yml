@@ -1,0 +1,42 @@
+services:
+  db:
+    image: postgres:18
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-Gouda}
+      POSTGRES_DB: ${DB_NAME:-postgres}
+    volumes:
+      - ./src/ocd-rat-backend/db:/docker-entrypoint-initdb.d
+      - postgres_data:/var/lib/postgresql
+    ports:
+      - "5433:5432"
+
+  backend:
+    build: ./src/ocd-rat-backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_HOST=db
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-Gouda}
+      - DB_NAME=${DB_NAME:-postgres}
+      - DB_PORT=5432
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    depends_on:
+      - db
+    env_file:
+      - .env
+
+  # Frontend service - requires Dockerfile in src/ocd-rat-frontend
+  frontend:
+    build: ./src/ocd-rat-frontend
+    restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

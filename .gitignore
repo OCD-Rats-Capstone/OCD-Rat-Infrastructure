@@ -280,3 +280,4 @@ TSWLatexianTemp*
 
 #ignore pdfs 
 *.pdf
+.env

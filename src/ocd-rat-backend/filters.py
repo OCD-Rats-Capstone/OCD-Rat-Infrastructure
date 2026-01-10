@@ -2,8 +2,11 @@
 # import xmltodict, json
 import pandas as pd
 import numpy as np
+import numpy as np
 import os
+from dotenv import load_dotenv
 
+load_dotenv()
 #### Set API KEY, Enter secret key ###
 # os.environ['default_value']
 
@@ -83,11 +86,11 @@ def main(filters_json):
     try:
     ### Connection to your local postgres SQL thing (may need to set own password)###
         cnxn = psycopg2.connect(
-                host="localhost",
-                database="postgres",
-                user="jer",
-                password="",
-                port=5432
+                host=os.getenv("DB_HOST", "localhost"),
+                database=os.getenv("DB_NAME", "postgres"),
+                user=os.getenv("DB_USER", "postgres"),
+                password=os.getenv("DB_PASSWORD", ""),
+                port=os.getenv("DB_PORT", "5432")
             )
         print("Connection to PostgreSQL successful!")
 
