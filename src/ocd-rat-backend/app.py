@@ -8,7 +8,7 @@ Route handlers are organized in the routers/ directory.
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import nlp, filters
+from routers import nlp, filters, ask
 
 # Create FastAPI application
 app = FastAPI(
@@ -29,6 +29,7 @@ app.add_middleware(
 # Include routers
 app.include_router(nlp.router)
 app.include_router(filters.router)
+app.include_router(ask.router)
 
 
 @app.get("/")

@@ -17,20 +17,76 @@ export function Query() {
     const showIntroMessage = messages?.length == 0;
 
     const fetchData = async (Usertext: string) => {
-      try{
-        const params = {
-            query_type: 'NLP',
-            text: Usertext
-        };
-        const url = new URL('http://localhost:8000');
-        url.search = new URLSearchParams(params).toString();
+        try {
+            const params = {
+                query_type: 'NLP',
+                text: Usertext
+            };
+            const url = new URL('http://localhost:8000/nlp/');
+            url.search = new URLSearchParams(params).toString();
 
-        const response = await fetch(url)
-        return await response.json()
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
+            const response = await fetch(url)
+            return await response.json()
+        } catch (error) {
+            console.error("Error fetching data:", error);
         }
+    }
+
+    const fetchAskStream = async (question: string) => {
+        try {
+            const response = await fetch('http://localhost:8000/ask/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question })
+            });
+
+            if (!response.ok || !response.body) {
+                throw new Error('Failed to fetch stream');
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+
+            // Create bot message that we'll update
+            const botMessageId = new Date().toISOString();
+            const botMessage: Message = {
+                id: botMessageId,
+                text: "",
+                sender: 'bot'
+            };
+
+            setMessages(prev => [...prev, botMessage]);
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n');
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const data = line.slice(6);
+                        if (data === '[DONE]') return;
+
+                        // Update the bot message with new token
+                        setMessages(prev => prev.map(msg =>
+                            msg.id === botMessageId
+                                ? { ...msg, text: msg.text + data }
+                                : msg
+                        ));
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("Error streaming ask:", error);
+            setMessages(prev => [...prev, {
+                id: new Date().toISOString(),
+                text: "Error: Failed to get response",
+                sender: 'bot'
+            }]);
+        }
+    };
 
     const dummyBotResponse = async () => {
         const botResponse: Message = {
@@ -49,19 +105,28 @@ export function Query() {
 
     const handleSendMessage = async (messageText: string) => {
 
-        const data = await fetchData(messageText);
-        setTableData(data);
-
         const newMessage: Message = {
-            
             id: new Date().toISOString(),
             text: messageText,
             sender: 'user'
         };
 
-
         setMessages(prevMessages => [...prevMessages, newMessage]);
-        dummyBotResponse();
+
+        // Simple heuristic: if contains SQL keywords, use NLP endpoint
+        const sqlKeywords = ['show', 'select', 'get', 'find', 'list', 'count', 'how many'];
+        const isLikelySQL = sqlKeywords.some(kw =>
+            messageText.toLowerCase().includes(kw)
+        );
+
+        if (isLikelySQL) {
+            const data = await fetchData(messageText);
+            setTableData(data);
+            dummyBotResponse();
+        } else {
+            setTableData(null); // Hide table for Ask mode
+            await fetchAskStream(messageText);
+        }
     }
 
 
@@ -115,39 +180,41 @@ export function Query() {
             <div className="flex w-1/2 min-w-80 shrink-0 my-4 ">
                 <QueryInput onSendMessage={handleSendMessage} />
             </div>
-            {tableData && (
-  <div style={{ marginTop: "2rem", overflowX: "auto",minWidth: "100%", whiteSpace: "nowrap",
-    width: "100vw",
-        maxWidth: "none", 
-        marginLeft: "calc(50% - 50vw)",
-  }}>
-    <h2>Results</h2>
-  
-    <table cellPadding="6" style={{borderCollapse: "collapse" }}>
-      <thead>
-        <tr>
-          {Object.keys(tableData[0]).map(col => (
-            <th style={{ border: "1px solid #ccc" }} key={col}>{col}</th>
-          ))}
-        </tr>
-      </thead>
+            {tableData && tableData.length > 0 && tableData[0] && (
+                <div style={{
+                    marginTop: "2rem", overflowX: "auto", minWidth: "100%", whiteSpace: "nowrap",
+                    width: "100vw",
+                    maxWidth: "none",
+                    marginLeft: "calc(50% - 50vw)",
+                }}>
+                    <h2>Results</h2>
 
-      <tbody>
-        {tableData.map((row, idx) => (
-          <tr key={idx}>
-            {Object.values(row).map((val, i) => (
-              <td style={{ border: "1px solid #ccc" }} key={i}>{String(val)}</td>
-            ))}
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>)}
+                    <table cellPadding="6" style={{ borderCollapse: "collapse" }}>
+                        <thead>
+                            <tr>
+                                {Object.keys(tableData[0]).map(col => (
+                                    <th style={{ border: "1px solid #ccc" }} key={col}>{col}</th>
+                                ))}
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {tableData.map((row, idx) => (
+                                <tr key={idx}>
+                                    {Object.values(row).map((val, i) => (
+                                        <td style={{ border: "1px solid #ccc" }} key={i}>{String(val)}</td>
+                                    ))}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>)}
+
 
 
         </div>
 
-        
+
     );
 }
 

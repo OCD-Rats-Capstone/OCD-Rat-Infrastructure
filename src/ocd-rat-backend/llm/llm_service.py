@@ -49,5 +49,47 @@ class LLMService:
             print(f"Error generating SQL: {e}")
             return "-- Error generating query"
 
+    def ask_question(self, user_question: str):
+        """
+        Generator that yields tokens for a general conversational query.
+        
+        Args:
+            user_question: The user's question about the research or tool
+            
+        Yields:
+            str: Tokens as they arrive from the LLM
+        """
+        system_prompt = """You are a helpful research assistant for the Szechtman Lab's OCD rat behavioral database.
+
+You can help users:
+- Understand the research project and experimental design
+- Learn how to use the query tool
+- Interpret experimental results
+- Understand behavioral paradigms and drug treatments
+- Explain database schema and available data
+
+Be concise, friendly, and scientifically accurate. If you don't know something, say so."""
+        
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_question}
+                ],
+                temperature=0.7,  # Higher temperature for conversational responses
+                stream=True
+            )
+            
+            print(f"[Ask] Processing question: {user_question}")
+            for chunk in response:
+                if chunk.choices[0].delta.content is not None:
+                    content = chunk.choices[0].delta.content
+                    yield content
+                    
+        except Exception as e:
+            print(f"Error in ask_question: {e}")
+            yield f"Error: {str(e)}"
+
 # Singleton instance
 llm_service = LLMService()

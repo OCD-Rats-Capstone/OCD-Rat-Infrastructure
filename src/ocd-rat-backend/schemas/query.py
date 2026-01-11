@@ -37,3 +37,8 @@ class FilterItem(BaseModel):
 class FilterRequest(BaseModel):
     """Request body for the /filters endpoint."""
     filters: list[FilterItem]
+
+
+class AskRequest(BaseModel):
+    """Request body for the /ask endpoint."""
+    question: str
