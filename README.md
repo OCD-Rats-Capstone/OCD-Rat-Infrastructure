@@ -57,8 +57,6 @@ OCD-Rat-Infrastructure/
   - [Download for Windows](https://www.docker.com/products/docker-desktop)
   - [Download for Linux](https://docs.docker.com/desktop/install/linux-install/)
 
-That's it! No need to install PostgreSQL, Python, Node.js, or Ollama.
-
 ---
 
 ### Setup Steps
