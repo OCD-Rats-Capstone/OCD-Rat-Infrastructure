@@ -71,6 +71,10 @@ OCD-Rat-Infrastructure/
    ```bash
    # Copy the example .env file
    cp .env.example .env
+
+   # Or
+   # just create a file called .env, this will contain keys, etc.
+
    
    # Edit if needed (defaults work fine)
    # Default password is "Gouda"
