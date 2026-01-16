@@ -3,11 +3,11 @@
 import pandas as pd
 import numpy as np
 import os
+from urllib.request import urlretrieve
 
 #### Set API KEY, Enter secret key ###
 #os.environ['OPENAI_API_KEY']
 
-import pyodbc
 import psycopg2
 from openai import OpenAI
 
@@ -74,8 +74,31 @@ def augment_query(sql_query,extra_sql):
                 sql_query = sql_query + " AND "
             sql_query = sql_query + s
             start_flag = 1
-        sql_query = sql_query + ")"
+        sql_query = sql_query + ") "
     return sql_query
+
+def FRDR_download(cnxn,cursor,file_ids,file_types):
+    temp_dir = "temp"
+    url_query = "SELECT repo_file_url FROM data_file_locations " \
+    "WHERE data_file_id IN %s;"
+    files_tuple = tuple(file_ids)
+    cursor.execute(url_query,(files_tuple,))
+    data = cursor.fetchall()
+    filtered_data = []
+    for item in data:
+        if "https" not in str(item[0]) or ".csv" not in str(item[0]):
+            pass
+        else:
+            filtered_data.append(item[0])
+    if os.path.isdir(temp_dir):
+         os.rmdir(temp_dir)
+
+    os.makedirs(temp_dir)
+    for s in filtered_data:  
+          temp_file_name = str(s).split('/')[-1]
+          urlretrieve(str(s),temp_dir + "/" + temp_file_name)
+    
+        
 
     
 
@@ -134,6 +157,15 @@ def main(query_type,query_string):
         df = df.replace([np.inf, -np.inf], np.nan)
         df = df.fillna("None")
 
+        df = df.truncate(after = 25)
+
+        file_ids = df['data_file_id'].tolist()
+
+
+        ##Uncomment this to activate File download to a temporary directory##
+
+        #FRDR_download(cnxn,cursor,file_ids,'csv')
+
         print(df)
 
     except psycopg2.Error as e:
@@ -145,6 +177,7 @@ def main(query_type,query_string):
                 print("PostgreSQL connection closed.")
 
     return df
+
 
 
 
