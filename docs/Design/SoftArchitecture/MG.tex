@@ -643,20 +643,39 @@ to individual tasks or features, each labeled with priority, category, and assig
 Table~\ref{tab:timeline} summarizes the high-level schedule of the project, organized
 by development phase and major deliverables.
 
+\par{This timeline assumes a four week development period between January 14 and February 11.}
 \begin{table}[h!]
-\centering
 \caption{Project Timeline and Responsibilities}
 \label{tab:timeline}
 \begin{tabular}{|p{2.5cm}|p{5.5cm}|p{3.5cm}|p{2cm}|}
 \hline
 \textbf{Phase} & \textbf{Major Tasks / Deliverables} & \textbf{Responsible Members} & \textbf{Duration} \\ \hline
-\textbf{Week 1--2} & Project setup, environment configuration, and repository initialization. Define database schema draft. & Backend + Database Teams & 2 weeks \\ \hline
-\textbf{Week 3--5} & Develop and test PostgreSQL schema. Implement initial API endpoints for data ingestion and retrieval. & Backend Team & 3 weeks \\ \hline
-\textbf{Week 6--8} & Implement frontend React interface for search and filtering. Integrate with backend API endpoints. & Frontend Team & 3 weeks \\ \hline
-\textbf{Week 9--10} & Implement data visualization and synchronized video playback components. & Frontend + Visualization Teams & 2 weeks \\ \hline
-\textbf{Week 11--12} & Integrate NLP query functionality and improve search capabilities. & NLP + Backend Teams & 2 weeks \\ \hline
-\textbf{Week 13--14} & Conduct system testing, debugging, and performance optimization. Prepare user documentation. & All Members & 2 weeks \\ \hline
-\textbf{Week 15} & Final deployment, demonstration, and report submission. & Entire Team & 1 week \\ \hline
+\textbf{Already Completed} & M2 (Partially Complete), M5, M3 (Partially Complete), M4 (Partially Complete)\newline & Whole Team & NA \\ \hline
+\textbf{Week 1} & 1. Build out a more sophisticated NLP to SQL interpreter (M2)\newline
+                  2. Develop front-end for 'inventory-esque' filter selection where major data attributes
+                  can be mixed and matched and N values for results are given (M3)
+                  & 1. Back-End Team (Nathan, Leo, Tim) \newline
+                    2. Front-End Team (Aidan, Jeremy) & 1 week \\ \hline
+\textbf{Week 2} & 1. Implement 'inventory-esque' filter selection where major attributes
+                  can be mixed and matched and N values for results are given (M2) \newline
+                  2. Handle front-end routing to backend for new UI features. Connect new
+                  query methods to database. Refine download of files from URLs provided by FRDR (M4) \newline
+                  3. Refine data visualization front-end module (M3) \newline
+                  4. Implement further data visualizations on additional significant attributes (M6), (M4) & 
+                  1. Backend-Team (Nathan, Leo, Tim) \newline
+                  2. Backend-Team (Nathan, Leo, Tim) \newline
+                  3. Front-End Team (Aidan, Jeremy)\newline
+                  4. Visualization Team (Leo, Jeremy) & 1 weeks \\ \hline
+\textbf{Week 3} & 1. Testing on various query functionality. User testing on front-end quality\newline
+                  2. Implement data processing pipeline for behavioural metrics (M7) & 
+                  1. Testing Team (Whole Team + Dr.Henry Szechtman) \newline
+                  2. Data Processing Team (Aidan, Nathan) & 1 week \\ \hline
+\textbf{Week 4} & 1. Testing on visualization quality, data processing pipeline validation \newline
+                  2. Implement Authentication and Access Control (M8) \newline
+                  3. Implement Fault and Error Management Module (M9) & 
+                  1. Testing Team (Whole Team + Dr. Henry Szechtman)\newline
+                  2. Backend + Front-End Team (Whole Team) \newline
+                  3. Backend Team (Nathan, Leo, Tim) & 1 week \\ \hline
 \end{tabular}
 \end{table}
 
