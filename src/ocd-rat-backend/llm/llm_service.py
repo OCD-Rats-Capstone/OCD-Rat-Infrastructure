@@ -10,6 +10,13 @@ class LLMService:
             base_url=os.getenv("LLM_BASE_URL", "http://localhost:11434/v1")
         )
         self.model = os.getenv("LLM_MODEL", "qwen2.5-coder:7b")
+        self._system_prompt = None  # Cache for the base system prompt
+
+    def get_system_prompt(self) -> str:
+        """Helper to get the cached system prompt or build it if missing."""
+        if self._system_prompt is None:
+            self._system_prompt = build_system_prompt()
+        return self._system_prompt
 
     def generate_sql(self, user_query: str) -> str:
         """
@@ -24,11 +31,12 @@ class LLMService:
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
-                    {"role": "system", "content": system_prompt},
+                    {"role": "system", "content": self.get_system_prompt()},
                     {"role": "user", "content": user_query}
                 ],
                 temperature=0.1, # Low temperature for deterministic code generation
-                stream=True
+                stream=True,
+                extra_body={"cache_prompt": True}
             )
             
             output = ""
@@ -56,7 +64,7 @@ class LLMService:
         Returns:
             dict with 'rationale' and 'sql' keys
         """
-        system_prompt = build_system_prompt()
+        system_prompt = self.get_system_prompt()
         
         # Enhanced prompt that asks for JSON output with rationale
         enhanced_prompt = system_prompt + """
@@ -79,7 +87,8 @@ Return ONLY the JSON object, no markdown formatting, no code blocks."""
                     {"role": "user", "content": user_query}
                 ],
                 temperature=0.1,
-                stream=True
+                stream=True,
+                extra_body={"cache_prompt": True}
             )
             
             output = ""

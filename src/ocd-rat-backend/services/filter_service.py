@@ -33,6 +33,16 @@ LEFT OUTER JOIN session_data_files AS SDF1 ON SDF1.session_id = E1.session_id
 """
 
 
+# Field mapping from frontend names to database columns
+FIELD_MAPPINGS = {
+    "id": "E1.session_id",
+    "rat": "E1.rat_id",
+    "tester": "E1.tester_id",
+    "apparatus": "E1.apparatus_id",
+    "room": "E1.room_id",
+}
+
+
 def _build_where_clause(filters: List[FilterItem]) -> tuple[str, list]:
     """
     Build a parameterized WHERE clause from filter items.
@@ -47,9 +57,8 @@ def _build_where_clause(filters: List[FilterItem]) -> tuple[str, list]:
     params = []
     
     for f in filters:
-        # Use E1 alias for experimental_sessions fields by default
-        # This maintains backward compatibility with the original behavior
-        field_name = f"E1.{f.field}"
+        # Resolve field name using mapping or default to E1 alias
+        field_name = FIELD_MAPPINGS.get(f.field, f"E1.{f.field}")
         
         if f.operator == "range":
             # Range format is "low$high"
