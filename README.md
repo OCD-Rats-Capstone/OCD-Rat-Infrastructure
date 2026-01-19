@@ -90,6 +90,13 @@ OCD-Rat-Infrastructure/
    **Option B: With LLM support (includes Ollama)**
    ```bash
    docker-compose --profile llm up -d --build
+
+   Note: the start.sh within the src/ollama directory may need to
+   be converted to unix to be compatible with a linux based container. Perform the command:
+
+   dos2unix start.sh
+
+   to make the shell script compatible.
    ```
 
 4. **Access the application**
@@ -136,6 +143,19 @@ docker-compose restart frontend
 | LLM | `ollama` | 11434 | Ollama (optional) |
 
 ---
+
+### Sample .ENV File (Nathan's .env on windows):
+
+DB_HOST=localhost
+DB_USER=postgres
+DB_PASSWORD=Gouda
+DB_NAME=postgres
+DB_PORT=5432
+OPENAI_API_KEY=ollama
+LLM_BASE_URL=http://ollama:11434/v1 (may need to be localhost for some systems)
+LLM_MODEL=qwen2.5-coder:7b
+
+#####
 
 ### Troubleshooting
 
