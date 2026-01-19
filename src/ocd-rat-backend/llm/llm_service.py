@@ -2,6 +2,10 @@
 import os
 from openai import OpenAI
 from .prompt_builder import build_system_prompt
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 class LLMService:
     def __init__(self):
@@ -176,8 +180,9 @@ Be concise, friendly, and scientifically accurate. If you don't know something, 
                     yield content
                     
         except Exception as e:
-            print(f"Error in ask_question: {e}")
-            yield f"Error: {str(e)}"
+            logger.exception("Error in ask_question LLM call")
+            # Yield a generic error message to avoid exposing internal details
+            yield "Error: An internal error occurred."
 
 # Singleton instance
 llm_service = LLMService()

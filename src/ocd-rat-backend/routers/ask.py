@@ -6,8 +6,10 @@ from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 from schemas.query import AskRequest
 from llm.llm_service import llm_service
+import logging
 
 
+logger = logging.getLogger(__name__)
 router = APIRouter(tags=["Ask"])
 
 
@@ -32,7 +34,9 @@ async def ask_question(request: AskRequest):
             # Signal completion
             yield "data: [DONE]\n\n"
         except Exception as e:
-            yield f"data: Error: {str(e)}\n\n"
+            logger.exception("Error while processing ask_question request")
+            # Return a generic error message to the client without exposing internals
+            yield "data: Error: An internal error occurred.\n\n"
             yield "data: [DONE]\n\n"
     
     return StreamingResponse(
