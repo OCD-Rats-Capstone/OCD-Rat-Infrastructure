@@ -40,18 +40,143 @@ OCD-Rat-Infrastructure/
 
 ## Getting Started
 
-Follow these steps to set up the development environment on macOS.
-
-### Prerequisites
-
-- Node.js (for frontend)
-- Python 3.x (for backend)
-- PostgreSQL (for database)
-- Homebrew (for macOS package management)
+**Choose your setup method:**
+- **[Quick Start with Docker](#quick-start-with-docker)** (Recommended) - No local installs required
+- **[Manual Setup](#manual-setup-legacy)** (Legacy) - For development without Docker
 
 ---
 
-## Setup Instructions
+## Quick Start with Docker
+
+**The fastest way to get RatBat 2 running.** This method requires only Docker and works on any platform.
+
+### Prerequisites
+
+- **Docker Desktop** (includes Docker Compose)
+  - [Download for Mac](https://www.docker.com/products/docker-desktop)
+  - [Download for Windows](https://www.docker.com/products/docker-desktop)
+  - [Download for Linux](https://docs.docker.com/desktop/install/linux-install/)
+
+---
+
+### Setup Steps
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure.git
+   cd OCD-Rat-Infrastructure
+   ```
+
+2. **Create environment file** (optional)
+   ```bash
+   # Copy the example .env file
+   cp .env.example .env
+
+   # Or
+   # just create a file called .env, this will contain keys, etc.
+
+   
+   # Edit if needed (defaults work fine)
+   # Default password is "Gouda"
+   ```
+
+3. **Start the application**
+
+   **Option A: Without LLM (faster startup)**
+   ```bash
+   docker-compose up -d --build
+   ```
+
+   **Option B: With LLM support (includes Ollama)**
+   ```bash
+   docker-compose --profile llm up -d --build
+
+   Note: the start.sh within the src/ollama directory may need to
+   be converted to unix to be compatible with a linux based container. Perform the command:
+
+   dos2unix start.sh
+
+   to make the shell script compatible.
+   ```
+
+4. **Access the application**
+   - **Frontend:** http://localhost:3000
+   - **Backend API:** http://localhost:8000
+   - **API Docs:** http://localhost:8000/docs
+   - **Database:** localhost:5433 (if you need direct access)
+
+---
+
+### Common Commands
+
+```bash
+# View logs
+docker-compose logs -f
+
+# View logs for specific service
+docker-compose logs -f backend
+
+# Stop all services
+docker-compose down
+
+# Stop and remove all data (fresh start)
+docker-compose down -v
+
+# Rebuild after code changes
+docker-compose build
+docker-compose up -d
+
+# Restart a specific service
+docker-compose restart backend
+docker-compose restart frontend
+```
+
+---
+
+### What's Running?
+
+| Service | Container | Port | Purpose |
+|---------|-----------|------|---------|
+| Frontend | `frontend` | 3000 | React UI |
+| Backend | `backend` | 8000 | FastAPI server |
+| Database | `db` | 5433 | PostgreSQL with data |
+| LLM | `ollama` | 11434 | Ollama (optional) |
+
+---
+
+### Sample .ENV File (Nathan's .env on windows):
+
+DB_HOST=localhost
+DB_USER=postgres
+DB_PASSWORD=Gouda
+DB_NAME=postgres
+DB_PORT=5432
+OPENAI_API_KEY=ollama
+LLM_BASE_URL=http://ollama:11434/v1 (may need to be localhost for some systems)
+LLM_MODEL=qwen2.5-coder:7b
+
+#####
+
+### Troubleshooting
+
+**Port conflicts:**
+If ports 3000, 8000, or 5433 are already in use, edit `docker-compose.yml` to change the port mappings.
+
+**LLM not responding:**
+The first time you start with `--profile llm`, Ollama needs to download the model (~4GB). Check logs:
+```bash
+docker-compose logs ollama
+```
+
+**Database not initializing:**
+If the database seems empty, check the initialization logs:
+```bash
+docker-compose logs db
+```
+
+---
+
+## Manual Setup (Legacy)
 
 ### Local Database Setup
 

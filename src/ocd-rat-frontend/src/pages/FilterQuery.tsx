@@ -36,18 +36,31 @@ export function Filter() {
   };
 
   const updateFilter = (id: string, key: keyof FilterItem, val: string) => {
-    setFilters(filters.map(f => 
+    setFilters(filters.map(f =>
       f.id === id ? { ...f, [key]: val } : f
     ));
   };
 
   const handleApplyFilters = async () => {
     const activeFilters = filters.filter(f => f.field && f.value);
-    
+
     if (activeFilters.length === 0) {
       setError('Please enter at least one filter');
       return;
     }
+
+    const operatorMap: Record<string, string> = {
+      '=': 'equal',
+      '>': 'gt',
+      '<': 'lt',
+      '>=': 'gte',
+      '<=': 'lte',
+    };
+
+    const mappedFilters = activeFilters.map(f => ({
+      ...f,
+      operator: operatorMap[f.operator] || f.operator
+    }));
 
     setLoading(true);
     setError(null);
@@ -58,7 +71,7 @@ export function Filter() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ filters: activeFilters }),
+        body: JSON.stringify({ filters: mappedFilters }),
       });
 
       if (!response.ok) {
@@ -89,7 +102,7 @@ export function Filter() {
       <h1 className="scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance mb-4">
         Advanced Filters
       </h1>
-      
+
       <p className="text-muted-foreground text-lg text-center mb-8">
         Create custom filters to query the dataset
       </p>
@@ -154,7 +167,7 @@ export function Filter() {
             <Plus className="w-4 h-4" />
             Add Filter
           </Button>
-          
+
           <Button onClick={handleApplyFilters} className="flex-1" disabled={loading}>
             {loading ? 'Loading...' : 'Apply Filters'}
           </Button>

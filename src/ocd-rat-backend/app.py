@@ -1,12 +1,23 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
-import test as test
-import filters as filters_module
+"""
+OCD Rat Backend - FastAPI Application Entry Point
 
+This is the main application file that configures and starts the FastAPI server.
+Route handlers are organized in the routers/ directory.
+"""
+
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI()
+from routers import nlp, filters, ask
 
+# Create FastAPI application
+app = FastAPI(
+    title="OCD Rat Backend",
+    description="API for querying OCD rat experimental data",
+    version="1.0.0"
+)
+
+# Configure CORS for frontend access
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -15,29 +26,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-class FilterItem(BaseModel):
-    id: str
-    field: str
-    operator: str
-    value: str
+# Include routers
+app.include_router(nlp.router)
+app.include_router(filters.router)
+app.include_router(ask.router)
 
-class FilterRequest(BaseModel):
-    filters: list[FilterItem]
 
 @app.get("/")
-async def root(query_type: str = "NLP", text: str = "select all records where the rat id is equal to 8"):
-
-    df = test.main(query_type,text)
-    jsonified = df.to_dict(orient='records')
-    return jsonified
-
-@app.post("/filters")
-async def apply_filters(request: FilterRequest):
-    """Apply filters to the dataset using the filters module"""
-    try:
-        
-        df = filters_module.main(request.filters)
-        jsonified = df.to_dict(orient='records')
-        return jsonified
-    except Exception as e:
-        return {"error": str(e)}
+async def root():
+    """Health check endpoint."""
+    return {"status": "ok", "message": "OCD Rat Backend is running"}

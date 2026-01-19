@@ -1,0 +1,61 @@
+services:
+  db:
+    build: ./src/ocd-rat-backend/db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-Gouda}
+      POSTGRES_DB: ${DB_NAME:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    ports:
+      - "5433:5432"
+
+  backend:
+    build: ./src/ocd-rat-backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_HOST=db
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-Gouda}
+      - DB_NAME=${DB_NAME:-postgres}
+      - DB_PORT=5432
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      # Default to model-runner.docker.internal for native Docker Model Runner support
+      # If using standard Ollama container, this should be http://ollama:11434/v1 (override in .env if needed)
+      - LLM_BASE_URL=${LLM_BASE_URL:-http://model-runner.docker.internal/v1}
+      - LLM_MODEL=${LLM_MODEL:-huggingface.co/qwen/qwen2.5-coder-3b-instruct-gguf}
+    depends_on:
+      db:
+        condition: service_started
+      ollama:
+        condition: service_started
+        required: false
+    env_file:
+      - .env
+
+  ollama:
+    profiles: [ "container-llm" ]
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+      - ./src/ollama/start.sh:/start.sh
+    entrypoint: [ "/bin/bash", "/start.sh" ]
+    restart: always
+
+  # Frontend service - requires Dockerfile in src/ocd-rat-frontend
+  frontend:
+    build: ./src/ocd-rat-frontend
+    restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  ollama_data:
