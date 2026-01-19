@@ -22,11 +22,12 @@ async def nlp_query(
         text: Natural language description of the desired query
         
     Returns:
-        List of matching records as JSON objects
+        JSON object with 'rationale', 'sql', and 'results' keys
     """
     try:
-        df = execute_nlp_query(text, db)
-        return df.to_dict(orient='records')
+        result = execute_nlp_query(text, db)
+        return result
     except Exception as e:
         print(f"[NLP Router] Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+

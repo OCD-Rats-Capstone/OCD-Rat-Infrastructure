@@ -8,7 +8,7 @@ import numpy as np
 from llm.llm_service import llm_service
 
 
-def execute_nlp_query(query_string: str, db_connection) -> pd.DataFrame:
+def execute_nlp_query(query_string: str, db_connection) -> dict:
     """
     Generate SQL from natural language and execute it against the database.
     
@@ -17,7 +17,7 @@ def execute_nlp_query(query_string: str, db_connection) -> pd.DataFrame:
         db_connection: An active psycopg2 database connection
         
     Returns:
-        A pandas DataFrame with the query results
+        A dict with 'rationale', 'sql', and 'results' keys
         
     Raises:
         Exception: If SQL generation or execution fails
@@ -25,9 +25,12 @@ def execute_nlp_query(query_string: str, db_connection) -> pd.DataFrame:
     print("--- OCD Rat NLP Query ---")
     print(f"Goal: {query_string}")
     
-    # 1. Generate SQL using LLM Service
-    print("\n[LLM] Generating SQL...")
-    sql_query = llm_service.generate_sql(query_string)
+    # 1. Generate SQL with rationale using LLM Service
+    print("\n[LLM] Generating SQL with rationale...")
+    plan_result = llm_service.plan_and_generate_sql(query_string)
+    rationale = plan_result["rationale"]
+    sql_query = plan_result["sql"]
+    print(f"[LLM] Rationale: {rationale}")
     print(f"[LLM] Generated Query:\n{sql_query}\n")
 
     # 2. Execute Query
@@ -43,4 +46,9 @@ def execute_nlp_query(query_string: str, db_connection) -> pd.DataFrame:
     print(f"\n[DB] Result ({len(df)} rows):")
     print(df.head(10))
     
-    return df
+    return {
+        "rationale": rationale,
+        "sql": sql_query,
+        "results": df.to_dict(orient='records')
+    }
+
