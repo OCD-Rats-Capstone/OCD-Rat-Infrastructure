@@ -435,11 +435,15 @@ APILayer
 \hline
 \textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
 \hline
-Get DataSet & None & JSON Object & empty dataset \\
-Request RawFiles & DataSet\{"FileLocations"\} & File[] & empty dataset, bad URL\\
+Process Structured Query & StructuredQuery & JSON Object & malformed query, empty result \\
+Process NLP Query &  NaturalLanguageQuery & JSON Object & unrecognized intent, NLP failure \\
+Get Dataset & QueryResultID & DataSet (JSON) & invalid ID, empty dataset \\
+Request RawFiles & DataSet\{"FileLocations"\} & File[] & bad URL, missing files \\
+Authenticate Request & AuthToken & AccessDecision & invalid token \\
 \hline
 \end{tabular}
 \end{center}
+
 
 \subsection{Semantics}
 
