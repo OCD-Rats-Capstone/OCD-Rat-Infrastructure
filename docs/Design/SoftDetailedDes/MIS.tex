@@ -861,6 +861,8 @@ GenerateViz & (VType, DataBlob, ChartConfig)  & Viz\_SVG & InvalidDataSchema \\
 \subsubsection{State Variables}
 
 The Data Visualization Model acts as a stateless data transformation stage and therefore has no associated state variables. 
+It is stateless because all visualization information (data, type, and configuration) is provided through parameters to 
+GenerateViz, so no persistent internal state is required. 
 
 \subsubsection{Environment Variables}
 
