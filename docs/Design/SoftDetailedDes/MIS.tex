@@ -329,7 +329,19 @@ FrontEnd
 
 \subsubsection{Exported Access Programs}
 
-\par{N/A}
+\begin{center}
+\begin{tabular}{p{4cm} p{5cm} p{3cm} p{4cm}}
+\hline
+\textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
+\hline
+Submit Search Query & QueryParameters & DisplayedResults & invalid query \\
+Apply Filter & FilterCriteria & UpdatedResults & invalid filter \\
+Render Visualization & VisualizationConfig, DataSet & RenderedChart & unsupported chart type \\
+Download Data & FormatType, DataSet & File & unsupported format, empty dataset \\
+\hline
+\end{tabular}
+\end{center}
+
 
 \subsection{Semantics}
 
