@@ -1,0 +1,25 @@
+name: Deploy RatBat2
+on: 
+    push:
+        branches: ["main"]
+
+jobs:
+    deploy: 
+        runs-on: self-hosted
+        environment: Production
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v4
+            - name: Deploy to RatBat2
+              run: |
+                # Navigate to shared directory 
+                cd /home/RatBat2/OCD-Rat-Infrastructure
+                git fetch origin main
+                git reset --hard origin/main
+                
+
+                # Build and run docker containers
+                docker-compose up -d --build
+                
+              
+              
