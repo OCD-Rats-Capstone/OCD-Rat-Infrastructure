@@ -45,6 +45,9 @@ def execute_nlp_query(query_string: str, db_connection) -> dict:
 
     print(f"\n[DB] Result ({len(df)} rows):")
     print(df.head(10))
+
+    with open("NLP_query.txt", "w") as f:
+        f.write(sql_query)
     
     return {
         "rationale": rationale,

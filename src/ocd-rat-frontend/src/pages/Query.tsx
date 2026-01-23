@@ -2,6 +2,15 @@ import { QueryInput } from "@/components/QueryInput";
 import { ChatSqlResult } from "@/components/ChatSqlResult";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import React, { useState } from "react";
+import {Popup,
+  PopupTrigger,
+  PopupContent,
+  PopupHeader,
+  PopupFooter,
+  PopupTitle,
+  PopupDescription} from '@/components/FilePopout';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
 
 
 // Message types: text for regular chat, sql for query results
@@ -29,6 +38,14 @@ export function Query() {
     const [messages, setMessages] = useState<Message[]>([]);
     const showIntroMessage = messages?.length == 0;
 
+    const [CsvChecked, SetCsvChecked] = useState(false);
+    const [MpgChecked, SetMpgChecked] = useState(false);
+    const [GifChecked, SetGifChecked] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
+    const [open, setOpen] = useState(false);
+
+    const togglePopup = () => setOpen((prev) => !prev);
+
     const fetchData = async (Usertext: string) => {
         try {
             const params = {
@@ -40,6 +57,39 @@ export function Query() {
 
             const response = await fetch(url);
             const data = await response.json();
+
+            // New API returns { rationale, sql, results }
+            return data;
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            throw error;
+        }
+    }
+
+    const fetchFiles = async (Csv: string, Mpg: string, Gif: string) => {
+        try {
+            const params = {
+                query_type: 'NLP',
+                C: Csv,
+                M: Mpg,
+                G: Gif
+            };
+            const url = new URL('http://localhost:8000/files/');
+            url.search = new URLSearchParams(params).toString();
+
+            const response = await fetch(url);
+            const data = await response.json();
+
+            // Add SQL result message inline
+                const sqlMessage: SqlMessage = {
+                    id: new Date().toISOString(),
+                    type: 'sql',
+                    sender: 'bot',
+                    rationale: data.rationale,
+                    sql: data.sql,
+                    results: data.results
+                };
+                setMessages(prev => [...prev, sqlMessage]);
 
             // New API returns { rationale, sql, results }
             return data;
@@ -203,6 +253,57 @@ export function Query() {
             <div className="flex w-1/2 min-w-80 shrink-0 my-4">
                 <QueryInput onSendMessage={handleSendMessage} />
             </div>
+
+            <div className="flex items-center space-x-2">
+            <Popup open={open} onOpenChange={setOpen}>
+    <Button
+      variant="outline"
+      onClick={togglePopup}
+    >
+      Download Session Files
+    </Button>
+
+    <PopupContent>
+      <PopupHeader>
+        <PopupTitle> Download Session Files
+        </PopupTitle>
+        <PopupDescription>
+          The download action will download files related to every session
+          queried in your previous search. If you would like to refine your search before downloading,
+          please cancel.
+        </PopupDescription>
+
+        <br></br>
+        
+      </PopupHeader>
+
+      <PopupTitle>Select Desired File Types:</PopupTitle>
+      
+      <Checkbox id="downloadCsv" checked={CsvChecked} onCheckedChange={(val) => SetCsvChecked(val === true)}/>
+            <label htmlFor="downloadCsv" className="text-sm font-medium leading-none"> CSV </label>
+      <br></br>
+      <Checkbox id="downloadMpg" checked={MpgChecked} onCheckedChange={(val) => SetMpgChecked(val === true)}/>
+            <label htmlFor="downloadMpg" className="text-sm font-medium leading-none"> MPG </label>
+      <br></br>
+      <Checkbox id="downloadGif" checked={GifChecked} onCheckedChange={(val) => SetGifChecked(val === true)}/>
+            <label htmlFor="downloadGif" className="text-sm font-medium leading-none"> GIF </label>
+      
+      <PopupFooter>
+        <Button
+          variant="secondary"
+          onClick={() => setOpen(false)}
+        >
+          Cancel
+        </Button>
+        <Button onClick={() => { fetchFiles(String(CsvChecked),String(MpgChecked),String(GifChecked));
+                                setOpen(false);
+                                }}>Download</Button>
+      </PopupFooter>
+    </PopupContent>
+  </Popup>
+          </div>
         </div>
+
+        
     );
 }

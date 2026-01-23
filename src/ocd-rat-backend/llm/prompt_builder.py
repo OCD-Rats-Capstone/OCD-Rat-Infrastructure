@@ -26,6 +26,14 @@ This database is **session-centric**, not study-centric. The `experimental_sessi
 ## Data Availability
 - `movie_files`: Video recordings.
 - `session_data_files`: Raw data files (tracks, plots).
+
+##Important Conversion Rules:
+    1. When adding a where clause where the value is a string, replace the '=' sign with the ILIKE keyword.
+
+    2. The following are common phrases used in questions and their corresponding attribute in the database:
+        no brain lesion OR brain-intact: BrainManipulations.SurgeryType = 'Unoperated'
+        metadata: do not change logic of the query, simply select all available columns with the columns specifically related to the query appearing at the very left
+        sensitized rat: if it received >= 8 injections of a PURE inducer drug (valid abbreviations are: QNP, DPAT, or U69593)
 """
 
 BASE_SYSTEM_PROMPT = """

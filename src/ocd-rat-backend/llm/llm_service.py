@@ -3,6 +3,7 @@ import os
 from openai import OpenAI
 from .prompt_builder import build_system_prompt
 import logging
+import json
 
 
 logger = logging.getLogger(__name__)
@@ -11,7 +12,7 @@ class LLMService:
     def __init__(self):
         self.client = OpenAI(
             api_key=os.getenv("OPENAI_API_KEY", "ollama"),
-            base_url=os.getenv("LLM_BASE_URL", "http://localhost:11434/v1")
+            #base_url=os.getenv("LLM_BASE_URL", "http://localhost:11434/v1")
         )
         self.model = os.getenv("LLM_MODEL", "qwen2.5-coder:7b")
         self._system_prompt = None  # Cache for the base system prompt
@@ -92,7 +93,7 @@ Return ONLY the JSON object, no markdown formatting, no code blocks."""
                 ],
                 temperature=0.1,
                 stream=True,
-                extra_body={"cache_prompt": True}
+                #extra_body={"cache_prompt": True}
             )
             
             output = ""
@@ -105,7 +106,8 @@ Return ONLY the JSON object, no markdown formatting, no code blocks."""
             print("\n---------------------------------------")
             
             # Parse JSON response
-            import json
+            #import json
+
             # Clean up potential markdown formatting
             cleaned = output.strip()
             if cleaned.startswith("```"):
