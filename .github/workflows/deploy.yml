@@ -2,6 +2,7 @@ name: Deploy RatBat2
 on: 
     push:
         branches: ["main"]
+    workflow_dispatch: # allows for manual deployment
 
 jobs:
     deploy: 
