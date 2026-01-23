@@ -81,22 +81,8 @@ OCD-Rat-Infrastructure/
    ```
 
 3. **Start the application**
-
-   **Option A: Without LLM (faster startup)**
    ```bash
    docker-compose up -d --build
-   ```
-
-   **Option B: With LLM support (includes Ollama)**
-   ```bash
-   docker-compose --profile llm up -d --build
-
-   Note: the start.sh within the src/ollama directory may need to
-   be converted to unix to be compatible with a linux based container. Perform the command:
-
-   dos2unix start.sh
-
-   to make the shell script compatible.
    ```
 
 4. **Access the application**
@@ -140,33 +126,30 @@ docker-compose restart frontend
 | Frontend | `frontend` | 3000 | React UI |
 | Backend | `backend` | 8000 | FastAPI server |
 | Database | `db` | 5433 | PostgreSQL with data |
-| LLM | `ollama` | 11434 | Ollama (optional) |
 
 ---
 
-### Sample .ENV File (Nathan's .env on windows):
+### Sample .ENV File:
 
+```bash
 DB_HOST=localhost
 DB_USER=postgres
 DB_PASSWORD=Gouda
 DB_NAME=postgres
 DB_PORT=5432
-OPENAI_API_KEY=ollama
-LLM_BASE_URL=http://ollama:11434/v1 (may need to be localhost for some systems)
-LLM_MODEL=qwen2.5-coder:7b
 
-#####
+# LLM Configuration (for cloud providers like OpenRouter)
+OPENAI_API_KEY=your-api-key-here
+LLM_BASE_URL=https://openrouter.ai/api/v1
+LLM_MODEL=your-model-name
+```
+
+---
 
 ### Troubleshooting
 
 **Port conflicts:**
 If ports 3000, 8000, or 5433 are already in use, edit `docker-compose.yml` to change the port mappings.
-
-**LLM not responding:**
-The first time you start with `--profile llm`, Ollama needs to download the model (~4GB). Check logs:
-```bash
-docker-compose logs ollama
-```
 
 **Database not initializing:**
 If the database seems empty, check the initialization logs:

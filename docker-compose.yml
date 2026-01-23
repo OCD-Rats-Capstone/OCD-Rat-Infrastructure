@@ -23,29 +23,13 @@ services:
       - DB_NAME=${DB_NAME:-postgres}
       - DB_PORT=5432
       - OPENAI_API_KEY=${OPENAI_API_KEY}
-      # Default to model-runner.docker.internal for native Docker Model Runner support
-      # If using standard Ollama container, this should be http://ollama:11434/v1 (override in .env if needed)
-      - LLM_BASE_URL=${LLM_BASE_URL:-http://model-runner.docker.internal/v1}
-      - LLM_MODEL=${LLM_MODEL:-huggingface.co/qwen/qwen2.5-coder-3b-instruct-gguf}
+      - LLM_BASE_URL=${LLM_BASE_URL}
+      - LLM_MODEL=${LLM_MODEL}
     depends_on:
       db:
         condition: service_started
-      ollama:
-        condition: service_started
-        required: false
     env_file:
       - .env
-
-  ollama:
-    profiles: [ "container-llm" ]
-    image: ollama/ollama:latest
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-      - ./src/ollama/start.sh:/start.sh
-    entrypoint: [ "/bin/bash", "/start.sh" ]
-    restart: always
 
   # Frontend service - requires Dockerfile in src/ocd-rat-frontend
   frontend:
@@ -58,4 +42,3 @@ services:
 
 volumes:
   postgres_data:
-  ollama_data:
