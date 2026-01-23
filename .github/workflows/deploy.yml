@@ -1,0 +1,7 @@
+name: Deploy RatBat2
+on: workflow_dispatch
+jobs:
+  dummy:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Shell for UI"
