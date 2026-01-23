@@ -1,4 +1,6 @@
 name: Deploy RatBat2
+permissions:
+    contents: read
 on: 
     push:
         branches: ["main"]
