@@ -9,7 +9,7 @@ import SampleTrial from '@/assets/sample_trial.webp'
 import DatasetSample from '@/assets/dataset-sample-capstone.jpeg'
 import NaturalLanguage from "@/assets/use-cases/natural-language-icon.png"
 import Temporal from "@/assets/sample-trial-temporal.png"
-
+import { API_BASE_URL } from "@/config";
 
 export function Home() {
 
@@ -17,7 +17,7 @@ export function Home() {
         <div className="flex flex-col justify-center items-center py-20 px-15 lg:px-40">
 
             <h1 className="scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance">
-                The Data Analysis Tool for Animal Models of OCD.
+                The Data Analysis Tool for Animal Models of OCD. verify url: {API_BASE_URL}
             </h1>
 
             <p className="text-muted-foreground text-xl m-6">
