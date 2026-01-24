@@ -27,7 +27,6 @@ jobs:
 
                 # Build and run docker containers
                 # Force rebuild of frontend to ensure new config/env vars are picked up
-                docker compose build --no-cache frontend
                 docker compose up -d --build
                 
               
