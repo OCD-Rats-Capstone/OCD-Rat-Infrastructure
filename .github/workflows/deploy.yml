@@ -15,14 +15,15 @@ jobs:
               uses: actions/checkout@v4
             - name: Deploy to RatBat2
               run: |
-                # Navigate to shared directory 
-                cd /home/RatBat2/OCD-Rat-Infrastructure
-                git fetch origin main
-                git reset --hard origin/main
-                
-
-                # Build and run docker containers
-                docker compose up -d --build
+                  cd /home/RatBat2/OCD-Rat-Infrastructure
+                  echo "--- Pre-stop Network State ---"
+                  ip route
+                  
+                  echo "--- Stopping Containers to Clear Network Jam ---"
+                  docker compose down
+                  
+                  echo "--- Post-stop Network State ---"
+                  ip route
                 
               
               
