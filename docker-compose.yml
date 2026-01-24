@@ -33,7 +33,10 @@ services:
 
   # Frontend service - requires Dockerfile in src/ocd-rat-frontend
   frontend:
-    build: ./src/ocd-rat-frontend
+    build:
+      context: ./src/ocd-rat-frontend
+      args:
+        - VITE_API_URL=${VITE_API_URL:-/api}
     restart: always
     ports:
       - "3000:80"
@@ -42,6 +45,7 @@ services:
 
 volumes:
   postgres_data:
+
 
 networks:
   default:

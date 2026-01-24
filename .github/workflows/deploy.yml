@@ -20,6 +20,9 @@ jobs:
                 git fetch origin main
                 git reset --hard origin/main
                 
+                # Create .env file from GitHub Secret
+                echo "${{ secrets.PROD_ENV_FILE }}" > .env
+                
 
                 # Build and run docker containers
                 docker compose up -d --build
