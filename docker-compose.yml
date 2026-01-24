@@ -37,6 +37,7 @@ services:
       context: ./src/ocd-rat-frontend
       args:
         - VITE_API_URL=${VITE_API_URL:-/api}
+    image: frontend-prod
     restart: always
     ports:
       - "3000:80"
