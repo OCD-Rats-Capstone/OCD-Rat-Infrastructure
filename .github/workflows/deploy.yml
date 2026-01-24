@@ -17,8 +17,8 @@ jobs:
               run: |
                 # Navigate to shared directory 
                 cd /home/RatBat2/OCD-Rat-Infrastructure
-                git fetch origin main
-                git reset --hard origin/main
+                git fetch origin ${{ github.ref_name }}
+                git reset --hard origin/${{ github.ref_name }}
                 
                 # Create .env file from GitHub Secret
                 echo "${{ secrets.PROD_ENV_FILE }}" > .env
