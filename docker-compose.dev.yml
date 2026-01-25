@@ -1,0 +1,13 @@
+# Development/Staging override file
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+# This runs the stack on alternative ports (8080 for frontend, 8001 for backend)
+# allowing staging and production to coexist on the same server.
+
+services:
+  backend:
+    ports:
+      - "8001:8000" # Staging backend port
+
+  frontend:
+    ports:
+      - "8080:80" # Staging frontend port
