@@ -329,7 +329,19 @@ FrontEnd
 
 \subsubsection{Exported Access Programs}
 
-\par{N/A}
+\begin{center}
+\begin{tabular}{p{4cm} p{5cm} p{3cm} p{4cm}}
+\hline
+\textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
+\hline
+Submit Search Query & QueryParameters & DisplayedResults & invalid query \\
+Apply Filter & FilterCriteria & UpdatedResults & invalid filter \\
+Render Visualization & VisualizationConfig, DataSet & RenderedChart & unsupported chart type \\
+Download Data & FormatType, DataSet & File & unsupported format, empty dataset \\
+\hline
+\end{tabular}
+\end{center}
+
 
 \subsection{Semantics}
 
@@ -423,11 +435,15 @@ APILayer
 \hline
 \textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
 \hline
-Get DataSet & None & JSON Object & empty dataset \\
-Request RawFiles & DataSet\{"FileLocations"\} & File[] & empty dataset, bad URL\\
+Process Structured Query & StructuredQuery & JSON Object & malformed query, empty result \\
+Process NLP Query &  NaturalLanguageQuery & JSON Object & unrecognized intent, NLP failure \\
+Get Dataset & QueryResultID & DataSet (JSON) & invalid ID, empty dataset \\
+Request RawFiles & DataSet\{"FileLocations"\} & File[] & bad URL, missing files \\
+Authenticate Request & AuthToken & AccessDecision & invalid token \\
 \hline
 \end{tabular}
 \end{center}
+
 
 \subsection{Semantics}
 
@@ -845,6 +861,8 @@ GenerateViz & (VType, DataBlob, ChartConfig)  & Viz\_SVG & InvalidDataSchema \\
 \subsubsection{State Variables}
 
 The Data Visualization Model acts as a stateless data transformation stage and therefore has no associated state variables. 
+It is stateless because all visualization information (data, type, and configuration) is provided through parameters to 
+GenerateViz, so no persistent internal state is required. 
 
 \subsubsection{Environment Variables}
 

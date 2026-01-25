@@ -1,0 +1,33 @@
+name: Deploy RatBat2
+permissions:
+    contents: read
+on: 
+    push:
+        branches: ["main"]
+    workflow_dispatch: # allows for manual deployment
+
+jobs:
+    deploy: 
+        runs-on: self-hosted
+        environment: Production
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v4
+            - name: Deploy to RatBat2
+              run: |
+                # Navigate to shared directory 
+                cd /home/RatBat2/OCD-Rat-Infrastructure
+                git fetch origin
+                git checkout ${{ github.ref_name }}
+                git reset --hard origin/${{ github.ref_name }}
+                
+                # Create .env file from GitHub Secret
+                echo "${{ secrets.PROD_ENV_FILE }}" > .env
+                
+
+                # Build and run docker containers
+                # Force rebuild of frontend to ensure new config/env vars are picked up
+                docker compose up -d --build
+                
+              
+              

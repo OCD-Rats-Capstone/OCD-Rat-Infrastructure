@@ -18,10 +18,10 @@ class Settings(BaseSettings):
     db_password: str = ""
     db_port: str = "5432"
     
-    # LLM configuration
-    openai_api_key: str = "ollama"
-    llm_base_url: str = "http://localhost:11434/v1"
-    llm_model: str = "qwen2.5-coder:7b"
+    # LLM configuration (requires cloud API keys in .env)
+    openai_api_key: str = ""
+    llm_base_url: str = ""
+    llm_model: str = ""
 
     class Config:
         env_file = ".env"

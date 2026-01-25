@@ -11,6 +11,7 @@ import {Popup,
   PopupDescription} from '@/components/FilePopout';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
+import { API_BASE_URL } from "@/config";
 
 
 // Message types: text for regular chat, sql for query results
@@ -52,10 +53,10 @@ export function Query() {
                 query_type: 'NLP',
                 text: Usertext
             };
-            const url = new URL('http://localhost:8000/nlp/');
-            url.search = new URLSearchParams(params).toString();
-
-            const response = await fetch(url);
+            const query = new URLSearchParams(params).toString();
+            // Ensure proper URL construction handling potential relative paths
+            const baseUrl = API_BASE_URL.replace(/\/$/, '');
+            const response = await fetch(`${baseUrl}/nlp/?${query}`);
             const data = await response.json();
 
             // New API returns { rationale, sql, results }
@@ -101,7 +102,8 @@ export function Query() {
 
     const fetchAskStream = async (question: string) => {
         try {
-            const response = await fetch('http://localhost:8000/ask/', {
+            const baseUrl = API_BASE_URL.replace(/\/$/, '');
+            const response = await fetch(`${baseUrl}/ask/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ question })
