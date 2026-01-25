@@ -88,28 +88,13 @@ export function Query() {
 
             const a = document.createElement("a");
             a.href = obj_url;
-            a.download = "temp_files.zip";
+            a.download = "FRDR_Files.zip";
             document.body.appendChild(a);
             a.click();
 
             a.remove();
             window.URL.revokeObjectURL(obj_url);
 
-            // const data = await response.json();
-
-            // // Add SQL result message inline
-            //     const sqlMessage: SqlMessage = {
-            //         id: new Date().toISOString(),
-            //         type: 'sql',
-            //         sender: 'bot',
-            //         rationale: data.rationale,
-            //         sql: data.sql,
-            //         results: data.results
-            //     };
-            //     setMessages(prev => [...prev, sqlMessage]);
-
-            // // New API returns { rationale, sql, results }
-            // return data;
         } catch (error) {
             console.error("Error fetching data:", error);
             throw error;
@@ -268,18 +253,19 @@ export function Query() {
                 </ScrollArea>
             </div>
 
+            <Button
+      variant="default"
+      onClick={togglePopup}
+    >
+      Download Session Files
+    </Button>
+
             <div className="flex w-1/2 min-w-80 shrink-0 my-4">
                 <QueryInput onSendMessage={handleSendMessage} />
             </div>
 
             <div className="flex items-center space-x-2">
             <Popup open={open} onOpenChange={setOpen}>
-    <Button
-      variant="outline"
-      onClick={togglePopup}
-    >
-      Download Session Files
-    </Button>
 
     <PopupContent>
       <PopupHeader>
@@ -311,8 +297,6 @@ export function Query() {
         <br></br>
         <Checkbox id="downloadMpg" checked={MpgChecked} onCheckedChange={(val) => SetMpgChecked(val === true)}/>
             <label htmlFor="downloadMpg" className="text-sm font-medium leading-none"> MPG </label>
-        <br></br>
-        <a href="http://0.0.0.0:8000/app/app.py" download="test.py">Download File</a>
 
       
       <PopupFooter>

@@ -30,7 +30,7 @@ def NLP_FileDownload(db_connection,file_types: list):
 
 def FRDR_download(cnxn,cursor,file_ids,file_exts):
 
-    temp_dir = "../temp_files"
+    temp_dir = "../FRDR_Files"
     url_query = "SELECT repo_file_url FROM data_file_locations " \
     "LEFT OUTER JOIN session_data_files AS S1 ON S1.data_file_id = data_file_locations.data_file_id " \
     "WHERE data_file_locations.data_file_id IN %s AND S1.file_extension IN %s;"

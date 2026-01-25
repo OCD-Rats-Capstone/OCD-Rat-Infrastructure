@@ -30,14 +30,14 @@ async def download_action(
     try:
         result = NLP_FileDownload(db,[["csv",Csv_Flag],["ewb",Ewb_Flag],["jpg",Jpg_Flag],["mpg",Mpg_Flag],["gif",Gif_Flag]])
 
-        dir_path = "../temp_files"
+        dir_path = "../FRDR_Files"
 
         zipped_dir = zip_directory_stream(dir_path)
 
         return StreamingResponse(
             zipped_dir,
             media_type="application/zip",
-            headers={"Content-Disposition": "attachment; filename=temp_files.zip"}
+            headers={"Content-Disposition": "attachment; filename=FRDR_Files.zip"}
         )
     except Exception as e:
         print(f"[FILES Router] Error: {e}")
