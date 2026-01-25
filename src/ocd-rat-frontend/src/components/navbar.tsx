@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState, useRef } from 'react';
-import RatIcon from '@/assets/rat-icon.png'; 
+import RatIcon from '@/assets/rat-icon.png';
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -20,14 +20,14 @@ import { Link, useLocation } from 'react-router-dom';
 const Logo = (props: React.SVGAttributes<SVGElement>) => {
   return (
 
-    
-    <img 
-    src={RatIcon}
-    width={50}
-    height={50}
-    className="h-14 w-auto transform scale-x-[-1]"
+
+    <img
+      src={RatIcon}
+      width={50}
+      height={50}
+      className="h-14 w-auto transform scale-x-[-1]"
     >
-    
+
     </img>
 
   );
@@ -80,7 +80,7 @@ export interface Navbar01Props extends React.HTMLAttributes<HTMLElement> {
 }
 // Default navigation links
 const defaultNavigationLinks: Navbar01NavLink[] = [
-  { href: '/', label: 'Home'},
+  { href: '/', label: 'Home' },
   { href: '/query', label: 'Query' },
   { href: '/experiments', label: 'Experiments' },
   { href: '/filter', label: 'Filter Data' },
@@ -105,7 +105,7 @@ export const Navbar01 = React.forwardRef<HTMLElement, Navbar01Props>(
   ) => {
     const [isMobile, setIsMobile] = useState(false);
     const containerRef = useRef<HTMLElement>(null);
-    const location = useLocation(); 
+    const location = useLocation();
     const currentPath = location.pathname;
     useEffect(() => {
       const checkWidth = () => {
@@ -157,17 +157,59 @@ export const Navbar01 = React.forwardRef<HTMLElement, Navbar01Props>(
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent align="start" className="w-48 p-2">
-                <NavigationMenu className="max-w-none">
-                  <NavigationMenuList className="flex-col items-start gap-1">
+                  <NavigationMenu className="max-w-none">
+                    <NavigationMenuList className="flex-col items-start gap-1">
+                      {navigationLinks.map((link, index) => (
+                        <NavigationMenuItem key={index} className="w-full">
+                          <Link
+                            to={link.href}
+                            className={cn(
+                              "flex w-full items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer no-underline",
+                              currentPath === link.href
+                                ? "bg-accent text-accent-foreground"
+                                : "text-foreground/80"
+                            )}
+                          >
+                            {link.label}
+                          </Link>
+                        </NavigationMenuItem>
+                      ))}
+                    </NavigationMenuList>
+                  </NavigationMenu>
+                </PopoverContent>
+              </Popover>
+            )}
+            {/* Main nav */}
+            <div className="flex items-center gap-6">
+              <Link
+                to={logoHref}
+                className="flex items-center space-x-2 text-primary hover:text-primary/90 transition-colors cursor-pointer"
+              >
+                <div className="text-2xl">
+                  {logo}
+                </div>
+                <span className="hidden font-bold text-xl sm:inline-block">
+                  RatBat 2
+                  {window.location.port === "8080" && (
+                    <span className="ml-2 rounded bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-bold text-blue-500">
+                      STAGING
+                    </span>
+                  )}
+                </span>
+              </Link>
+              {/* Navigation menu */}
+              {!isMobile && (
+                <NavigationMenu className="flex">
+                  <NavigationMenuList className="gap-1">
                     {navigationLinks.map((link, index) => (
-                      <NavigationMenuItem key={index} className="w-full">
+                      <NavigationMenuItem key={index}>
                         <Link
                           to={link.href}
                           className={cn(
-                            "flex w-full items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer no-underline",
+                            "group inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 cursor-pointer no-underline",
                             currentPath === link.href
-                              ? "bg-accent text-accent-foreground" 
-                              : "text-foreground/80"
+                              ? "bg-accent text-accent-foreground"
+                              : "text-foreground/80 hover:text-foreground"
                           )}
                         >
                           {link.label}
@@ -175,41 +217,6 @@ export const Navbar01 = React.forwardRef<HTMLElement, Navbar01Props>(
                       </NavigationMenuItem>
                     ))}
                   </NavigationMenuList>
-                </NavigationMenu>
-                </PopoverContent>
-              </Popover>
-            )}
-            {/* Main nav */}
-            <div className="flex items-center gap-6">
-              <Link 
-               to={logoHref}
-                className="flex items-center space-x-2 text-primary hover:text-primary/90 transition-colors cursor-pointer"
-              >
-                <div className="text-2xl">
-                  {logo}
-                </div>
-                <span className="hidden font-bold text-xl sm:inline-block">RatBat 2</span>
-              </Link>
-              {/* Navigation menu */}
-              {!isMobile && (
-                <NavigationMenu className="flex">
-                <NavigationMenuList className="gap-1">
-                  {navigationLinks.map((link, index) => (
-                    <NavigationMenuItem key={index}>
-                      <Link
-                        to={link.href}
-                        className={cn(
-                          "group inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 cursor-pointer no-underline",
-                          currentPath === link.href
-                            ? "bg-accent text-accent-foreground" 
-                            : "text-foreground/80 hover:text-foreground"
-                        )}
-                      >
-                        {link.label}
-                      </Link>
-                    </NavigationMenuItem>
-                  ))}
-                </NavigationMenuList>
                 </NavigationMenu>
               )}
             </div>
