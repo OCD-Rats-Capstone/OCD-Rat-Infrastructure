@@ -4,6 +4,10 @@
 # allowing staging and production to coexist on the same server.
 
 services:
+  db:
+    ports:
+      - "5434:5432" # Staging db port (prod uses 5433)
+
   backend:
     ports:
       - "8001:8000" # Staging backend port
