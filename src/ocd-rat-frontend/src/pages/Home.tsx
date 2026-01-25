@@ -10,7 +10,6 @@ import DatasetSample from '@/assets/dataset-sample-capstone.jpeg'
 import NaturalLanguage from "@/assets/use-cases/natural-language-icon.png"
 import Temporal from "@/assets/sample-trial-temporal.png"
 
-
 export function Home() {
 
     return (

@@ -10,10 +10,10 @@ logger = logging.getLogger(__name__)
 class LLMService:
     def __init__(self):
         self.client = OpenAI(
-            api_key=os.getenv("OPENAI_API_KEY", "ollama"),
-            base_url=os.getenv("LLM_BASE_URL", "http://localhost:11434/v1")
+            api_key=os.getenv("OPENAI_API_KEY"),
+            base_url=os.getenv("LLM_BASE_URL")
         )
-        self.model = os.getenv("LLM_MODEL", "qwen2.5-coder:7b")
+        self.model = os.getenv("LLM_MODEL")
         self._system_prompt = None  # Cache for the base system prompt
 
     def get_system_prompt(self) -> str:
