@@ -11,3 +11,10 @@ services:
   frontend:
     ports:
       - "8080:80" # Staging frontend port
+
+networks:
+  default:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.124.0.0/16 # Different subnet from prod (10.123.0.0/16)
