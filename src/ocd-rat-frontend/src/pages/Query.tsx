@@ -42,7 +42,8 @@ export function Query() {
     const [CsvChecked, SetCsvChecked] = useState(false);
     const [MpgChecked, SetMpgChecked] = useState(false);
     const [GifChecked, SetGifChecked] = useState(false);
-    const [isOpen, setIsOpen] = useState(false);
+    const [EwbChecked, SetEwbChecked] = useState(false);
+    const [JpgChecked, SetJpgChecked] = useState(false);
     const [open, setOpen] = useState(false);
 
     const togglePopup = () => setOpen((prev) => !prev);
@@ -67,33 +68,48 @@ export function Query() {
         }
     }
 
-    const fetchFiles = async (Csv: string, Mpg: string, Gif: string) => {
+    const fetchFiles = async (Csv: string, Ewb: string, Jpg: string, Mpg: string, Gif: string) => {
         try {
             const params = {
                 query_type: 'NLP',
-                C: Csv,
-                M: Mpg,
-                G: Gif
+                Csv_Flag: Csv,
+                Ewb_Flag: Ewb,
+                Gif_Flag: Gif,
+                Jpg_Flag: Jpg,
+                Mpg_Flag: Mpg
             };
             const url = new URL('http://localhost:8000/files/');
             url.search = new URLSearchParams(params).toString();
 
             const response = await fetch(url);
-            const data = await response.json();
 
-            // Add SQL result message inline
-                const sqlMessage: SqlMessage = {
-                    id: new Date().toISOString(),
-                    type: 'sql',
-                    sender: 'bot',
-                    rationale: data.rationale,
-                    sql: data.sql,
-                    results: data.results
-                };
-                setMessages(prev => [...prev, sqlMessage]);
+            const blob = await response.blob();
+            const obj_url = window.URL.createObjectURL(blob);
 
-            // New API returns { rationale, sql, results }
-            return data;
+            const a = document.createElement("a");
+            a.href = obj_url;
+            a.download = "temp_files.zip";
+            document.body.appendChild(a);
+            a.click();
+
+            a.remove();
+            window.URL.revokeObjectURL(obj_url);
+
+            // const data = await response.json();
+
+            // // Add SQL result message inline
+            //     const sqlMessage: SqlMessage = {
+            //         id: new Date().toISOString(),
+            //         type: 'sql',
+            //         sender: 'bot',
+            //         rationale: data.rationale,
+            //         sql: data.sql,
+            //         results: data.results
+            //     };
+            //     setMessages(prev => [...prev, sqlMessage]);
+
+            // // New API returns { rationale, sql, results }
+            // return data;
         } catch (error) {
             console.error("Error fetching data:", error);
             throw error;
@@ -279,16 +295,25 @@ export function Query() {
         
       </PopupHeader>
 
-      <PopupTitle>Select Desired File Types:</PopupTitle>
+      <PopupTitle>Select Desired File Extensions:</PopupTitle>
       
       <Checkbox id="downloadCsv" checked={CsvChecked} onCheckedChange={(val) => SetCsvChecked(val === true)}/>
             <label htmlFor="downloadCsv" className="text-sm font-medium leading-none"> CSV </label>
-      <br></br>
-      <Checkbox id="downloadMpg" checked={MpgChecked} onCheckedChange={(val) => SetMpgChecked(val === true)}/>
-            <label htmlFor="downloadMpg" className="text-sm font-medium leading-none"> MPG </label>
+    <br></br>
+      <Checkbox id="downloadEwb" checked={EwbChecked} onCheckedChange={(val) => SetEwbChecked(val === true)}/>
+            <label htmlFor="downloadEwb" className="text-sm font-medium leading-none"> EWB </label>
       <br></br>
       <Checkbox id="downloadGif" checked={GifChecked} onCheckedChange={(val) => SetGifChecked(val === true)}/>
             <label htmlFor="downloadGif" className="text-sm font-medium leading-none"> GIF </label>
+        <br></br>
+        <Checkbox id="downloadJpg" checked={JpgChecked} onCheckedChange={(val) => SetJpgChecked(val === true)}/>
+            <label htmlFor="downloadJpg" className="text-sm font-medium leading-none"> JPG </label>
+        <br></br>
+        <Checkbox id="downloadMpg" checked={MpgChecked} onCheckedChange={(val) => SetMpgChecked(val === true)}/>
+            <label htmlFor="downloadMpg" className="text-sm font-medium leading-none"> MPG </label>
+        <br></br>
+        <a href="http://0.0.0.0:8000/app/app.py" download="test.py">Download File</a>
+
       
       <PopupFooter>
         <Button
@@ -297,7 +322,7 @@ export function Query() {
         >
           Cancel
         </Button>
-        <Button onClick={() => { fetchFiles(String(CsvChecked),String(MpgChecked),String(GifChecked));
+        <Button onClick={() => { fetchFiles(String(CsvChecked),String(EwbChecked), String(JpgChecked),String(MpgChecked),String(GifChecked));
                                 setOpen(false);
                                 }}>Download</Button>
       </PopupFooter>
