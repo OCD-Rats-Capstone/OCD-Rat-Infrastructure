@@ -27,9 +27,9 @@ jobs:
 
                 # Build and run docker containers
                 if [ "${{ github.ref_name }}" == "main" ]; then
-                  # Production: standard ports (80/443, 8000)
-                  echo "Deploying PRODUCTION on ports 80/8000..."
-                  docker compose -p ocd-prod up -d --build
+                  # Production: standard ports (80/443, 8000, 5433)
+                  echo "Deploying PRODUCTION on ports 80/8000/5433..."
+                  docker compose -f docker-compose.yml -f docker-compose.prod.yml -p ocd-prod up -d --build
                 else
                   # Staging: alternative ports (8080, 8001)
                   echo "Deploying STAGING on ports 8080/8001..."

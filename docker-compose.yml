@@ -8,8 +8,7 @@ services:
       POSTGRES_DB: ${DB_NAME:-postgres}
     volumes:
       - postgres_data:/var/lib/postgresql
-    ports:
-      - "5433:5432"
+    # ports defined in docker-compose.prod.yml / docker-compose.dev.yml
 
   backend:
     build: ./src/ocd-rat-backend
