@@ -78,7 +78,9 @@ export function Query() {
                 Jpg_Flag: Jpg,
                 Mpg_Flag: Mpg
             };
-            const url = new URL('http://localhost:8000/files/');
+
+            const baseUrl = API_BASE_URL.replace(/\/$/, '');
+            const url = new URL(`${baseUrl}/files/`);
             url.search = new URLSearchParams(params).toString();
 
             const response = await fetch(url);
