@@ -8,14 +8,12 @@ services:
       POSTGRES_DB: ${DB_NAME:-postgres}
     volumes:
       - postgres_data:/var/lib/postgresql
-    ports:
-      - "5433:5432"
+    # ports defined in docker-compose.prod.yml / docker-compose.dev.yml
 
   backend:
     build: ./src/ocd-rat-backend
     restart: always
-    ports:
-      - "8000:8000"
+    # ports defined in docker-compose.prod.yml / docker-compose.dev.yml
     environment:
       - DB_HOST=db
       - DB_USER=${DB_USER:-postgres}
@@ -39,8 +37,7 @@ services:
         - VITE_API_URL=${VITE_API_URL:-/api}
     image: frontend-prod
     restart: always
-    ports:
-      - "80:80"
+    # ports defined in docker-compose.prod.yml / docker-compose.dev.yml
     depends_on:
       - backend
 

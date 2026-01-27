@@ -4,7 +4,7 @@ permissions:
 on: 
     push:
         branches: ["main"]
-    workflow_dispatch: # allows for manual deployment
+    workflow_dispatch: # allows for manual deployment of any branch
 
 jobs:
     deploy: 
@@ -26,8 +26,14 @@ jobs:
                 
 
                 # Build and run docker containers
-                # Force rebuild of frontend to ensure new config/env vars are picked up
-                docker compose up -d --build
-                
+                if [ "${{ github.ref_name }}" == "main" ]; then
+                  # Production: standard ports (80/443, 8000, 5433)
+                  echo "Deploying PRODUCTION on ports 80/8000/5433..."
+                  docker compose -f docker-compose.yml -f docker-compose.prod.yml -p ocd-prod up -d --build
+                else
+                  # Staging: alternative ports (8080, 8001)
+                  echo "Deploying STAGING on ports 8080/8001..."
+                  docker compose -f docker-compose.yml -f docker-compose.dev.yml -p ocd-staging up -d --build
+                fi
               
               
