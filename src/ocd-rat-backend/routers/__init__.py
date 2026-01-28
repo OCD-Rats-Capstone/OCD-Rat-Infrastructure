@@ -1,2 +1,2 @@
 # Routers module for API endpoints
-from . import nlp, filters, ask
+from . import nlp, filters, ask, files

@@ -23,6 +23,8 @@ def inspect_schema() -> str:
         conn = get_db_connection()
         cursor = conn.cursor()
 
+        print("connected to database")
+
         # 1. Get List of Tables
         cursor.execute("""
             SELECT table_name 
@@ -33,6 +35,7 @@ def inspect_schema() -> str:
         tables = [row[0] for row in cursor.fetchall()]
 
         for table_name in tables:
+            print(table_name + "*****************")
             table_section = f"Table: {table_name}"
             schema_output.append(table_section)
 

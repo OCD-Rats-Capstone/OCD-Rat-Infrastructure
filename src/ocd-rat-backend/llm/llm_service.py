@@ -3,6 +3,7 @@ import os
 from openai import OpenAI
 from .prompt_builder import build_system_prompt
 import logging
+import json
 
 
 logger = logging.getLogger(__name__)
@@ -103,7 +104,8 @@ Return ONLY the JSON object, no markdown formatting, no code blocks."""
             print("\n---------------------------------------")
             
             # Parse JSON response
-            import json
+            #import json
+
             # Clean up potential markdown formatting
             cleaned = output.strip()
             if cleaned.startswith("```"):
