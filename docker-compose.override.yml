@@ -1,5 +1,4 @@
 # Default override file (Production-like configuration)
-# This file is automatically read by docker compose to provide default port mappings.
 
 services:
   db:
