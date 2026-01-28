@@ -66,7 +66,9 @@ export function Filter() {
     setError(null);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/filters`, {
+      // Ensure consistent URL construction with trailing slash to match backend route
+      const baseUrl = API_BASE_URL.replace(/\/$/, '');
+      const response = await fetch(`${baseUrl}/filters/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

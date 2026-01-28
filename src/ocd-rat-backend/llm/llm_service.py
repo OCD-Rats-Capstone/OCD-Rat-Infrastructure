@@ -39,8 +39,7 @@ class LLMService:
                     {"role": "user", "content": user_query}
                 ],
                 temperature=0.1, # Low temperature for deterministic code generation
-                stream=True,
-                extra_body={"cache_prompt": True}
+                stream=True
             )
             
             output = ""
@@ -91,8 +90,7 @@ Return ONLY the JSON object, no markdown formatting, no code blocks."""
                     {"role": "user", "content": user_query}
                 ],
                 temperature=0.1,
-                stream=True,
-                extra_body={"cache_prompt": True}
+                stream=True
             )
             
             output = ""
