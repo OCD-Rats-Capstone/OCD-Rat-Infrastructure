@@ -7,6 +7,8 @@ services:
       - "5433:5432" # Default to binding on 5433 to avoid local postgres conflicts
 
   backend:
+    environment:
+      - ROOT_PATH=/api
     ports:
       - "8000:8000"
 

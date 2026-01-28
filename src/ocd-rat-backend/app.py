@@ -11,10 +11,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from routers import nlp, filters, ask
 
 # Create FastAPI application
+import os
+root_path = os.getenv("ROOT_PATH", "")
+
 app = FastAPI(
     title="OCD Rat Backend",
     description="API for querying OCD rat experimental data",
-    version="1.0.0"
+    version="1.0.0",
+    root_path=root_path
 )
 
 # Configure CORS for frontend access

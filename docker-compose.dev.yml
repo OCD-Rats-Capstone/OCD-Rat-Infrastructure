@@ -9,6 +9,8 @@ services:
       - "5434:5432" # Staging db port (prod uses 5433)
 
   backend:
+    environment:
+      - ROOT_PATH=/api
     ports:
       - "8001:8000" # Staging backend port
 
