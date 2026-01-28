@@ -13,6 +13,10 @@ services:
       - "8001:8000" # Staging backend port
 
   frontend:
+    build:
+      context: ./src/ocd-rat-frontend
+      args:
+        - VITE_API_URL=/api
     ports:
       - "8080:80" # Staging frontend port
 
