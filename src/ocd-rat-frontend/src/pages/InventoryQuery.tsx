@@ -15,9 +15,9 @@ export interface FilterItem {
   value: string;
 }
 
-export interface InventoryItem{
-    id: string;
-    value: string;
+export interface InventoryItem {
+  field: string;
+  value: string;
 }
 
 export function Inventory() {
@@ -51,6 +51,9 @@ export function Inventory() {
   const updateInventory = (id: string, val: string) => {
     setInventory(prev => ({...prev,
         [id]:val}));
+    console.log(inventory)
+    console.log(id);
+    console.log(val);
   }
 
   const handleApplyFilters = async () => {
@@ -162,6 +165,38 @@ export function Inventory() {
                   </SelectTrigger>
                   <SelectContent>
                     {FilterValues["Apparatus"].map(val => (
+                      <SelectItem key={val} value={val}>
+                        {val}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="w-24">
+                <label className="text-sm font-medium">Apparatus Pattern</label>
+                <Select value={inventory["Apparatus Pattern"] ?? ""} onValueChange={(val) => updateInventory("Apparatus Pattern", val)}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {FilterValues["Apparatus Pattern"].map(val => (
+                      <SelectItem key={val} value={val}>
+                        {val}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="w-24">
+                <label className="text-sm font-medium">Session Type</label>
+                <Select value={inventory["Session Type"] ?? ""} onValueChange={(val) => updateInventory("Session Type", val)}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {FilterValues["Session Type"].map(val => (
                       <SelectItem key={val} value={val}>
                         {val}
                       </SelectItem>
