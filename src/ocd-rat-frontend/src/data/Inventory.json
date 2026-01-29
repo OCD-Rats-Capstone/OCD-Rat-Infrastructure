@@ -1,0 +1,49 @@
+{
+    "Apparatus": [
+        "Activity box (5)",
+        "Circular Arena Walled (140)",
+        "Open Field (20138)",
+        "Open Field fenced (208)"
+    ],
+    "Drug Administered": [
+        "\"(+)-(5a, 7a, 8\u00df)-N-methyl-\u2013[7-(1-pyrrolidinyl)-1-oxaspirol[4.5]dec-8-yl]-benzeneacetamide\" (300)",
+        "2-[(3-Chlorophenyl)methoxy]-6-(1-piperazinyl)pyrazine (16)",
+        "8-OH-DPAT (8-hydroxy-2-(di-n-propylamino) tetralin) (2368)",
+        "Escitalopram (348)",
+        "Imipramine (72)",
+        "m-Chlorophenylpiperazine (1588)",
+        "Quinpirole (9815)",
+        "Ritanserin (54)",
+        "Saline vehicle (11201)",
+        "Vehicle A (300)",
+        "Vehicle B (53)",
+        "None (0)"
+    ],
+    "Surgery Type": [
+        "Lesion (5482)",
+        "Sham (3142)",
+        "Unoperated (15854)"
+    ],
+    "Apparatus Pattern": [
+        "Empty: no objects in Activity Monitor (AM) cage (5)",
+        "Empty: no objects in Circular arena (140)",
+        "Empty: no objects in OF (55)",
+        "Rotation: objects in Standard OF locales rotated 180 deg to locales 18 22 9 and 4 (951)",
+        "Standard: an object in OF locales 10 14 5 and 8 (19340)"
+    ],
+    "Session Type": [
+        " Test with 0.1mg/kg DPAT (139)",
+        " Test with 3 drugs injected (Ritanserin reversal trials) (107)",
+        "Drug substitution test (120)",
+        "Filmed in activity cages (5)",
+        "Light/dark test (96)",
+        "Object rotation test (967)",
+        "SAL instead 2nd drug (28)",
+        "Standard OF trial (14790)",
+        "Test for conditioned effects (943)",
+        "Test for sensitization (754)",
+        "Test with 0.1mg/kg QNP (151)",
+        "Test with 2 drugs injected (2336)",
+        "Test without objects in OF (55)"
+    ]
+}
