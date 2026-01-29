@@ -1327,5 +1327,51 @@ graduate attribute of Problem Analysis and Design.
 
 \end{enumerate}
 
+\section*{Appendix --- Module Implementation Reflection}
+
+\begin{enumerate}
+  \item What did you learn by implementing another team’s module?
+  
+  A major takeaway from this experience was being able to interpret the other team’s module interface specifications 
+  and turn that into an implementation specifically developed into the other team’s existing technology stack. 
+  Since the module interface specification gives you a generalized specification, we learned how to take this 
+  generalized format and develop its internally and externally offered services in a specific technology which was React. 
+  Besides the implementation, another learning outcome was learning how difficult it is to set up a project 
+  where you have no development experience in, and how to properly debug errors in the setup process. 
+  The other team’s documentation was well developed but our team experienced challenges during setup due to 
+  the configurations of our personal machines, with extra difficulty introduced when trying to set up 
+  the other team’s project on machines with different operating systems.
+
+  \item Were all the details you needed in the documentation, or did you need to make assumptions, or ask the other team questions?
+  
+  For the most part the module interface specification was well documented, but some assumptions needed to be made, 
+  specifically about the exported constants. The other team defined two constants pertaining to sets of different graphs, 
+  and file formats for exporting. The sets of export graphs and export file formats were only abstractly defined, 
+  meaning there was no set size given or no actual set elements defined (i.e.: set(GraphType) = {Barplot, Venn Diagram}). 
+  As such, our team had to make assumptions about what exportable graph types and file formats we implemented 
+  according to the nature of the data we were presented with.
+
+  \item If your team also had another team implement one of your modules, what was this experience like?
+  
+  From what we observed from another team’s implementation of our Query Processor Module, 
+  it was clear that our MIS for that module was missing multiple points of crucial information in terms of 
+  implementation of internal components and outputs to our local functions. Although our 
+  exported access programs allowed a complete module implementation, we did not provide all the required information 
+  for the local functions such that they can support the functionality of the exported access programs which is 
+  directly tied to the essential functionality of the module being implemented. Other than some gaps in information, 
+  the implementing team did not reach out with any questions or clarifications while at the same time completing a 
+  somewhat implementation of our module. One interesting thing that we observed over an extended development time 
+  is how an initial module interface specification may no longer be viable according to the current design, 
+  which is the case with the current state of our project and the other team’s module implementation.
+
+  \item Are there things in your documentation you could have changed to make the process go more smoothly for when an “outsider” completes some of the implementation?
+  
+  According to the feedback given by the team implementing our Query Processing Module, 
+  our team should have included additional implementation details on how the LLM API is called. 
+  In hindsight, additional information about this could have easily been included in the assumptions section 
+  about what LLM would be used, what the API contract would be defined as such that you can implement the call 
+  to the LLM’s API.
+\end{enumerate}
+
 
 \end{document}
