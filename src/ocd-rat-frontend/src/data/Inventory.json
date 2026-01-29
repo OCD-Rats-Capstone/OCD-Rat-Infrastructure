@@ -1,0 +1,28 @@
+{
+    "Apparatus": [
+        "Activity box",
+        "Circular Arena Walled",
+        "Elevated plus maze",
+        "Open Field",
+        "Open Field fenced"
+    ],
+    "Drug Administered": [
+        "\"(+)-(5a, 7a, 8\u00df)-N-methyl-\u2013[7-(1-pyrrolidinyl)-1-oxaspirol[4.5]dec-8-yl]-benzeneacetamide\"",
+        "2-[(3-Chlorophenyl)methoxy]-6-(1-piperazinyl)pyrazine",
+        "8-OH-DPAT (8-hydroxy-2-(di-n-propylamino) tetralin)",
+        "Clorgyline",
+        "Escitalopram",
+        "Imipramine",
+        "m-Chlorophenylpiperazine", 
+        "Quinpirole",
+        "Ritanserin",
+        "Saline vehicle",
+        "Vehicle A",
+        "Vehicle B"
+    ],
+    "Surgery Type": [
+        "Lesion",
+        "Sham",
+        "Unoperated"
+    ]
+}
