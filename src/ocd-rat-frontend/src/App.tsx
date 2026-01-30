@@ -4,11 +4,13 @@ import { Route, Routes } from 'react-router-dom';
 import { Footer } from "./components/Footer"
 import { Home } from "./pages/Home"
 
-import {NotFound} from "./pages/NotFound"
+import { NotFound} from "./pages/NotFound"
 import { Experiments } from "./pages/Experiments";
 import { About } from "./pages/About";
 import { Query } from "./pages/Query";
 import { Filter } from "./pages/FilterQuery";
+import { Visualizations } from "./pages/Visualizations";
+import { BarChart } from "./pages/BarChart";
 
 <Route path="*" element={<NotFound />} />
 
@@ -24,6 +26,8 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/query" element={<Query />} />
           <Route path="/experiments" element={<Experiments />} />
+          <Route path="/visualizations" element={<Visualizations />} />
+          <Route path="/visualizations/bar-chart" element={<BarChart />} />
           <Route path="/about" element={<About />} />
           <Route path="/filter" element={<Filter />} />
           <Route path="*" element={<NotFound />} />

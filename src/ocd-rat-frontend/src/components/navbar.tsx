@@ -83,6 +83,7 @@ const defaultNavigationLinks: Navbar01NavLink[] = [
   { href: '/', label: 'Home' },
   { href: '/query', label: 'Query' },
   { href: '/experiments', label: 'Experiments' },
+  { href: '/visualizations', label: 'Visualizations' },
   { href: '/filter', label: 'Filter Data' },
   { href: '/about', label: 'About' },
 ];
