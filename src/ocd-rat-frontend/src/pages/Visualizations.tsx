@@ -2,7 +2,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
-import ChartImg from "@/assets/dataset-sample-capstone.jpeg";
+import ChartImg from "@/assets/barchart.png";
 import { Link } from 'react-router-dom';
 
 export function Visualizations() {
