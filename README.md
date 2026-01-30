@@ -86,7 +86,7 @@ OCD-Rat-Infrastructure/
    ```
 
 4. **Access the application**
-   - **Frontend:** http://localhost:3000
+   - **Frontend:** http://localhost:80
    - **Backend API:** http://localhost:8000
    - **API Docs:** http://localhost:8000/docs
    - **Database:** localhost:5433 (if you need direct access)
@@ -123,7 +123,7 @@ docker-compose restart frontend
 
 | Service | Container | Port | Purpose |
 |---------|-----------|------|---------|
-| Frontend | `frontend` | 3000 | React UI |
+| Frontend | `frontend` | 80 | React UI |
 | Backend | `backend` | 8000 | FastAPI server |
 | Database | `db` | 5433 | PostgreSQL with data |
 
@@ -149,7 +149,7 @@ LLM_MODEL=your-model-name
 ### Troubleshooting
 
 **Port conflicts:**
-If ports 3000, 8000, or 5433 are already in use, edit `docker-compose.yml` to change the port mappings.
+If ports 80, 8000, or 5433 are already in use, edit `docker-compose.yml` to change the port mappings.
 
 **Database not initializing:**
 If the database seems empty, check the initialization logs:

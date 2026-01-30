@@ -1,0 +1,30 @@
+# Development/Staging override file
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+# This runs the stack on alternative ports (8080 for frontend, 8001 for backend)
+# allowing staging and production to coexist on the same server.
+
+services:
+  db:
+    ports:
+      - "5434:5432" # Staging db port (prod uses 5433)
+
+  backend:
+    environment:
+      - ROOT_PATH=/api
+    ports:
+      - "8001:8000" # Staging backend port
+
+  frontend:
+    build:
+      context: ./src/ocd-rat-frontend
+      args:
+        - VITE_API_URL=/api
+    ports:
+      - "8080:80" # Staging frontend port
+
+networks:
+  default:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.124.0.0/16 # Different subnet from prod (10.123.0.0/16)
