@@ -17,7 +17,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: main
           fetch-depth: 0
       - name: Get changed LaTeX files
         id: latex-files
@@ -47,14 +46,6 @@ jobs:
               make -B "$dir/$(basename "$file" .tex).pdf" 
             done
             
-      - name: Sync with remote main
-        run: |
-          # Configure git user first so rebase works cleanly
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "github-actions[bot]"
-          
-          # CRITICAL FIX 2: Pull with rebase to catch up with any changes
-          git pull origin main --rebase
             
       - name: Commit and push PDFs
         uses: stefanzweifel/git-auto-commit-action@v4
