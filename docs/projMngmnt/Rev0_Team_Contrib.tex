@@ -24,14 +24,20 @@ Demo.  The time period of interest is the time between the PoC demo and the Rev
 
 \section{Demo Plans}
 
-\wss{What will you be demonstrating}
+\begin{itemize}
+
+    \item {\textbf{Data Visualizations: } Implemented a data visualization system tab
+     for bar chart generation, a selection UI for future chart types, and an 
+     interactive UI for user to configure options and metrics. }
+    \item {\textbf{Natural Language Improvements: } Continued integration of LLM-based 
+    query generation and response for improved user interactions. }
+    \item {\textbf{Docker: } Established robust Docker containerization
+     for reproducible development and production 
+    deployments across team members' machines. }
+
+\end{itemize}
 
 \section{Team Meeting Attendance}
-
-\wss{For each team member how many team meetings have they attended over the
-time period of interest.  This number should be determined from the meeting
-issues in the team's repo.  The first entry in the table should be the total
-number of team meetings held by the team.}
 
 \begin{table}[H]
 \centering
@@ -49,16 +55,7 @@ Jeremy Orr & 1\\
 \end{tabular}
 \end{table}
 
-\wss{If needed, an explanation for the counts can be provided here.}
-
 \section{Supervisor/Stakeholder Meeting Attendance}
-
-\wss{For each team member how many supervisor/stakeholder team meetings have
-they attended over the time period of interest.  This number should be determined
-from the supervisor meeting issues in the team's repo.  The first entry in the
-table should be the total number of supervisor and team meetings held by the
-team.  If there is no supervisor, there will usually be meetings with
-stakeholders (potential users) that can serve a similar purpose.}
 
 \noindent \textbf{Supervisor's Name: } [Dr. Henry Szechtman and Dr.Anna Dvorkin-Gheva]
 
@@ -78,18 +75,11 @@ Aidan Goodyer & 1\\
 \end{tabular}
 \end{table}
 
-\wss{If needed, an explanation for the counts can be provided here.}
+Tim was unable to make the meeting as he was away on a trip. Our supervisor has been very
+busy and we have not been able to schedule another meeting with him since the last one.
+Weekly meetings will continue next week.
 
 \section{Lecture Attendance}
-
-\wss{For each team member how many lectures have they attended over the time
-period of interest.  This number should be determined from the lecture issues in
-the team's repo. You can find the number of lectures in the time period of
-interest by looking at the
-\href{https://calendar.google.com/calendar/u/0/embed?src=rnboqiaki1k2la7rpu3bn0um58@group.calendar.google.com&ctz=America/Toronto}
-{Google calendar} for the capstone course.}
-
-\wss{NOTE: There will be approximately 1 lecture between the POC and Rev0 demos}
 
 \begin{table}[H]
 \centering
@@ -107,12 +97,7 @@ Aidan Goodyer & 0\\
 \end{tabular}
 \end{table}
 
-\wss{If needed, an explanation for the lecture attendance can be provided here.}
-
 \section{TA Document Discussion Attendance}
-
-\wss{For each team member how many of the informal document discussion meetings
-with the TA were attended over the time period of interest.}
 
 \noindent \textbf{TA's Name: } [Tiago de Moraes Machado]
 
@@ -132,14 +117,9 @@ Aidan Goodyer & 0\\
 \end{tabular}
 \end{table}
 
-\wss{If needed, an explanation for the attendance can be provided here.}
+No TA meeting due to snow day.
 
 \section{Commits}
-
-\wss{For each team member how many commits to the main branch have been made
-over the time period of interest.  The total is the total number of commits for
-the entire team since the beginning of the term.  The percentage is the
-percentage of the total commits made by each team member.}
 
 \begin{table}[H]
 \centering
@@ -147,26 +127,22 @@ percentage of the total commits made by each team member.}
 \toprule
 \textbf{Student} & \textbf{Commits} & \textbf{Percent}\\
 \midrule
-Total & Num & 100\% \\
-Name 1 & Num & \% \\
-Name 2 & Num & \% \\
-Name 3 & Num & \% \\
-Name 4 & Num & \% \\
-Name 5 & Num & \% \\
+Total & 26 & 100\% \\
+Nathan Perry & 9 & 34.6\% \\
+Aidan Goodyer & 11 & 42.3\% \\
+Tim Pokanai & 1 & 3.8\% \\
+Jeremy Orr & 2 & 7.7\% \\
+Leo Vugert & 3 & 11.5\% \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\wss{If needed, an explanation for the counts can be provided here.  For
-instance, if a team member has more commits to unmerged branches, these numbers
-can be provided here.  If multiple people contribute to a commit, git allows for
-multi-author commits.}
+Tim has unaccounted commits from the module implementation assignment, where he commited
+changes to the Team 4's repo. Tim and Leo also have unnaccounted commits from unmerged
+changes for data visualizations. Nathan has unnaccounted commits from an unmerged change 
+for the inventory page.
 
 \section{Issue Tracker}
-
-\wss{For each team member how many issues have they authored (including open and
-closed issues (O+C)) and how many have they been assigned (only counting closed
-issues (C only)) over the time period of interest.}
 
 \begin{table}[H]
 \centering
@@ -174,36 +150,87 @@ issues (C only)) over the time period of interest.}
 \toprule
 \textbf{Student} & \textbf{Authored (O+C)} & \textbf{Assigned (C only)}\\
 \midrule
-Name 1 & Num & Num \\
-Name 2 & Num & Num \\
-Name 3 & Num & Num \\
-Name 4 & Num & Num \\
-Name 5 & Num & Num \\
+Leo Vugert & 2 & 0 \\
+Nathan Perry & 0 & 0 \\
+Aidan Goodyer & 3 & 0 \\
+Tim Pokanai & 1 & 0 \\
+Jeremy Orr & 1 & 1 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\wss{If needed, an explanation for the counts can be provided here.}
+Nathan has also been working on issues as well as trying to bring the professors vision
+for an "Inventory" page to life.
 
 \section{CICD}
 
-\wss{Say how CICD is used in your project}
+Our project utilizes GitHub Actions to implement a robust CI/CD pipeline consisting 
+of three parallel workflows that handle security, documentation, and deployment.
+
+\begin{itemize}
+    \item \textbf{Automated Security Scanning (CodeQL):} 
+    To ensure code quality, the CodeQL Advanced workflow triggers on every 
+    push and pull request to the main branch. It employs GitHub's CodeQL engine to 
+    perform static analysis on Python, JavaScript, and TypeScript files, identifying 
+    security vulnerabilities before code is merged.
+
+    \item \textbf{Documentation as Code (buildtex):} 
+    Documentation is automatically compiled using the buildtex workflow. 
+    When changes are detected in the docs directory, the pipeline initiates a
+     TeXLive 2024 environment to compile modified \LaTeX\ files into PDFs. These PDFs
+      are then automatically committed back to the repository, ensuring documentation 
+      remains synchronized with the source.
+
+    \item \textbf{Continuous Deployment (Self-Hosted):} 
+    The \texttt{Deploy RatBat2} workflow executes on a self-hosted runner 
+    directly on our production server. Upon a push to main, the pipeline injects 
+    secrets and uses Docker Compose to rebuild the application containers. 
+    The script includes conditional logic to deploy a Production environment
+     (ports 80/443) for the main branch, or a Staging environment 
+     (ports 8080/8001) for development branches.
+\end{itemize}
 
 \section{Team Charter Trigger Items}
 
-\wss{Provide a summary of the quantified triggers identified in the team's
-charter.}
+\subsection{Trigger Items}
+\begin{enumerate}
+    \item{Team member misses meeting without providing notice or reason}
+    \item{Team member misses meeting without providing an acceptable excuse}
+    \item{Team member's contributions do not hold up to the scrutiny of a peer review}
+    \item{Team member's contributions do not hold up to the team's final document review}
+    \item{Team member's attitude during meetings or discussion is detrimental to the team environment}
+    \item{Team member does not contribute their fair share of issues in the Kanban board}
+\end{enumerate}
 
-\wss{Provide a list of any violations of the triggers.  If the team wishes, the
-violations can be summarized on aggregate, instead of naming specific team
-members.}
+\subsection{Violations}
 
-\wss{Provide a plan to address the violations.  This could include revising the
-triggers, if they are found to be too weak, strong or ambiguous.}
+\par{Refer to above section for corresponding trigger items. The violations will
+be summarized anonymously.}
+\begin{enumerate}
+    \item{0 violation.}
+    \item{0 violations}
+    \item{0 violations.}
+    \item{0 violation.}
+    \item{1 violation. Lack of seriousness in internal meeting, causing unproductive discussions and going over meeting time.}
+    \item{0 violations.}
+\end{enumerate}
+
+\subsection{Violation Plan}
+
+\par{Refer to above sections for violation and trigger information}
+
+\begin{enumerate}
+    \item{N/A}
+    \item{N/A}
+    \item{N/A}
+    \item{N/A}
+    \item{Communicate with team members about meeting expectations. Meetings should be taken seriously,
+    otherwise we are just wasting each other's time.}
+    \item{N/A}
+\end{enumerate}
 
 \section{Additional Productivity Metrics}
 
-\wss{If your team has additional metrics of productivity, please feel free to
-add them to this report.}
+N/A
 
 \end{document}
