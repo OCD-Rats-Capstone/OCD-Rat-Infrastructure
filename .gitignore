@@ -283,5 +283,5 @@ TSWLatexianTemp*
 .env
 
 # compiled pycache files
-__pycache__/
+**/__pycache__/
 *.pyc
