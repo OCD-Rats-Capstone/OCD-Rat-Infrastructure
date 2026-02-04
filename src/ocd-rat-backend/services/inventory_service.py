@@ -66,16 +66,15 @@ def _build_filtered_sessions_sql(req: InventoryCountsRequest) -> tuple[str, list
     params: list[Any] = []
 
     if req.drug_ids:
-        placeholders = ",".join(["%s"] * len(req.drug_ids))
         conditions.append(
-            f"""E.drug_rx_id IN (
+            """E.drug_rx_id IN (
                 SELECT drug_rx_id FROM drug_rx_details
-                WHERE drug_id IN ({placeholders})
+                WHERE drug_id = ANY(%s)
                 GROUP BY drug_rx_id
                 HAVING COUNT(DISTINCT drug_id) = %s
             )"""
         )
-        params.extend(req.drug_ids)
+        params.append(req.drug_ids)
         params.append(len(req.drug_ids))
 
     if req.apparatus_id is not None:
