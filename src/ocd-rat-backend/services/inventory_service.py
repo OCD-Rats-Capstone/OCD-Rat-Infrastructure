@@ -62,54 +62,62 @@ def get_inventory_counts(req: InventoryCountsRequest, db_connection) -> Inventor
 
 def _build_filtered_sessions_sql(req: InventoryCountsRequest) -> tuple[str, list[Any]]:
     """Build CTE for filtered sessions. Returns (sql_cte_string, params)."""
-    conditions: list[str] = ["1=1"]
     params: list[Any] = []
 
-    if req.drug_ids:
-        conditions.append(
-            """E.drug_rx_id IN (
-                SELECT drug_rx_id FROM drug_rx_details
-                WHERE drug_id = ANY(%s)
-                GROUP BY drug_rx_id
-                HAVING COUNT(DISTINCT drug_id) = %s
-            )"""
-        )
-        params.append(req.drug_ids)
-        params.append(len(req.drug_ids))
+    # Prepare params for (val IS NULL OR col = val) pattern.
+    # We repeat the parameter twice for most filters: once for the NULL check, once for equality.
 
-    if req.apparatus_id is not None:
-        conditions.append("E.apparatus_id = %s")
-        params.append(req.apparatus_id)
-    if req.pattern_id is not None:
-        conditions.append("E.pattern_id = %s")
-        params.append(req.pattern_id)
-    if req.session_type_id is not None:
-        conditions.append("E.session_type_id = %s")
-        params.append(req.session_type_id)
-    if req.room_id is not None:
-        conditions.append("E.room_id = %s")
-        params.append(req.room_id)
-    if req.effective_manipulation_id is not None:
-        conditions.append("E.effective_manipulation_id = %s")
-        params.append(req.effective_manipulation_id)
-    if req.surgery_type is not None:
-        conditions.append("BM.surgery_type = %s")
-        params.append(req.surgery_type)
-    if req.target_region_id is not None:
-        conditions.append("BM.target_region_id = %s")
-        params.append(req.target_region_id)
+    # 1. Apparatus
+    params.extend([req.apparatus_id, req.apparatus_id])
 
-    where_sql = " AND ".join(conditions)
-    brain_join = ""
-    if req.surgery_type is not None or req.target_region_id is not None:
-        brain_join = "LEFT JOIN brain_manipulations BM ON E.effective_manipulation_id = BM.manipulation_id"
+    # 2. Pattern
+    params.extend([req.pattern_id, req.pattern_id])
 
-    sql = f"""
+    # 3. Session Type
+    params.extend([req.session_type_id, req.session_type_id])
+
+    # 4. Room
+    params.extend([req.room_id, req.room_id])
+
+    # 5. Effective Manipulation
+    params.extend([req.effective_manipulation_id, req.effective_manipulation_id])
+
+    # 6. Surgery Type
+    params.extend([req.surgery_type, req.surgery_type])
+
+    # 7. Target Region
+    params.extend([req.target_region_id, req.target_region_id])
+
+    # 8. Drugs
+    # If req.drug_ids is None or empty, we want to bypass this filter.
+    # passing None to %s::int[] IS NULL will return true.
+    drugs_param = req.drug_ids if req.drug_ids else None
+    drugs_len = len(req.drug_ids) if req.drug_ids else 0
+    params.extend([drugs_param, drugs_param, drugs_len])
+
+    # Static SQL string with no interpolation
+    sql = """
         WITH filtered_sessions AS (
             SELECT E.session_id
             FROM experimental_sessions E
-            {brain_join}
-            WHERE {where_sql}
+            LEFT JOIN brain_manipulations BM ON E.effective_manipulation_id = BM.manipulation_id
+            WHERE 
+                (%s::int IS NULL OR E.apparatus_id = %s)
+                AND (%s::int IS NULL OR E.pattern_id = %s)
+                AND (%s::int IS NULL OR E.session_type_id = %s)
+                AND (%s::int IS NULL OR E.room_id = %s)
+                AND (%s::int IS NULL OR E.effective_manipulation_id = %s)
+                AND (%s::text IS NULL OR BM.surgery_type = %s)
+                AND (%s::int IS NULL OR BM.target_region_id = %s)
+                AND (
+                    %s::int[] IS NULL 
+                    OR E.drug_rx_id IN (
+                        SELECT drug_rx_id FROM drug_rx_details
+                        WHERE drug_id = ANY(%s)
+                        GROUP BY drug_rx_id
+                        HAVING COUNT(DISTINCT drug_id) = %s
+                    )
+                )
         )
     """
     return sql, params
