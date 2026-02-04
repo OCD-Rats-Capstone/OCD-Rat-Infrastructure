@@ -40,9 +40,8 @@ def get_inventory_counts(req: InventoryCountsRequest, db_connection) -> Inventor
     full_total = sql_filtered + sql_total
 
     try:
-        param_dict = params
-        df_counts = pd.read_sql_query(full_counts, db_connection, params=param_dict)
-        df_total = pd.read_sql_query(full_total, db_connection, params=param_dict)
+        df_counts = pd.read_sql_query(full_counts, db_connection, params=params)
+        df_total = pd.read_sql_query(full_total, db_connection, params=params)
         total_sessions = int(df_total["n"].iloc[0]) if len(df_total) > 0 else 0
 
         counts_by_type = [
@@ -138,8 +137,7 @@ def get_inventory_sessions(
         LIMIT %s
     """
     try:
-        params_dict = params
-        df = pd.read_sql_query(sql, db_connection, params=params_dict)
+        df = pd.read_sql_query(sql, db_connection, params=params)
         df = df.replace([pd.NA], None)
         print(str(df["session_id"]))
         data = df["session_id"].to_list()
