@@ -79,9 +79,9 @@ export function Query() {
                 Mpg_Flag: Mpg
             };
 
-            const baseUrl = API_BASE_URL.replace(/\/$/, '');
-            const url = new URL(`${baseUrl}/files/`);
-            url.search = new URLSearchParams(params).toString();
+            const baseUrl = (API_BASE_URL.replace(/\/$/, ''));
+            const searchParams = new URLSearchParams(params).toString();
+            const url = `${baseUrl}/files/?${searchParams}`;
 
             const response = await fetch(url);
 
@@ -206,6 +206,14 @@ export function Query() {
         }
     }
 
+    const IsLastMessageSQL = () =>{
+        if (messages.length == 0){
+            return false
+        }else{
+            return messages[messages.length - 1].type=="sql"
+        }
+    }
+
 
     return (
 
@@ -255,12 +263,12 @@ export function Query() {
                 </ScrollArea>
             </div>
 
-            <Button
+            <Button disabled={!IsLastMessageSQL()}
       variant="default"
       onClick={togglePopup}
     >
       Download Session Files
-    </Button>
+    </Button >
 
             <div className="flex w-1/2 min-w-80 shrink-0 my-4">
                 <QueryInput onSendMessage={handleSendMessage} />
