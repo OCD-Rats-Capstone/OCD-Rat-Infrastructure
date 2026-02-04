@@ -23,6 +23,8 @@ export interface YAxisOption {
 export interface AvailableVisualizations {
   x_axis_options: XAxisOption[];
   y_axis_options: YAxisOption[];
+  linechart_x_axis_options: XAxisOption[];
+  linechart_y_axis_options: YAxisOption[];
   observation_codes?: Array<{ code: string; label: string }>;
 }
 
@@ -71,7 +73,7 @@ export const useAvailableVisualizations = () => {
 };
 
 /**
- * Hook to fetch visualization data based on x_axis and y_axis
+ * Hook to fetch visualization data based on x_axis and y_axis for bar charts
  */
 export const useVisualizationData = (xAxis: string | null, yAxis: string | null) => {
   const [data, setData] = useState<VisualizationData | null>(null);
@@ -91,6 +93,49 @@ export const useVisualizationData = (xAxis: string | null, yAxis: string | null)
         const baseUrl = API_BASE_URL.replace(/\/$/, '');
         const response = await fetch(
           `${baseUrl}/visualizations/barchart?x_axis=${xAxis}&y_axis=${yAxis}`
+        );
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch visualization data: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        setData(result);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unknown error');
+        setData(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [xAxis, yAxis]);
+
+  return { data, loading, error };
+};
+
+/**
+ * Hook to fetch visualization data based on x_axis and y_axis for line charts
+ */
+export const useLineChartData = (xAxis: string | null, yAxis: string | null) => {
+  const [data, setData] = useState<VisualizationData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!xAxis || !yAxis) {
+      setData(null);
+      return;
+    }
+
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const baseUrl = API_BASE_URL.replace(/\/$/, '');
+        const response = await fetch(
+          `${baseUrl}/visualizations/linechart?x_axis=${xAxis}&y_axis=${yAxis}`
         );
         
         if (!response.ok) {

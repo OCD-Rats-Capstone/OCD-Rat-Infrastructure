@@ -50,4 +50,6 @@ class AvailableVisualizationsResponse(BaseModel):
     """Response listing all available visualization configuration options."""
     x_axis_options: List[XAxisOption]
     y_axis_options: List[YAxisOption]
+    linechart_x_axis_options: List[XAxisOption]
+    linechart_y_axis_options: List[YAxisOption]
     observation_codes: Optional[List[ObservationCode]] = None

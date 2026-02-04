@@ -11,6 +11,7 @@ import { Query } from "./pages/Query";
 import { Filter } from "./pages/FilterQuery";
 import { Visualizations } from "./pages/Visualizations";
 import { BarChart } from "./pages/BarChart";
+import { LineChart } from "./pages/LineChart";
 
 <Route path="*" element={<NotFound />} />
 
@@ -28,6 +29,7 @@ function App() {
           <Route path="/experiments" element={<Experiments />} />
           <Route path="/visualizations" element={<Visualizations />} />
           <Route path="/visualizations/bar-chart" element={<BarChart />} />
+          <Route path="/visualizations/line-chart" element={<LineChart />} />
           <Route path="/about" element={<About />} />
           <Route path="/filter" element={<Filter />} />
           <Route path="*" element={<NotFound />} />

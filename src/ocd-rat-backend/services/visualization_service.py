@@ -19,10 +19,11 @@ from dataclasses import dataclass
 class VisualizationType(str, Enum):
     """Supported visualization types."""
     BARCHART = "barchart"
+    LINECHART = "linechart"
 
 
 class XAxisType(str, Enum):
-    """Available X-axis grouping variables."""
+    """Available X-axis grouping variables for bar charts."""
     RAT_STRAIN = "rat_strain"
     RAT_SEX = "rat_sex"
     SESSION_TYPE = "session_type"
@@ -34,8 +35,23 @@ class XAxisType(str, Enum):
     MANIPULATION_TYPE = "manipulation_type"
 
 
+class XAxisLineChartType(str, Enum):
+    """Available X-axis grouping variables for line charts (time-based)."""
+    DATE_BY_DAY = "date_by_day"
+    DATE_BY_WEEK = "date_by_week"
+    DATE_BY_MONTH = "date_by_month"
+
+
 class YAxisType(str, Enum):
-    """Available Y-axis metrics."""
+    """Available Y-axis metrics for bar charts."""
+    SESSION_COUNT = "session_count"
+    UNIQUE_RATS = "unique_rats"
+    AVG_BODY_WEIGHT = "avg_body_weight"
+    AVG_INJECTION_COUNT = "avg_injection_count"
+
+
+class YAxisLineChartType(str, Enum):
+    """Available Y-axis metrics for line charts."""
     SESSION_COUNT = "session_count"
     UNIQUE_RATS = "unique_rats"
     AVG_BODY_WEIGHT = "avg_body_weight"
@@ -136,8 +152,72 @@ X_AXIS_REGISTRY: Dict[str, XAxisConfig] = {
 }
 
 # ============================================================================
-# Y-AXIS REGISTRY: Maps Y-axis types to their database logic
+# LINE CHART X-AXIS REGISTRY: Maps time-based X-axis types for line charts
 # ============================================================================
+
+LINECHART_X_AXIS_REGISTRY: Dict[str, XAxisConfig] = {
+    XAxisLineChartType.DATE_BY_DAY.value: XAxisConfig(
+        id=XAxisLineChartType.DATE_BY_DAY.value,
+        label="Date (Daily)",
+        description="Group results by day",
+        required_joins=set(),
+        group_by_sql="DATE(E1.session_timestamp)",
+    ),
+    XAxisLineChartType.DATE_BY_WEEK.value: XAxisConfig(
+        id=XAxisLineChartType.DATE_BY_WEEK.value,
+        label="Date (Weekly)",
+        description="Group results by week",
+        required_joins=set(),
+        group_by_sql="DATE_TRUNC('week', E1.session_timestamp)::date",
+    ),
+    XAxisLineChartType.DATE_BY_MONTH.value: XAxisConfig(
+        id=XAxisLineChartType.DATE_BY_MONTH.value,
+        label="Date (Monthly)",
+        description="Group results by month",
+        required_joins=set(),
+        group_by_sql="DATE_TRUNC('month', E1.session_timestamp)::date",
+    ),
+}
+
+# ============================================================================
+# LINE CHART Y-AXIS REGISTRY: Maps Y-axis metrics for line charts
+# (Same as bar chart but could be extended in future)
+# ============================================================================
+
+LINECHART_Y_AXIS_REGISTRY: Dict[str, YAxisConfig] = {
+    YAxisLineChartType.SESSION_COUNT.value: YAxisConfig(
+        id=YAxisLineChartType.SESSION_COUNT.value,
+        label="Session Count",
+        description="Number of sessions",
+        unit="count",
+        required_joins=set(),
+        aggregation_sql="COUNT(DISTINCT E1.session_id)",
+    ),
+    YAxisLineChartType.UNIQUE_RATS.value: YAxisConfig(
+        id=YAxisLineChartType.UNIQUE_RATS.value,
+        label="Unique Rats",
+        description="Number of unique rats",
+        unit="count",
+        required_joins=set(),
+        aggregation_sql="COUNT(DISTINCT E1.rat_id)",
+    ),
+    YAxisLineChartType.AVG_BODY_WEIGHT.value: YAxisConfig(
+        id=YAxisLineChartType.AVG_BODY_WEIGHT.value,
+        label="Average Body Weight",
+        description="Average body weight of rats",
+        unit="grams",
+        required_joins=set(),
+        aggregation_sql="COALESCE(ROUND(AVG(CAST(E1.body_weight_grams AS NUMERIC)), 2), 0)",
+    ),
+    YAxisLineChartType.AVG_INJECTION_COUNT.value: YAxisConfig(
+        id=YAxisLineChartType.AVG_INJECTION_COUNT.value,
+        label="Average Injection Count",
+        description="Average number of drug injections",
+        unit="count",
+        required_joins=set(),
+        aggregation_sql="COALESCE(ROUND(AVG(CAST(E1.cumulative_drug_injection_number AS NUMERIC)), 2), 0)",
+    ),
+}
 
 Y_AXIS_REGISTRY: Dict[str, YAxisConfig] = {
     YAxisType.SESSION_COUNT.value: YAxisConfig(
@@ -181,8 +261,10 @@ def get_available_visualizations() -> Dict[str, List[Dict[str, Any]]]:
     
     Returns:
         Dictionary with:
-        - x_axis_options: List of X-axis configuration objects
-        - y_axis_options: List of Y-axis configuration objects
+        - x_axis_options: List of X-axis configuration objects for bar charts
+        - y_axis_options: List of Y-axis configuration objects for bar charts
+        - linechart_x_axis_options: List of X-axis configuration objects for line charts
+        - linechart_y_axis_options: List of Y-axis configuration objects for line charts
     """
     x_axis_options = [
         {
@@ -203,9 +285,30 @@ def get_available_visualizations() -> Dict[str, List[Dict[str, Any]]]:
         for config in Y_AXIS_REGISTRY.values()
     ]
     
+    linechart_x_axis_options = [
+        {
+            "id": config.id,
+            "label": config.label,
+            "description": config.description,
+        }
+        for config in LINECHART_X_AXIS_REGISTRY.values()
+    ]
+    
+    linechart_y_axis_options = [
+        {
+            "id": config.id,
+            "label": config.label,
+            "description": config.description,
+            "unit": config.unit,
+        }
+        for config in LINECHART_Y_AXIS_REGISTRY.values()
+    ]
+    
     return {
         "x_axis_options": x_axis_options,
         "y_axis_options": y_axis_options,
+        "linechart_x_axis_options": linechart_x_axis_options,
+        "linechart_y_axis_options": linechart_y_axis_options,
     }
 
 
@@ -446,3 +549,135 @@ def _build_where_clause(required_joins: Set[str], observation_code: Optional[str
         conditions.append(f"OBS.observation_code = '{safe_code}'")
     
     return "WHERE " + " AND ".join(conditions)
+
+
+def generate_linechart_data(
+    db_connection,
+    x_axis: str,
+    y_axis: str,
+) -> Dict[str, Any]:
+    """
+    Generate line chart data with time-based X-axis and configurable Y-axis metrics.
+    
+    Args:
+        db_connection: psycopg2 database connection
+        x_axis: X-axis time binning option from XAxisLineChartType (e.g., 'date_by_day', 'date_by_month')
+        y_axis: Y-axis metric ID from YAxisLineChartType (e.g., 'session_count', 'avg_body_weight')
+        
+    Returns:
+        Dictionary with:
+        - labels: X-axis date labels
+        - values: Y-axis aggregated values
+        - title: Chart title
+        - xlabel: X-axis label
+        - ylabel: Y-axis label
+        - unit: Unit of measurement
+        - raw_data: Complete aggregated data
+        
+    Raises:
+        ValueError: If x_axis or y_axis are invalid
+    """
+    # Validate x_axis and y_axis selections
+    if x_axis not in LINECHART_X_AXIS_REGISTRY:
+        raise ValueError(f"Invalid x_axis '{x_axis}'. Valid options: {list(LINECHART_X_AXIS_REGISTRY.keys())}")
+    if y_axis not in LINECHART_Y_AXIS_REGISTRY:
+        raise ValueError(f"Invalid y_axis '{y_axis}'. Valid options: {list(LINECHART_Y_AXIS_REGISTRY.keys())}")
+    
+    x_config = LINECHART_X_AXIS_REGISTRY[x_axis]
+    y_config = LINECHART_Y_AXIS_REGISTRY[y_axis]
+    
+    # Build and execute query
+    query = _build_linechart_query(x_config, y_config)
+    
+    try:
+        cur = db_connection.cursor()
+        cur.execute(query)
+        rows = cur.fetchall()
+        
+        # Get column names
+        col_names = [desc[0] for desc in cur.description]
+        cur.close()
+        
+        # Convert to DataFrame for easier manipulation
+        df = pd.DataFrame(rows, columns=col_names)
+        
+        if df.empty:
+            return {
+                "labels": [],
+                "values": [],
+                "title": f"{y_config.label} Over Time",
+                "xlabel": x_config.label,
+                "ylabel": y_config.label,
+                "unit": y_config.unit,
+                "raw_data": [],
+            }
+        
+        # Extract labels and values, sorting by date
+        df = df.sort_values(by=col_names[0])
+        labels = df.iloc[:, 0].astype(str).tolist()
+        values = df.iloc[:, 1].tolist()
+        
+        # Clean NaN/infinity values for JSON serialization
+        cleaned_values = []
+        for v in values:
+            if isinstance(v, float):
+                if math.isnan(v) or math.isinf(v):
+                    cleaned_values.append(0)
+                else:
+                    cleaned_values.append(v)
+            else:
+                cleaned_values.append(v if v is not None else 0)
+        
+        # Format raw_data
+        raw_data = [
+            {col_names[0]: str(row[0]), col_names[1]: row[1]}
+            for row in rows
+        ]
+        
+        return {
+            "labels": labels,
+            "values": cleaned_values,
+            "title": f"{y_config.label} Over Time",
+            "xlabel": x_config.label,
+            "ylabel": y_config.label,
+            "unit": y_config.unit,
+            "raw_data": raw_data,
+        }
+    
+    except Exception as e:
+        raise Exception(f"Database query failed: {str(e)}")
+
+
+def _build_linechart_query(
+    x_config: XAxisConfig,
+    y_config: YAxisConfig,
+) -> str:
+    """
+    Build SQL query for line chart data based on selected time period and metric.
+    
+    Args:
+        x_config: X-axis configuration object (time-based)
+        y_config: Y-axis configuration object
+        
+    Returns:
+        Complete SQL SELECT query string
+    """
+    # Determine all required joins
+    required_joins = x_config.required_joins | y_config.required_joins
+    
+    # Build query components
+    select_clause = f"SELECT {x_config.group_by_sql} as date_point, {y_config.aggregation_sql} as value"
+    from_clause = _build_from_clause(required_joins)
+    where_clause = _build_where_clause(required_joins)
+    group_by_clause = f"GROUP BY {x_config.group_by_sql}"
+    order_by_clause = f"ORDER BY {x_config.group_by_sql}"
+    
+    query = f"""
+    {select_clause}
+    {from_clause}
+    {where_clause}
+    {group_by_clause}
+    {order_by_clause}
+    """
+    
+    return query

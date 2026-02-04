@@ -13,6 +13,7 @@ from schemas.visualization import (
 from services.visualization_service import (
     get_available_visualizations,
     generate_barchart_data,
+    generate_linechart_data,
     get_available_observation_codes,
     VisualizationType,
 )
@@ -128,6 +129,71 @@ async def generate_barchart(
         return VisualizationDataResponse(**data)
     except ValueError as e:
         # Validation errors (invalid x_axis, y_axis, missing observation_code, etc.)
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        print(f"[Visualizations Router] Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/linechart", response_model=VisualizationDataResponse)
+async def generate_linechart(
+    x_axis: str = Query(..., description="Time binning option (e.g., 'date_by_day', 'date_by_week', 'date_by_month')"),
+    y_axis: str = Query(..., description="Y-axis metric (e.g., 'session_count', 'avg_body_weight', 'unique_rats', 'avg_injection_count')"),
+    db=Depends(get_db),
+):
+    """
+    Generate data for a line chart visualization with time-based X-axis.
+    
+    Args:
+        x_axis: Time binning option (e.g., 'date_by_day', 'date_by_week', 'date_by_month')
+        y_axis: The metric to aggregate over time (e.g., 'session_count', 'avg_body_weight', 'unique_rats', 'avg_injection_count')
+        
+    Returns:
+        VisualizationDataResponse with:
+        - labels: Date labels (X-axis)
+        - values: Y-axis values (aggregated metric per time period)
+        - title, xlabel, ylabel: Chart labels
+        - unit: Unit of measurement for Y-axis
+        - raw_data: Complete aggregated data
+        
+    Supported X-axis options (time binning):
+        - date_by_day: Aggregate by day
+        - date_by_week: Aggregate by week
+        - date_by_month: Aggregate by month
+        
+    Supported Y-axis options (metrics):
+        - session_count: Number of sessions per time period
+        - unique_rats: Number of unique rats per time period
+        - avg_body_weight: Average body weight per time period (grams)
+        - avg_injection_count: Average injection count per time period
+        
+    Examples:
+        GET /visualizations/linechart?x_axis=date_by_month&y_axis=session_count
+        → Sessions per month
+        
+        GET /visualizations/linechart?x_axis=date_by_week&y_axis=avg_body_weight
+        → Average body weight per week
+        
+    Response:
+        {
+            "labels": ["2025-01-01", "2025-01-02", "2025-01-03"],
+            "values": [10, 12, 8],
+            "title": "Session Count Over Time",
+            "xlabel": "Date (Daily)",
+            "ylabel": "Session Count",
+            "unit": "count",
+            "raw_data": [...]
+        }
+    """
+    try:
+        data = generate_linechart_data(
+            db_connection=db,
+            x_axis=x_axis,
+            y_axis=y_axis,
+        )
+        return VisualizationDataResponse(**data)
+    except ValueError as e:
+        # Validation errors (invalid x_axis, y_axis, etc.)
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         print(f"[Visualizations Router] Error: {e}")

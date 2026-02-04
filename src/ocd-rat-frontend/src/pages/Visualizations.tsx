@@ -3,6 +3,7 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import ChartImg from "@/assets/barchart.png";
+import LineChartImg from "@/assets/linechart.png";
 import { Link } from 'react-router-dom';
 
 export function Visualizations() {
@@ -12,6 +13,12 @@ export function Visualizations() {
       title: 'Bar Chart',
       desc: 'Categorical comparisons using configurable X and Y axes.',
       href: '/visualizations/bar-chart'
+    },
+    {
+      img: LineChartImg,
+      title: 'Line Chart',
+      desc: 'Time-series trends showing how metrics change over time.',
+      href: '/visualizations/line-chart'
     },
   ];
 
