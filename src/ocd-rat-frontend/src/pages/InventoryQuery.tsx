@@ -19,6 +19,15 @@ import {
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Info } from 'lucide-react';
 import { API_BASE_URL } from '@/config';
+import {
+  Popup,
+  PopupTrigger,
+  PopupContent,
+  PopupHeader,
+  PopupFooter,
+  PopupTitle,
+  PopupDescription
+} from '@/components/FilePopout';
 
 export interface FilterOptions {
   drugs?: { id: number; label: string }[];
@@ -72,6 +81,13 @@ export function Inventory() {
   const [sessions, setSessions] = useState<Record<string, unknown>[] | null>(null);
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const [selectedDrugIds, setSelectedDrugIds] = useState<Set<number>>(new Set());
+  const [CsvChecked, SetCsvChecked] = useState(false);
+  const [MpgChecked, SetMpgChecked] = useState(false);
+  const [GifChecked, SetGifChecked] = useState(false);
+  const [EwbChecked, SetEwbChecked] = useState(false);
+  const [JpgChecked, SetJpgChecked] = useState(false);
+  const [open, setOpen] = useState(false);
+  const togglePopup = () => setOpen((prev) => !prev);
 
   useEffect(() => {
     const base = API_BASE_URL.replace(/\/$/, '');
@@ -216,6 +232,61 @@ export function Inventory() {
     files: c.file_count,
     sessions: c.session_count,
   })) ?? [];
+
+  const fetchData = async (Usertext: string) => {
+    try {
+      const params = {
+        query_type: 'NLP',
+        text: Usertext
+      };
+      const query = new URLSearchParams(params).toString();
+      // Ensure proper URL construction handling potential relative paths
+      const baseUrl = API_BASE_URL.replace(/\/$/, '');
+      const response = await fetch(`${baseUrl}/nlp/?${query}`);
+      const data = await response.json();
+
+      // New API returns { rationale, sql, results }
+      return data;
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      throw error;
+    }
+  }
+
+  const fetchFiles = async (Csv: string, Ewb: string, Jpg: string, Mpg: string, Gif: string) => {
+    try {
+      const params = {
+        query_type: "FILTER",
+        Csv_Flag: Csv,
+        Ewb_Flag: Ewb,
+        Gif_Flag: Gif,
+        Jpg_Flag: Jpg,
+        Mpg_Flag: Mpg
+      };
+
+      const baseUrl = (API_BASE_URL.replace(/\/$/, ''));
+      const searchParams = new URLSearchParams(params).toString();
+      const url = `${baseUrl}/files/?${searchParams}`;
+
+      const response = await fetch(url);
+
+      const blob = await response.blob();
+      const obj_url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = obj_url;
+      a.download = "FRDR_Files.zip";
+      document.body.appendChild(a);
+      a.click();
+
+      a.remove();
+      window.URL.revokeObjectURL(obj_url);
+
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      throw error;
+    }
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -390,6 +461,12 @@ export function Inventory() {
                   Clear
                 </Button>
               </div>
+              <div className="mt-auto pt-4 flex justify-start">
+              <Button disabled={!(sessions != null && sessions.length > 0)}
+              variant="secondary" className="flex-1" onClick={togglePopup}>
+                Download Session Files
+              </Button>
+            </div>
             </Card>
           </aside>
 
@@ -501,6 +578,57 @@ export function Inventory() {
                 <p>Select filters and click Apply to see inventory counts by data type.</p>
               </Card>
             )}
+
+            <div className="flex items-center space-x-2">
+              <Popup open={open} onOpenChange={setOpen}>
+
+                <PopupContent>
+                  <PopupHeader>
+                    <PopupTitle> Download Session Files
+                    </PopupTitle>
+                    <PopupDescription>
+                      The download action will download files related to every session
+                      queried in your previous search. If you would like to refine your search before downloading,
+                      please cancel.
+                    </PopupDescription>
+
+                    <br></br>
+
+                  </PopupHeader>
+
+                  <PopupTitle>Select Desired File Extensions:</PopupTitle>
+
+                  <Checkbox id="downloadCsv" checked={CsvChecked} onCheckedChange={(val) => SetCsvChecked(val === true)} />
+                  <label htmlFor="downloadCsv" className="text-sm font-medium leading-none"> CSV </label>
+                  <br></br>
+                  <Checkbox id="downloadEwb" checked={EwbChecked} onCheckedChange={(val) => SetEwbChecked(val === true)} />
+                  <label htmlFor="downloadEwb" className="text-sm font-medium leading-none"> EWB </label>
+                  <br></br>
+                  <Checkbox id="downloadGif" checked={GifChecked} onCheckedChange={(val) => SetGifChecked(val === true)} />
+                  <label htmlFor="downloadGif" className="text-sm font-medium leading-none"> GIF </label>
+                  <br></br>
+                  <Checkbox id="downloadJpg" checked={JpgChecked} onCheckedChange={(val) => SetJpgChecked(val === true)} />
+                  <label htmlFor="downloadJpg" className="text-sm font-medium leading-none"> JPG </label>
+                  <br></br>
+                  <Checkbox id="downloadMpg" checked={MpgChecked} onCheckedChange={(val) => SetMpgChecked(val === true)} />
+                  <label htmlFor="downloadMpg" className="text-sm font-medium leading-none"> MPG </label>
+
+
+                  <PopupFooter>
+                    <Button
+                      variant="secondary"
+                      onClick={() => setOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button onClick={() => {
+                      fetchFiles(String(CsvChecked), String(EwbChecked), String(JpgChecked), String(MpgChecked), String(GifChecked));
+                      setOpen(false);
+                    }}>Download</Button>
+                  </PopupFooter>
+                </PopupContent>
+              </Popup>
+            </div>
           </main>
         </div>
       </div>

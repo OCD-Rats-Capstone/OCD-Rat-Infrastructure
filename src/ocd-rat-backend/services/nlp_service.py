@@ -6,6 +6,7 @@ Extracted from the original test.py file.
 import pandas as pd
 import numpy as np
 from llm.llm_service import llm_service
+import json
 
 
 def execute_nlp_query(query_string: str, db_connection) -> dict:
@@ -46,8 +47,8 @@ def execute_nlp_query(query_string: str, db_connection) -> dict:
     print(f"\n[DB] Result ({len(df)} rows):")
     print(df.head(10))
 
-    with open("NLP_query.txt", "w") as f:
-        f.write(sql_query)
+    with open("NLP_query.json", "w") as f:
+        json.dump(sql_query,f)
     
     return {
         "rationale": rationale,

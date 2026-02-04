@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from core.database import get_db
 from services.nlp_service import execute_nlp_query
-from services.download_service import NLP_FileDownload
+from services.download_service import NLP_FileDownload, FILTERS_FileDownload
 import zipfile
 from io import BytesIO
 import os
@@ -28,7 +28,14 @@ async def download_action(
     Get Most recently executed query and download session files
     """
     try:
-        result = NLP_FileDownload(db,[["csv",Csv_Flag],["ewb",Ewb_Flag],["jpg",Jpg_Flag],["mpg",Mpg_Flag],["gif",Gif_Flag]])
+        print(query_type)
+
+        if query_type == "NLP":
+        
+            result = NLP_FileDownload(db,[["csv",Csv_Flag],["ewb",Ewb_Flag],["jpg",Jpg_Flag],["mpg",Mpg_Flag],["gif",Gif_Flag]])
+        
+        elif query_type == "FILTER":
+            result = FILTERS_FileDownload(db,[["csv",Csv_Flag],["ewb",Ewb_Flag],["jpg",Jpg_Flag],["mpg",Mpg_Flag],["gif",Gif_Flag]])
 
         dir_path = "../FRDR_Files"
 

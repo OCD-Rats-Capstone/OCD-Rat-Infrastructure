@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import pandas as pd
 from typing import Any
+import json
 
 from schemas.query import (
     InventoryCountsRequest,
@@ -138,6 +139,11 @@ def get_inventory_sessions(
     try:
         df = pd.read_sql_query(sql, db_connection, params=params)
         df = df.replace([pd.NA], None)
+        print(str(df["session_id"]))
+        data = df["session_id"].to_list()
+        with open("Filter_sessions.json", "w") as f:
+            json.dump(data,f,indent=2)
+
         return df.to_dict(orient="records")
     except Exception as e:
         print(f"[Inventory Service] Error fetching sessions: {e}")

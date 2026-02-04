@@ -4,6 +4,7 @@ import os
 from urllib.request import urlretrieve
 from services.nlp_service import execute_nlp_query
 import shutil
+import json
 
 def NLP_FileDownload(db_connection,file_types: list):
 
@@ -15,8 +16,8 @@ def NLP_FileDownload(db_connection,file_types: list):
     print(trimmed_type)
             
      
-    with open("NLP_query.txt", "r", encoding="utf-8") as f:
-        content = f.read()
+    with open("NLP_query.json", "r", encoding="utf-8") as f:
+        content = json.load(f)
 
     results = execute_nlp_query(content + " Take this exact query and change nothing except that"
     "only the session ids are selected",db_connection)
@@ -27,6 +28,24 @@ def NLP_FileDownload(db_connection,file_types: list):
     FRDR_download(db_connection,db_connection.cursor(),id_list,trimmed_type)
 
     return results
+
+def FILTERS_FileDownload(db_connection,file_types: list):
+
+    trimmed_type = []
+    print(file_types)
+    for t in file_types:
+        if t[1] == 'true':
+            trimmed_type.append(t[0])
+    print(trimmed_type)
+            
+     
+    with open("Filter_sessions.json", "r", encoding="utf-8") as f:
+        id_list = json.load(f)
+
+    print(id_list)
+    FRDR_download(db_connection,db_connection.cursor(),id_list,trimmed_type)
+
+    return id_list
 
 def FRDR_download(cnxn,cursor,file_ids,file_exts):
 
