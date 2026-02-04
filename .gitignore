@@ -281,3 +281,7 @@ TSWLatexianTemp*
 #ignore pdfs 
 *.pdf
 .env
+
+# compiled pycache files
+__pycache__/
+*.pyc
