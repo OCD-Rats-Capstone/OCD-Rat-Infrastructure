@@ -3,6 +3,8 @@ Filter Service - Business logic for applying structured filters to queries.
 Clean rewrite of the original filters.py with bug fixes and security improvements.
 """
 
+from __future__ import annotations
+
 import pandas as pd
 import numpy as np
 from typing import List
