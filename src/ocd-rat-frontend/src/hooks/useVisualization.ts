@@ -25,6 +25,9 @@ export interface AvailableVisualizations {
   y_axis_options: YAxisOption[];
   linechart_x_axis_options: XAxisOption[];
   linechart_y_axis_options: YAxisOption[];
+  heatmap_x_axis_options: XAxisOption[];
+  heatmap_y_axis_options: XAxisOption[];
+  heatmap_metric_options: YAxisOption[];
   observation_codes?: Array<{ code: string; label: string }>;
 }
 
@@ -35,6 +38,26 @@ export interface VisualizationData {
   xlabel: string;
   ylabel: string;
   unit: string;
+  raw_data: Record<string, unknown>[];
+}
+
+export interface HeatmapCell {
+  x: string;
+  y: string;
+  value: number;
+}
+
+export interface HeatmapVisualizationData {
+  title: string;
+  xlabel: string;
+  ylabel: string;
+  metric: string;
+  unit: string;
+  data: HeatmapCell[];
+  x_categories: string[];
+  y_categories: string[];
+  min_value: number;
+  max_value: number;
   raw_data: Record<string, unknown>[];
 }
 
@@ -154,6 +177,56 @@ export const useLineChartData = (xAxis: string | null, yAxis: string | null) => 
 
     fetchData();
   }, [xAxis, yAxis]);
+
+  return { data, loading, error };
+};
+
+/**
+ * Hook to fetch visualization data based on x_axis, y_axis, and metric for heatmaps
+ */
+export const useHeatmapData = (xAxis: string | null, yAxis: string | null, metric: string | null) => {
+  const [data, setData] = useState<HeatmapVisualizationData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!xAxis || !yAxis || !metric) {
+      setData(null);
+      return;
+    }
+
+    // Validate that X and Y axes are different
+    if (xAxis === yAxis) {
+      setError('X-axis and Y-axis must be different dimensions');
+      setData(null);
+      return;
+    }
+
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const baseUrl = API_BASE_URL.replace(/\/$/, '');
+        const response = await fetch(
+          `${baseUrl}/visualizations/heatmap?x_axis=${xAxis}&y_axis=${yAxis}&metric=${metric}`
+        );
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch heatmap data: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        setData(result);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unknown error');
+        setData(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [xAxis, yAxis, metric]);
 
   return { data, loading, error };
 };

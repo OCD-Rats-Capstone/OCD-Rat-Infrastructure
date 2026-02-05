@@ -52,4 +52,7 @@ class AvailableVisualizationsResponse(BaseModel):
     y_axis_options: List[YAxisOption]
     linechart_x_axis_options: List[XAxisOption]
     linechart_y_axis_options: List[YAxisOption]
+    heatmap_x_axis_options: List[XAxisOption]
+    heatmap_y_axis_options: List[XAxisOption]
+    heatmap_metric_options: List[YAxisOption]
     observation_codes: Optional[List[ObservationCode]] = None

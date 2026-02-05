@@ -20,6 +20,7 @@ class VisualizationType(str, Enum):
     """Supported visualization types."""
     BARCHART = "barchart"
     LINECHART = "linechart"
+    HEATMAP = "heatmap"
 
 
 class XAxisType(str, Enum):
@@ -40,6 +41,40 @@ class XAxisLineChartType(str, Enum):
     DATE_BY_DAY = "date_by_day"
     DATE_BY_WEEK = "date_by_week"
     DATE_BY_MONTH = "date_by_month"
+
+
+class HeatmapXAxisType(str, Enum):
+    """Available X-axis grouping variables for heatmaps (2D categorical)."""
+    RAT_STRAIN = "rat_strain"
+    RAT_SEX = "rat_sex"
+    SESSION_TYPE = "session_type"
+    APPARATUS = "apparatus"
+    LIGHTING_CONDITION = "lighting_condition"
+    TESTER = "tester"
+    DRUG_COMPOUND = "drug_compound"
+    BRAIN_REGION = "brain_region"
+    MANIPULATION_TYPE = "manipulation_type"
+
+
+class HeatmapYAxisType(str, Enum):
+    """Available Y-axis grouping variables for heatmaps (2D categorical)."""
+    RAT_STRAIN = "rat_strain"
+    RAT_SEX = "rat_sex"
+    SESSION_TYPE = "session_type"
+    APPARATUS = "apparatus"
+    LIGHTING_CONDITION = "lighting_condition"
+    TESTER = "tester"
+    DRUG_COMPOUND = "drug_compound"
+    BRAIN_REGION = "brain_region"
+    MANIPULATION_TYPE = "manipulation_type"
+
+
+class HeatmapMetricType(str, Enum):
+    """Available metrics for heatmap cells."""
+    SESSION_COUNT = "session_count"
+    UNIQUE_RATS = "unique_rats"
+    AVG_BODY_WEIGHT = "avg_body_weight"
+    AVG_INJECTION_COUNT = "avg_injection_count"
 
 
 class YAxisType(str, Enum):
@@ -254,6 +289,13 @@ Y_AXIS_REGISTRY: Dict[str, YAxisConfig] = {
     ),
 }
 
+# Heatmap X-Axis and Y-Axis use same registry as bar charts since they're the same dimensions
+HEATMAP_X_AXIS_REGISTRY = X_AXIS_REGISTRY
+HEATMAP_Y_AXIS_REGISTRY = X_AXIS_REGISTRY
+
+# Heatmap metrics registry (same as Y_AXIS_REGISTRY)
+HEATMAP_METRIC_REGISTRY = Y_AXIS_REGISTRY
+
 
 def get_available_visualizations() -> Dict[str, List[Dict[str, Any]]]:
     """
@@ -265,6 +307,9 @@ def get_available_visualizations() -> Dict[str, List[Dict[str, Any]]]:
         - y_axis_options: List of Y-axis configuration objects for bar charts
         - linechart_x_axis_options: List of X-axis configuration objects for line charts
         - linechart_y_axis_options: List of Y-axis configuration objects for line charts
+        - heatmap_x_axis_options: List of X-axis configuration objects for heatmaps
+        - heatmap_y_axis_options: List of Y-axis configuration objects for heatmaps
+        - heatmap_metric_options: List of metric configuration objects for heatmaps
     """
     x_axis_options = [
         {
@@ -304,11 +349,42 @@ def get_available_visualizations() -> Dict[str, List[Dict[str, Any]]]:
         for config in LINECHART_Y_AXIS_REGISTRY.values()
     ]
     
+    heatmap_x_axis_options = [
+        {
+            "id": config.id,
+            "label": config.label,
+            "description": config.description,
+        }
+        for config in HEATMAP_X_AXIS_REGISTRY.values()
+    ]
+    
+    heatmap_y_axis_options = [
+        {
+            "id": config.id,
+            "label": config.label,
+            "description": config.description,
+        }
+        for config in HEATMAP_Y_AXIS_REGISTRY.values()
+    ]
+    
+    heatmap_metric_options = [
+        {
+            "id": config.id,
+            "label": config.label,
+            "description": config.description,
+            "unit": config.unit,
+        }
+        for config in HEATMAP_METRIC_REGISTRY.values()
+    ]
+    
     return {
         "x_axis_options": x_axis_options,
         "y_axis_options": y_axis_options,
         "linechart_x_axis_options": linechart_x_axis_options,
         "linechart_y_axis_options": linechart_y_axis_options,
+        "heatmap_x_axis_options": heatmap_x_axis_options,
+        "heatmap_y_axis_options": heatmap_y_axis_options,
+        "heatmap_metric_options": heatmap_metric_options,
     }
 
 
@@ -671,6 +747,147 @@ def _build_linechart_query(
     where_clause = _build_where_clause(required_joins)
     group_by_clause = f"GROUP BY {x_config.group_by_sql}"
     order_by_clause = f"ORDER BY {x_config.group_by_sql}"
+    
+    query = f"""
+    {select_clause}
+    {from_clause}
+    {where_clause}
+    {group_by_clause}
+    {order_by_clause}
+    """
+    
+    return query
+
+
+def generate_heatmap_data(
+    db_connection,
+    x_axis: str,
+    y_axis: str,
+    metric: str,
+) -> Dict[str, Any]:
+    """
+    Generate heatmap data showing 2D categorical patterns.
+    
+    Args:
+        db_connection: Database connection object
+        x_axis: X-dimension variable (e.g., 'rat_strain', 'apparatus', 'drug_compound')
+        y_axis: Y-dimension variable (e.g., 'tester', 'brain_region', 'session_type')
+        metric: Cell value metric (e.g., 'session_count', 'avg_body_weight')
+        
+    Returns:
+        Dictionary with heatmap data structure:
+        {
+            "title": "Title",
+            "xlabel": "X dimension label",
+            "ylabel": "Y dimension label",
+            "metric": "metric_id",
+            "unit": "unit",
+            "data": [{"x": "cat1", "y": "catA", "value": 45}, ...],
+            "x_categories": ["cat1", "cat2", ...],
+            "y_categories": ["catA", "catB", ...],
+            "min_value": 0,
+            "max_value": 52,
+            "raw_data": [...]
+        }
+        
+    Raises:
+        ValueError: If invalid x_axis, y_axis, or metric is provided, or if X and Y are the same
+    """
+    # Validate inputs
+    if x_axis not in HEATMAP_X_AXIS_REGISTRY:
+        raise ValueError(f"Invalid x_axis: {x_axis}")
+    if y_axis not in HEATMAP_Y_AXIS_REGISTRY:
+        raise ValueError(f"Invalid y_axis: {y_axis}")
+    if metric not in HEATMAP_METRIC_REGISTRY:
+        raise ValueError(f"Invalid metric: {metric}")
+    
+    # Prevent same dimension on both axes
+    if x_axis == y_axis:
+        raise ValueError("X-axis and Y-axis must be different dimensions")
+    
+    x_config = HEATMAP_X_AXIS_REGISTRY[x_axis]
+    y_config = HEATMAP_Y_AXIS_REGISTRY[y_axis]
+    metric_config = HEATMAP_METRIC_REGISTRY[metric]
+    
+    try:
+        # Build and execute query
+        query = _build_heatmap_query(x_config, y_config, metric_config)
+        cursor = db_connection.cursor()
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        
+        # Parse results
+        data_points = []
+        x_categories_set = set()
+        y_categories_set = set()
+        values_list = []
+        
+        for row in rows:
+            x_val = row[0]
+            y_val = row[1]
+            value = float(row[2]) if row[2] is not None else 0
+            
+            data_points.append({
+                "x": str(x_val) if x_val is not None else "Unknown",
+                "y": str(y_val) if y_val is not None else "Unknown",
+                "value": value
+            })
+            
+            x_categories_set.add(str(x_val) if x_val is not None else "Unknown")
+            y_categories_set.add(str(y_val) if y_val is not None else "Unknown")
+            values_list.append(value)
+        
+        # Sort categories for consistent display
+        x_categories = sorted(list(x_categories_set))
+        y_categories = sorted(list(y_categories_set))
+        
+        # Calculate min/max for color scaling
+        min_value = min(values_list) if values_list else 0
+        max_value = max(values_list) if values_list else 0
+        
+        return {
+            "title": f"{metric_config.label} by {x_config.label} and {y_config.label}",
+            "xlabel": x_config.label,
+            "ylabel": y_config.label,
+            "metric": metric,
+            "unit": metric_config.unit,
+            "data": data_points,
+            "x_categories": x_categories,
+            "y_categories": y_categories,
+            "min_value": min_value,
+            "max_value": max_value,
+            "raw_data": [dict(zip([desc[0] for desc in cursor.description], row)) for row in rows] if cursor.description else [],
+        }
+    
+    except Exception as e:
+        raise Exception(f"Heatmap query failed: {str(e)}")
+
+
+def _build_heatmap_query(
+    x_config: XAxisConfig,
+    y_config: XAxisConfig,
+    metric_config: YAxisConfig,
+) -> str:
+    """
+    Build SQL query for heatmap data showing 2D categorical patterns.
+    
+    Args:
+        x_config: X-dimension configuration
+        y_config: Y-dimension configuration
+        metric_config: Metric aggregation configuration
+        
+    Returns:
+        Complete SQL SELECT query string
+    """
+    # Determine all required joins
+    required_joins = x_config.required_joins | y_config.required_joins | metric_config.required_joins
+    
+    # Build query components
+    select_clause = f"SELECT {x_config.group_by_sql} as x_cat, {y_config.group_by_sql} as y_cat, {metric_config.aggregation_sql} as value"
+    from_clause = _build_from_clause(required_joins)
+    where_clause = _build_where_clause(required_joins)
+    group_by_clause = f"GROUP BY {x_config.group_by_sql}, {y_config.group_by_sql}"
+    order_by_clause = f"ORDER BY {x_config.group_by_sql}, {y_config.group_by_sql}"
     
     query = f"""
     {select_clause}

@@ -14,6 +14,7 @@ from services.visualization_service import (
     get_available_visualizations,
     generate_barchart_data,
     generate_linechart_data,
+    generate_heatmap_data,
     get_available_observation_codes,
     VisualizationType,
 )
@@ -194,6 +195,88 @@ async def generate_linechart(
         return VisualizationDataResponse(**data)
     except ValueError as e:
         # Validation errors (invalid x_axis, y_axis, etc.)
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        print(f"[Visualizations Router] Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/heatmap")
+async def generate_heatmap(
+    x_axis: str = Query(..., description="X-axis dimension (e.g., 'rat_strain', 'apparatus', 'drug_compound')"),
+    y_axis: str = Query(..., description="Y-axis dimension (e.g., 'tester', 'brain_region', 'session_type') - must be different from x_axis"),
+    metric: str = Query(..., description="Cell value metric (e.g., 'session_count', 'avg_body_weight', 'unique_rats', 'avg_injection_count')"),
+    db=Depends(get_db),
+):
+    """
+    Generate data for a heatmap visualization showing 2D categorical patterns.
+    
+    Args:
+        x_axis: First categorical dimension for X-axis (e.g., 'rat_strain', 'apparatus', 'tester', 'drug_compound', 'brain_region', 'session_type', 'lighting_condition', 'rat_sex', 'manipulation_type')
+        y_axis: Second categorical dimension for Y-axis (must be different from x_axis)
+        metric: Cell value metric to aggregate (e.g., 'session_count', 'unique_rats', 'avg_body_weight', 'avg_injection_count')
+        
+    Returns:
+        JSON response with heatmap data structure:
+        {
+            "title": "Descriptive title",
+            "xlabel": "X axis label",
+            "ylabel": "Y axis label",
+            "metric": "metric_id",
+            "unit": "unit_name",
+            "data": [
+                {"x": "category1", "y": "categoryA", "value": 45},
+                {"x": "category1", "y": "categoryB", "value": 12},
+                ...
+            ],
+            "x_categories": ["category1", "category2", ...],
+            "y_categories": ["categoryA", "categoryB", ...],
+            "min_value": 0,
+            "max_value": 52,
+            "raw_data": [...]
+        }
+        
+    Supported X/Y-axis options:
+        - rat_strain: Group by rat strain
+        - rat_sex: Group by rat sex (male/female)
+        - session_type: Group by session type (training, testing, etc.)
+        - apparatus: Group by apparatus/equipment
+        - lighting_condition: Group by lighting (on/off)
+        - tester: Group by experimenter name
+        - drug_compound: Group by pharmaceutical compound
+        - brain_region: Group by brain region of surgery
+        - manipulation_type: Group by manipulation type (lesion, implant, etc.)
+        
+    Supported metrics:
+        - session_count: Number of sessions
+        - unique_rats: Number of unique rats
+        - avg_body_weight: Average body weight (grams)
+        - avg_injection_count: Average injection count
+        
+    Examples:
+        GET /visualizations/heatmap?x_axis=drug_compound&y_axis=brain_region&metric=session_count
+        → Sessions per drug-brain region combination
+        
+        GET /visualizations/heatmap?x_axis=apparatus&y_axis=rat_strain&metric=avg_body_weight
+        → Average weight by apparatus and strain
+        
+        GET /visualizations/heatmap?x_axis=tester&y_axis=session_type&metric=session_count
+        → Tester workload by session type
+    """
+    try:
+        # Validate that X and Y are different
+        if x_axis == y_axis:
+            raise ValueError("X-axis and Y-axis must be different dimensions")
+        
+        data = generate_heatmap_data(
+            db_connection=db,
+            x_axis=x_axis,
+            y_axis=y_axis,
+            metric=metric,
+        )
+        return data
+    except ValueError as e:
+        # Validation errors (invalid x_axis, y_axis, metric, or same dimensions)
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         print(f"[Visualizations Router] Error: {e}")

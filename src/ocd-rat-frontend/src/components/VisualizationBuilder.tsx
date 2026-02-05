@@ -9,11 +9,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useAvailableVisualizations, useVisualizationData, useLineChartData } from '@/hooks/useVisualization';
+import { useAvailableVisualizations, useVisualizationData, useLineChartData, useHeatmapData } from '@/hooks/useVisualization';
 import { BarChartVisualization } from './BarChartVisualization';
 import { LineChartVisualization } from './LineChartVisualization';
+import { HeatmapVisualization } from './HeatmapVisualization';
 
-type VisualizationType = 'barchart' | 'linechart';
+type VisualizationType = 'barchart' | 'linechart' | 'heatmap';
 
 interface VisualizationBuilderProps {
   initialChartType?: VisualizationType;
@@ -27,6 +28,7 @@ export function VisualizationBuilder({
   const [visualizationType, setVisualizationType] = useState<VisualizationType>(initialChartType);
   const [selectedXAxis, setSelectedXAxis] = useState<string | null>(null);
   const [selectedYAxis, setSelectedYAxis] = useState<string | null>(null);
+  const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
 
   const { data: availableViz, loading: vizLoading, error: vizError } = useAvailableVisualizations();
   
@@ -40,6 +42,13 @@ export function VisualizationBuilder({
   const { data: lineChartData, loading: lineChartLoading, error: lineChartError } = useLineChartData(
     visualizationType === 'linechart' ? selectedXAxis : null,
     visualizationType === 'linechart' ? selectedYAxis : null
+  );
+
+  // Heatmap data hook
+  const { data: heatmapData, loading: heatmapLoading, error: heatmapError } = useHeatmapData(
+    visualizationType === 'heatmap' ? selectedXAxis : null,
+    visualizationType === 'heatmap' ? selectedYAxis : null,
+    visualizationType === 'heatmap' ? selectedMetric : null
   );
 
   if (vizLoading) {
@@ -68,14 +77,18 @@ export function VisualizationBuilder({
   const barChartYAxes = availableViz?.y_axis_options || [];
   const lineChartXAxes = availableViz?.linechart_x_axis_options || [];
   const lineChartYAxes = availableViz?.linechart_y_axis_options || [];
+  const heatmapXAxes = availableViz?.heatmap_x_axis_options || [];
+  const heatmapYAxes = availableViz?.heatmap_y_axis_options || [];
+  const heatmapMetrics = availableViz?.heatmap_metric_options || [];
 
   // Validate based on whether we're showing the toggle or a fixed chart type
   const isValidBarChart = barChartXAxes.length > 0 && barChartYAxes.length > 0;
   const isValidLineChart = lineChartXAxes.length > 0 && lineChartYAxes.length > 0;
+  const isValidHeatmap = heatmapXAxes.length > 0 && heatmapYAxes.length > 0 && heatmapMetrics.length > 0;
   
   if (showChartTypeToggle) {
-    // When showing toggle, need both types available
-    if (!isValidBarChart || !isValidLineChart) {
+    // When showing toggle, need all types available
+    if (!isValidBarChart || !isValidLineChart || !isValidHeatmap) {
       return (
         <Card className="border-yellow-200 bg-yellow-50">
           <CardHeader>
@@ -86,7 +99,10 @@ export function VisualizationBuilder({
     }
   } else {
     // When forced to a type, only validate that type
-    const isValidCurrent = visualizationType === 'barchart' ? isValidBarChart : isValidLineChart;
+    const isValidCurrent = 
+      visualizationType === 'barchart' ? isValidBarChart : 
+      visualizationType === 'linechart' ? isValidLineChart :
+      isValidHeatmap;
     if (!isValidCurrent) {
       return (
         <Card className="border-yellow-200 bg-yellow-50">
@@ -99,17 +115,29 @@ export function VisualizationBuilder({
   }
 
   // Get appropriate axes based on chart type
-  const xAxes = visualizationType === 'barchart' ? barChartXAxes : lineChartXAxes;
-  const yAxes = visualizationType === 'barchart' ? barChartYAxes : lineChartYAxes;
-  const chartData = visualizationType === 'barchart' ? barChartData : lineChartData;
-  const chartLoading = visualizationType === 'barchart' ? barChartLoading : lineChartLoading;
-  const chartError = visualizationType === 'barchart' ? barChartError : lineChartError;
+  const xAxes = visualizationType === 'barchart' ? barChartXAxes : 
+               visualizationType === 'linechart' ? lineChartXAxes :
+               heatmapXAxes;
+  const yAxes = visualizationType === 'barchart' ? barChartYAxes : 
+               visualizationType === 'linechart' ? lineChartYAxes :
+               heatmapYAxes;
+  const metrics = visualizationType === 'heatmap' ? heatmapMetrics : [];
+  const chartData = visualizationType === 'barchart' ? barChartData : 
+                   visualizationType === 'linechart' ? lineChartData :
+                   heatmapData;
+  const chartLoading = visualizationType === 'barchart' ? barChartLoading : 
+                      visualizationType === 'linechart' ? lineChartLoading :
+                      heatmapLoading;
+  const chartError = visualizationType === 'barchart' ? barChartError : 
+                    visualizationType === 'linechart' ? lineChartError :
+                    heatmapError;
 
   const handleChartTypeChange = (type: VisualizationType) => {
     setVisualizationType(type);
     // Reset selections when changing chart type since the axes are different
     setSelectedXAxis(null);
     setSelectedYAxis(null);
+    setSelectedMetric(null);
   };
 
   return (
@@ -120,7 +148,7 @@ export function VisualizationBuilder({
           <CardHeader>
             <CardTitle>Select Visualization Type</CardTitle>
             <CardDescription>
-              Choose between bar chart (categorical data) or line chart (time-series data)
+              Choose between bar chart (categorical), line chart (time-series), or heatmap (2D patterns)
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -139,6 +167,13 @@ export function VisualizationBuilder({
               >
                 Line Chart
               </Button>
+              <Button
+                variant={visualizationType === 'heatmap' ? 'default' : 'outline'}
+                onClick={() => handleChartTypeChange('heatmap')}
+                className="flex-1"
+              >
+                Heatmap
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -148,26 +183,34 @@ export function VisualizationBuilder({
       <Card>
         <CardHeader>
           <CardTitle>
-            {visualizationType === 'barchart' ? 'Create a Bar Chart' : 'Create a Line Chart'}
+            {visualizationType === 'barchart' ? 'Create a Bar Chart' : 
+             visualizationType === 'linechart' ? 'Create a Line Chart' :
+             'Create a Heatmap'}
           </CardTitle>
           <CardDescription>
             {visualizationType === 'barchart'
               ? 'Select a dimension to group by and a metric to visualize'
-              : 'Select a time period and a metric to visualize'}
+              : visualizationType === 'linechart'
+              ? 'Select a time period and a metric to visualize'
+              : 'Select two different dimensions and a metric to visualize patterns'}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* X-Axis Selector */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {visualizationType === 'barchart' ? 'X-Axis (Group By)' : 'X-Axis (Time Period)'}
+              {visualizationType === 'barchart' ? 'X-Axis (Group By)' : 
+               visualizationType === 'linechart' ? 'X-Axis (Time Period)' :
+               'X-Axis (First Dimension)'}
             </label>
             <Select value={selectedXAxis || ''} onValueChange={setSelectedXAxis}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder={
                   visualizationType === 'barchart' 
                     ? 'Select an X-axis variable...' 
-                    : 'Select a time period...'
+                    : visualizationType === 'linechart'
+                    ? 'Select a time period...'
+                    : 'Select the X-axis dimension...'
                 } />
               </SelectTrigger>
               <SelectContent>
@@ -186,16 +229,20 @@ export function VisualizationBuilder({
           {/* Y-Axis Selector */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Y-Axis (Metric)
+              {visualizationType === 'heatmap' ? 'Y-Axis (Second Dimension)' : 'Y-Axis (Metric)'}
             </label>
             <Select value={selectedYAxis || ''} onValueChange={setSelectedYAxis}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select a Y-axis metric..." />
+                <SelectValue placeholder={
+                  visualizationType === 'heatmap'
+                    ? 'Select the Y-axis dimension...'
+                    : 'Select a Y-axis metric...'
+                } />
               </SelectTrigger>
               <SelectContent>
                 {yAxes.map((axis) => (
                   <SelectItem key={axis.id} value={axis.id}>
-                    {axis.label} ({axis.unit})
+                    {axis.label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -203,7 +250,36 @@ export function VisualizationBuilder({
             <p className="text-xs text-gray-500 mt-1">
               {selectedYAxis && yAxes.find(a => a.id === selectedYAxis)?.description}
             </p>
+            {visualizationType === 'heatmap' && selectedXAxis && selectedYAxis && selectedXAxis === selectedYAxis && (
+              <p className="text-xs text-red-600 mt-1">
+                ⚠️ X-axis and Y-axis must be different dimensions
+              </p>
+            )}
           </div>
+
+          {/* Metric Selector - Only for Heatmap */}
+          {visualizationType === 'heatmap' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Cell Value (Metric)
+              </label>
+              <Select value={selectedMetric || ''} onValueChange={setSelectedMetric}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a metric..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {metrics.map((metric) => (
+                    <SelectItem key={metric.id} value={metric.id}>
+                      {metric.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500 mt-1">
+                {selectedMetric && metrics.find(m => m.id === selectedMetric)?.description}
+              </p>
+            </div>
+          )}
 
           {/* Clear Button */}
           <Button
@@ -211,6 +287,7 @@ export function VisualizationBuilder({
             onClick={() => {
               setSelectedXAxis(null);
               setSelectedYAxis(null);
+              setSelectedMetric(null);
             }}
             className="w-full"
           >
@@ -222,30 +299,53 @@ export function VisualizationBuilder({
       {/* Visualization */}
       {selectedXAxis && selectedYAxis && visualizationType === 'barchart' && (
         <BarChartVisualization
-          data={chartData}
-          loading={chartLoading}
-          error={chartError}
+          data={barChartData}
+          loading={barChartLoading}
+          error={barChartError}
         />
       )}
 
       {selectedXAxis && selectedYAxis && visualizationType === 'linechart' && (
         <LineChartVisualization
-          data={chartData}
-          loading={chartLoading}
-          error={chartError}
+          data={lineChartData}
+          loading={lineChartLoading}
+          error={lineChartError}
+        />
+      )}
+
+      {selectedXAxis && selectedYAxis && selectedMetric && visualizationType === 'heatmap' && selectedXAxis !== selectedYAxis && (
+        <HeatmapVisualization
+          data={heatmapData}
+          loading={heatmapLoading}
+          error={heatmapError}
         />
       )}
 
       {/* No Selection Message */}
-      {!selectedXAxis || !selectedYAxis ? (
+      {!selectedXAxis || !selectedYAxis || (visualizationType === 'heatmap' && !selectedMetric) ? (
         <Card className="border-blue-200 bg-blue-50">
           <CardContent className="pt-6">
             <p className="text-blue-700">
-              👆 Select both {visualizationType === 'barchart' ? 'a dimension and a metric' : 'a time period and a metric'} above to generate a visualization
+              👆 Select {
+                visualizationType === 'barchart' ? 'a dimension and a metric' : 
+                visualizationType === 'linechart' ? 'a time period and a metric' :
+                'two different dimensions and a metric'
+              } above to generate a visualization
             </p>
           </CardContent>
         </Card>
       ) : null}
+
+      {/* Validation Error for Heatmap Same Axis */}
+      {visualizationType === 'heatmap' && selectedXAxis && selectedYAxis && selectedXAxis === selectedYAxis && (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="pt-6">
+            <p className="text-red-700">
+              ❌ X-axis and Y-axis must be different dimensions for a heatmap
+            </p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

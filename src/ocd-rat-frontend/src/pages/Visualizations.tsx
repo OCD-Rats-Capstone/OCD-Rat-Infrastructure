@@ -6,6 +6,31 @@ import ChartImg from "@/assets/barchart.png";
 import LineChartImg from "@/assets/linechart.png";
 import { Link } from 'react-router-dom';
 
+// Simple SVG heatmap icon
+const HeatmapSvg = () => (
+  <svg width="144" height="144" viewBox="0 0 144 144" xmlns="http://www.w3.org/2000/svg" className="mx-auto">
+    <rect x="20" y="20" width="20" height="20" fill="#e0f2fe" stroke="#ccc" strokeWidth="1"/>
+    <rect x="45" y="20" width="20" height="20" fill="#7dd3fc" stroke="#ccc" strokeWidth="1"/>
+    <rect x="70" y="20" width="20" height="20" fill="#38bdf8" stroke="#ccc" strokeWidth="1"/>
+    <rect x="95" y="20" width="20" height="20" fill="#0284c7" stroke="#ccc" strokeWidth="1"/>
+    
+    <rect x="20" y="45" width="20" height="20" fill="#7dd3fc" stroke="#ccc" strokeWidth="1"/>
+    <rect x="45" y="45" width="20" height="20" fill="#38bdf8" stroke="#ccc" strokeWidth="1"/>
+    <rect x="70" y="45" width="20" height="20" fill="#0284c7" stroke="#ccc" strokeWidth="1"/>
+    <rect x="95" y="45" width="20" height="20" fill="#0c63e4" stroke="#ccc" strokeWidth="1"/>
+    
+    <rect x="20" y="70" width="20" height="20" fill="#38bdf8" stroke="#ccc" strokeWidth="1"/>
+    <rect x="45" y="70" width="20" height="20" fill="#0284c7" stroke="#ccc" strokeWidth="1"/>
+    <rect x="70" y="70" width="20" height="20" fill="#0c63e4" stroke="#ccc" strokeWidth="1"/>
+    <rect x="95" y="70" width="20" height="20" fill="#0d47a1" stroke="#ccc" strokeWidth="1"/>
+    
+    <rect x="20" y="95" width="20" height="20" fill="#0284c7" stroke="#ccc" strokeWidth="1"/>
+    <rect x="45" y="95" width="20" height="20" fill="#0c63e4" stroke="#ccc" strokeWidth="1"/>
+    <rect x="70" y="95" width="20" height="20" fill="#0d47a1" stroke="#ccc" strokeWidth="1"/>
+    <rect x="95" y="95" width="20" height="20" fill="#051c4d" stroke="#ccc" strokeWidth="1"/>
+  </svg>
+);
+
 export function Visualizations() {
   const visualizations = [
     {
@@ -19,6 +44,13 @@ export function Visualizations() {
       title: 'Line Chart',
       desc: 'Time-series trends showing how metrics change over time.',
       href: '/visualizations/line-chart'
+    },
+    {
+      img: null,
+      title: 'Heatmap',
+      desc: '2D categorical patterns revealing relationships between two dimensions.',
+      href: '/visualizations/heatmap',
+      svgIcon: true
     },
   ];
 
@@ -39,8 +71,12 @@ export function Visualizations() {
         {visualizations.map((viz) => (
           <Card key={viz.title} className="flex flex-col items-center w-full max-w-[18rem]">
             <CardContent className="flex flex-col justify-between flex-1 p-6 pt-0 pb-0">
-              <img src={viz.img} className="w-36 object-contain mb-4 mx-auto" alt={viz.title} />
-              <div className="flex flex-col items-start">
+              {viz.svgIcon ? (
+                <HeatmapSvg />
+              ) : (
+                viz.img && <img src={viz.img} className="w-36 object-contain mb-4 mx-auto" alt={viz.title} />
+              )}
+              <div className="flex flex-col items-start mt-4">
                 <h3 className="text-xl font-semibold">{viz.title}</h3>
                 <p className="mt-2 text-sm text-muted-foreground line-clamp-5">{viz.desc}</p>
               </div>
