@@ -326,7 +326,7 @@ export function VisualizationBuilder({
         <Card className="border-blue-200 bg-blue-50">
           <CardContent className="pt-6">
             <p className="text-blue-700">
-              👆 Select {
+              Select {
                 visualizationType === 'barchart' ? 'a dimension and a metric' : 
                 visualizationType === 'linechart' ? 'a time period and a metric' :
                 'two different dimensions and a metric'
@@ -341,7 +341,7 @@ export function VisualizationBuilder({
         <Card className="border-red-200 bg-red-50">
           <CardContent className="pt-6">
             <p className="text-red-700">
-              ❌ X-axis and Y-axis must be different dimensions for a heatmap
+              X-axis and Y-axis must be different dimensions for a heatmap
             </p>
           </CardContent>
         </Card>
