@@ -78,6 +78,26 @@ def _build_filtered_sessions_sql(req: InventoryCountsRequest) -> tuple[str, list
         params.extend(req.drug_ids)
         params.append(len(req.drug_ids))
 
+    if req.file_type_ids:
+        placeholders_files = ",".join(["%s"] * len(req.file_type_ids))
+        conditions.append(
+            f"""E.session_id IN (
+                SELECT DISTINCT session_id FROM session_data_files
+                WHERE object_type_id IN ({placeholders_files})
+                GROUP BY session_id
+                HAVING COUNT(DISTINCT object_type_id) = %s
+            )"""
+        )
+        params.extend(req.file_type_ids)
+        params.append(len(req.file_type_ids))
+
+    if req.rx_ids:
+        placeholders_rx = ",".join(["%s"] * len(req.rx_ids))
+        conditions.append(
+            f"""E.drug_rx_id IN ({placeholders_rx})"""
+        )
+        params.extend(req.rx_ids)
+
     if req.apparatus_id is not None:
         conditions.append("E.apparatus_id = %s")
         params.append(req.apparatus_id)
@@ -130,9 +150,17 @@ def get_inventory_sessions(
     params.append(limit)
     sql = sql_cte + """
         SELECT E.session_id, E.legacy_session_id, E.session_timestamp, E.rat_id,
-               E.apparatus_id, E.session_type_id, E.drug_rx_id, E.effective_manipulation_id
+               A.apparatus_name, S.type_name, DR.rx_label, B.surgery_type, BR.region_name,
+               P.pattern_description, E.cumulative_drug_injection_number
+
         FROM filtered_sessions FS
         JOIN experimental_sessions E ON E.session_id = FS.session_id
+        LEFT JOIN drug_rx DR ON E.drug_rx_id = DR.drug_rx_id
+        LEFT JOIN apparatuses A ON E.apparatus_id = A.apparatus_id
+        LEFT JOIN brain_manipulations B ON E.effective_manipulation_id = B.manipulation_id
+        LEFT OUTER JOIN brain_regions BR ON B.target_region_id = BR.region_id
+        LEFT JOIN session_types S ON S.session_type_id = E.session_type_id
+        LEFT JOIN apparatus_patterns P ON P.pattern_id = E.pattern_id
         ORDER BY E.session_timestamp DESC NULLS LAST
         LIMIT %s
     """
