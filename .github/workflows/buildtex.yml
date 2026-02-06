@@ -45,6 +45,8 @@ jobs:
               dir=$(dirname "$file" | cut -d'/' -f2-)
               make -B "$dir/$(basename "$file" .tex).pdf" 
             done
+            
+            
       - name: Commit and push PDFs
         uses: stefanzweifel/git-auto-commit-action@v4
         with:

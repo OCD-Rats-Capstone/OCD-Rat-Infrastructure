@@ -1,0 +1,135 @@
+name: Build LaTeX and Deploy PDFs
+
+on:
+  push:
+    branches: main
+    paths: [docs/**]
+  pull_request:
+    branches: main
+    paths: [docs/**]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Restore PDF cache
+        uses: actions/cache@v4
+        with:
+          path: build-pdf
+          key: pdf-cache-${{ github.run_id }}
+          restore-keys: |
+            pdf-cache-
+      - name: Get changed LaTeX files
+        id: latex-files
+        run: |
+          BASE=${{ github.event.before }}
+          [ -z "$BASE" ] && BASE=HEAD^
+
+          CHANGED_FILES=$(git diff --name-only "$BASE" "${{ github.sha }}" -- ':(glob)docs/**/*.tex' | xargs)
+
+          echo "Changed files: $CHANGED_FILES"
+          echo "CHANGED_FILES=$CHANGED_FILES" >> $GITHUB_ENV
+
+          CHANGED_FILENAMES=$(for file in $CHANGED_FILES; do basename "$file"; done | xargs)
+          echo "CHANGED_FILENAMES=$CHANGED_FILENAMES" >> $GITHUB_ENV
+
+          FILE_COUNT=$(echo "$CHANGED_FILENAMES" | wc -w)
+          if [ "$FILE_COUNT" -gt 1 ]; then
+            PLURAL_S='s'
+          else
+            PLURAL_S=''
+          fi
+          echo "PLURAL_S=$PLURAL_S" >> $GITHUB_ENV
+      - name: Install TeX Live
+        run: |
+          sudo apt-get update
+          #sudo apt-get install -y texlive-full #if needed, but very large
+          sudo apt-get install -y --fix-missing texlive-latex-extra texlive-science #texlive-xetex texlive-luatex texlive-bibtex-extra 
+      - name: Compile LaTeX
+        run: |
+          PDF_CACHE_DIR="$GITHUB_WORKSPACE/build-pdf"
+          mkdir -p "$PDF_CACHE_DIR"
+
+          echo "CHANGED_FILES seen by compile step: $CHANGED_FILES"
+
+          # Bootstrap: full build if cache is empty
+          if [ -z "${CHANGED_FILES}" ] && [ -z "$(ls -A "$PDF_CACHE_DIR" 2>/dev/null)" ]; then
+            echo "No cached PDFs found; building all documents"
+            CHANGED_FILES=$(find docs -name "*.tex")
+          fi
+
+          for file in $CHANGED_FILES; do
+            # Build using existing Makefile rules
+            make -B "${file%.tex}.pdf"
+              
+            # Copy result into build-pdf, preserving structure
+            rel=$(dirname "$file" | cut -d'/' -f2-)
+            mkdir -p "$PDF_CACHE_DIR/$rel"
+            cp "${file%.tex}.pdf" "$PDF_CACHE_DIR/$rel/"
+          done
+        #continue-on-error: true # Job continues even if this step fails
+      - name: Prepare site
+        run: |
+          set -euo pipefail
+
+          # Always start from repo root
+          pwd
+          ls
+
+          # Recreate public directory
+          rm -rf public
+          mkdir -p public          
+          
+          # Copy PDFs preserving structure
+          rsync -av build-pdf/ public/
+          
+          # Generate PDF list (paths relative to site root)
+          PDF_LIST=$(find public -name "*.pdf" | sort | sed 's|^public/||' | awk -F/ '
+          {
+            dir = $1
+            file = $NF
+            groups[dir] = groups[dir] "<li><a href=\"" $0 "\">" file "</a></li>\n"
+          }
+          END {
+            for (dir in groups) {
+              printf "<h2>%s</h2>\n<ul>\n%s</ul>\n", dir, groups[dir]
+            }
+          }')
+
+          # Ensure site template exists
+          test -f site/index.html
+
+          # Build index.html safely
+          awk -v list="$PDF_LIST" '
+            /<!-- PDF_LIST -->/ { print list; next }
+            { print }
+          ' site/index.html > public/index.html
+
+          # Copy static assets
+          cp site/style.css public/
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
