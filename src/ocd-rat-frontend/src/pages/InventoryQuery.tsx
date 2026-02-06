@@ -37,6 +37,8 @@ export interface FilterOptions {
   surgery_types?: { label: string }[];
   brain_regions?: { id: number; label: string }[];
   testing_rooms?: { id: number; label: string }[];
+  file_types?: {id: number; label: string}[];
+  rx?: {id: number; label: string}[];
 }
 
 export interface DataTypeCount {
@@ -81,6 +83,8 @@ export function Inventory() {
   const [sessions, setSessions] = useState<Record<string, unknown>[] | null>(null);
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const [selectedDrugIds, setSelectedDrugIds] = useState<Set<number>>(new Set());
+  const [selectedFileTypeIds, setSelectedFileTypeIds] = useState<Set<number>>(new Set());
+  const [selectedRXIds, setSelectedRXIds] = useState<Set<number>>(new Set());
   const [CsvChecked, SetCsvChecked] = useState(false);
   const [MpgChecked, SetMpgChecked] = useState(false);
   const [GifChecked, SetGifChecked] = useState(false);
@@ -146,6 +150,8 @@ export function Inventory() {
   const buildRequestBody = () => {
     const body: Record<string, unknown> = {};
     if (selectedDrugIds.size > 0) body.drug_ids = Array.from(selectedDrugIds);
+    if (selectedFileTypeIds.size > 0) body.file_type_ids = Array.from(selectedFileTypeIds);
+    if (selectedRXIds.size > 0) body.rx_ids = Array.from(selectedRXIds);
     if (filters.apparatus_id != null) body.apparatus_id = filters.apparatus_id;
     if (filters.pattern_id != null) body.pattern_id = filters.pattern_id;
     if (filters.session_type_id != null) body.session_type_id = filters.session_type_id;
@@ -220,6 +226,24 @@ export function Inventory() {
 
   const toggleDrug = (id: number) => {
     setSelectedDrugIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+    const toggleFileType = (id: number) => {
+    setSelectedFileTypeIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleRX = (id: number) => {
+    setSelectedRXIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -329,6 +353,46 @@ export function Inventory() {
                                 onCheckedChange={() => toggleDrug(d.id)}
                               />
                               <label htmlFor={`drug-${d.id}`} className="text-sm cursor-pointer truncate" title={d.label}>
+                                {d.label}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="files">
+                      <AccordionTrigger>File Types</AccordionTrigger>
+                      <AccordionContent>
+                        <p className="text-xs text-muted-foreground mb-2">Select one or more for combination.</p>
+                        <div className="space-y-2">
+                          {filterOptions?.file_types?.map((d) => (
+                            <div key={d.id} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={`object_type-${d.id}`}
+                                checked={selectedFileTypeIds.has(d.id)}
+                                onCheckedChange={() => toggleFileType(d.id)}
+                              />
+                              <label htmlFor={`object_type-${d.id}`} className="text-sm cursor-pointer truncate" title={d.label}>
+                                {d.label}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="files">
+                      <AccordionTrigger>Drug Regiments</AccordionTrigger>
+                      <AccordionContent>
+                        <p className="text-xs text-muted-foreground mb-2">Select Highly Granular Drug Regiments</p>
+                        <div className="space-y-2">
+                          {filterOptions?.rx?.map((d) => (
+                            <div key={d.id} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={`drug_rx-${d.id}`}
+                                checked={selectedRXIds.has(d.id)}
+                                onCheckedChange={() => toggleRX(d.id)}
+                              />
+                              <label htmlFor={`drug_rx-${d.id}`} className="text-sm cursor-pointer truncate" title={d.label}>
                                 {d.label}
                               </label>
                             </div>

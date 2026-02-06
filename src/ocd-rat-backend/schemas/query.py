@@ -53,6 +53,8 @@ class InventoryCountsRequest(BaseModel):
     drug_ids: regimens that contain ALL of these drugs (combination).
     """
     drug_ids: list[int] | None = None
+    file_type_ids: list[int] | None = None
+    rx_ids: list[int] | None = None
     apparatus_id: int | None = None
     pattern_id: int | None = None
     session_type_id: int | None = None

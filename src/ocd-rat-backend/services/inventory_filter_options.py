@@ -64,4 +64,18 @@ def get_filter_options(db_connection) -> dict:
     )
     out["testing_rooms"] = df_room.to_dict(orient="records")
 
+    # File Types
+    df_room = pd.read_sql_query(
+        "SELECT object_type_id AS id, COALESCE(object_type_name, '') AS label FROM lkp_data_file_object_type ORDER BY object_type_id",
+        db_connection,
+    )
+    out["file_types"] = df_room.to_dict(orient="records")
+
+    # File Types
+    df_room = pd.read_sql_query(
+        "SELECT drug_rx_id AS id, COALESCE(rx_label, '') AS label FROM drug_rx ORDER BY drug_rx_id",
+        db_connection,
+    )
+    out["rx"] = df_room.to_dict(orient="records")
+
     return out
