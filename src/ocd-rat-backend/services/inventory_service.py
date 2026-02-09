@@ -62,62 +62,75 @@ def get_inventory_counts(req: InventoryCountsRequest, db_connection) -> Inventor
 
 def _build_filtered_sessions_sql(req: InventoryCountsRequest) -> tuple[str, list[Any]]:
     """Build CTE for filtered sessions. Returns (sql_cte_string, params)."""
+    conditions: list[str] = ["1=1"]
     params: list[Any] = []
 
-    # Prepare params for (val IS NULL OR col = val) pattern.
-    # We repeat the parameter twice for most filters: once for the NULL check, once for equality.
+    if req.drug_ids:
+        placeholders = ",".join(["%s"] * len(req.drug_ids))
+        conditions.append(
+            f"""E.drug_rx_id IN (
+                SELECT drug_rx_id FROM drug_rx_details
+                WHERE drug_id IN ({placeholders})
+                GROUP BY drug_rx_id
+                HAVING COUNT(DISTINCT drug_id) = %s
+            )"""
+        )
+        params.extend(req.drug_ids)
+        params.append(len(req.drug_ids))
 
-    # 1. Apparatus
-    params.extend([req.apparatus_id, req.apparatus_id])
+    if req.file_type_ids:
+        placeholders_files = ",".join(["%s"] * len(req.file_type_ids))
+        conditions.append(
+            f"""E.session_id IN (
+                SELECT DISTINCT session_id FROM session_data_files
+                WHERE object_type_id IN ({placeholders_files})
+                GROUP BY session_id
+                HAVING COUNT(DISTINCT object_type_id) = %s
+            )"""
+        )
+        params.extend(req.file_type_ids)
+        params.append(len(req.file_type_ids))
 
-    # 2. Pattern
-    params.extend([req.pattern_id, req.pattern_id])
+    if req.rx_ids:
+        placeholders_rx = ",".join(["%s"] * len(req.rx_ids))
+        conditions.append(
+            f"""E.drug_rx_id IN ({placeholders_rx})"""
+        )
+        params.extend(req.rx_ids)
 
-    # 3. Session Type
-    params.extend([req.session_type_id, req.session_type_id])
+    if req.apparatus_id is not None:
+        conditions.append("E.apparatus_id = %s")
+        params.append(req.apparatus_id)
+    if req.pattern_id is not None:
+        conditions.append("E.pattern_id = %s")
+        params.append(req.pattern_id)
+    if req.session_type_id is not None:
+        conditions.append("E.session_type_id = %s")
+        params.append(req.session_type_id)
+    if req.room_id is not None:
+        conditions.append("E.room_id = %s")
+        params.append(req.room_id)
+    if req.effective_manipulation_id is not None:
+        conditions.append("E.effective_manipulation_id = %s")
+        params.append(req.effective_manipulation_id)
+    if req.surgery_type is not None:
+        conditions.append("BM.surgery_type = %s")
+        params.append(req.surgery_type)
+    if req.target_region_id is not None:
+        conditions.append("BM.target_region_id = %s")
+        params.append(req.target_region_id)
 
-    # 4. Room
-    params.extend([req.room_id, req.room_id])
+    where_sql = " AND ".join(conditions)
+    brain_join = ""
+    if req.surgery_type is not None or req.target_region_id is not None:
+        brain_join = "LEFT JOIN brain_manipulations BM ON E.effective_manipulation_id = BM.manipulation_id"
 
-    # 5. Effective Manipulation
-    params.extend([req.effective_manipulation_id, req.effective_manipulation_id])
-
-    # 6. Surgery Type
-    params.extend([req.surgery_type, req.surgery_type])
-
-    # 7. Target Region
-    params.extend([req.target_region_id, req.target_region_id])
-
-    # 8. Drugs
-    # If req.drug_ids is None or empty, we want to bypass this filter.
-    # passing None to %s::int[] IS NULL will return true.
-    drugs_param = req.drug_ids if req.drug_ids else None
-    drugs_len = len(req.drug_ids) if req.drug_ids else 0
-    params.extend([drugs_param, drugs_param, drugs_len])
-
-    # Static SQL string with no interpolation
-    sql = """
+    sql = f"""
         WITH filtered_sessions AS (
             SELECT E.session_id
             FROM experimental_sessions E
-            LEFT JOIN brain_manipulations BM ON E.effective_manipulation_id = BM.manipulation_id
-            WHERE 
-                (%s::int IS NULL OR E.apparatus_id = %s)
-                AND (%s::int IS NULL OR E.pattern_id = %s)
-                AND (%s::int IS NULL OR E.session_type_id = %s)
-                AND (%s::int IS NULL OR E.room_id = %s)
-                AND (%s::int IS NULL OR E.effective_manipulation_id = %s)
-                AND (%s::text IS NULL OR BM.surgery_type = %s)
-                AND (%s::int IS NULL OR BM.target_region_id = %s)
-                AND (
-                    %s::int[] IS NULL 
-                    OR E.drug_rx_id IN (
-                        SELECT drug_rx_id FROM drug_rx_details
-                        WHERE drug_id = ANY(%s)
-                        GROUP BY drug_rx_id
-                        HAVING COUNT(DISTINCT drug_id) = %s
-                    )
-                )
+            {brain_join}
+            WHERE {where_sql}
         )
     """
     return sql, params
@@ -137,9 +150,17 @@ def get_inventory_sessions(
     params.append(limit)
     sql = sql_cte + """
         SELECT E.session_id, E.legacy_session_id, E.session_timestamp, E.rat_id,
-               E.apparatus_id, E.session_type_id, E.drug_rx_id, E.effective_manipulation_id
+               A.apparatus_name, S.type_name, DR.rx_label, B.surgery_type, BR.region_name,
+               P.pattern_description, E.cumulative_drug_injection_number
+
         FROM filtered_sessions FS
         JOIN experimental_sessions E ON E.session_id = FS.session_id
+        LEFT JOIN drug_rx DR ON E.drug_rx_id = DR.drug_rx_id
+        LEFT JOIN apparatuses A ON E.apparatus_id = A.apparatus_id
+        LEFT JOIN brain_manipulations B ON E.effective_manipulation_id = B.manipulation_id
+        LEFT OUTER JOIN brain_regions BR ON B.target_region_id = BR.region_id
+        LEFT JOIN session_types S ON S.session_type_id = E.session_type_id
+        LEFT JOIN apparatus_patterns P ON P.pattern_id = E.pattern_id
         ORDER BY E.session_timestamp DESC NULLS LAST
         LIMIT %s
     """
