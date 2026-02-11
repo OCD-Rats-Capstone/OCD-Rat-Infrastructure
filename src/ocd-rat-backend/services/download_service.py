@@ -6,7 +6,7 @@ from services.nlp_service import execute_nlp_query
 import shutil
 import json
 
-def NLP_FileDownload(db_connection,file_types: list):
+def NLP_FileDownload(db_connection,file_types: list,job_id: str):
 
     trimmed_type = []
     print(file_types)
@@ -25,11 +25,11 @@ def NLP_FileDownload(db_connection,file_types: list):
     id_list = [item['session_id'] for item in results['results']]
 
     print(id_list)
-    FRDR_download(db_connection,db_connection.cursor(),id_list,trimmed_type)
+    FRDR_download(db_connection,db_connection.cursor(),id_list,trimmed_type,job_id)
 
     return results
 
-def FILTERS_FileDownload(db_connection,file_types: list):
+def FILTERS_FileDownload(db_connection,file_types: list,job_id: str):
 
     trimmed_type = []
     print(file_types)
@@ -43,11 +43,11 @@ def FILTERS_FileDownload(db_connection,file_types: list):
         id_list = json.load(f)
 
     print(id_list)
-    FRDR_download(db_connection,db_connection.cursor(),id_list,trimmed_type)
+    FRDR_download(db_connection,db_connection.cursor(),id_list,trimmed_type,job_id)
 
     return id_list
 
-def FRDR_download(cnxn,cursor,file_ids,file_exts):
+def FRDR_download(cnxn,cursor,file_ids,file_exts,job_id):
 
     temp_dir = "../FRDR_Files"
     url_query = "SELECT repo_file_url FROM data_file_locations " \
@@ -70,7 +70,23 @@ def FRDR_download(cnxn,cursor,file_ids,file_exts):
          shutil.rmtree(temp_dir)
 
     os.makedirs(temp_dir,exist_ok=True)
+
+    count = 0
     for s in filtered_data:
-          print("downloading" + s)
           temp_file_name = str(s).split('/')[-1]
           urlretrieve(str(s),os.path.join(temp_dir, temp_file_name))
+          count+=1
+
+          status_json = {job_id: {"status":"in progress",
+                   "num_files": len(filtered_data),
+                   "completed": count}}
+          
+          with open("status_buffer.json", "w") as f:
+            json.dump(status_json,f)
+          
+    status_json = {job_id: {"status":"ready",
+                   "num_files": len(filtered_data),
+                   "completed": count}}
+    
+    with open("status_buffer.json", "w") as f:
+        json.dump(status_json,f)

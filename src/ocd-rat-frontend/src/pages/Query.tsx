@@ -45,6 +45,10 @@ export function Query() {
     const [EwbChecked, SetEwbChecked] = useState(false);
     const [JpgChecked, SetJpgChecked] = useState(false);
     const [open, setOpen] = useState(false);
+    const [FilesComplete, SetFilesComplete] = useState(0);
+    const [Progress, SetProgress] = useState(0);
+    const [TotalFiles, SetTotalFiles] = useState(0);
+    const [DownloadVisible, SetDownloadVisible] = useState(false);
 
     const togglePopup = () => setOpen((prev) => !prev);
 
@@ -69,39 +73,63 @@ export function Query() {
     }
 
     const fetchFiles = async (Csv: string, Ewb: string, Jpg: string, Mpg: string, Gif: string) => {
-        try {
-            const params = {
-                query_type: 'NLP',
-                Csv_Flag: Csv,
-                Ewb_Flag: Ewb,
-                Gif_Flag: Gif,
-                Jpg_Flag: Jpg,
-                Mpg_Flag: Mpg
-            };
+    try {
 
-            const baseUrl = (API_BASE_URL.replace(/\/$/, ''));
-            const searchParams = new URLSearchParams(params).toString();
-            const url = `${baseUrl}/files/?${searchParams}`;
+      const id = String(crypto.randomUUID());
+      SetDownloadVisible(true);
 
-            const response = await fetch(url);
+      const params = {
+        query_type: "NLP",
+        Csv_Flag: Csv,
+        Ewb_Flag: Ewb,
+        Gif_Flag: Gif,
+        Jpg_Flag: Jpg,
+        Mpg_Flag: Mpg,
+        job_id: id
+      };
 
-            const blob = await response.blob();
-            const obj_url = window.URL.createObjectURL(blob);
+      const status_params = {
+        job_id: id
+      };
 
-            const a = document.createElement("a");
-            a.href = obj_url;
-            a.download = "FRDR_Files.zip";
-            document.body.appendChild(a);
-            a.click();
+      const baseUrl = (API_BASE_URL.replace(/\/$/, ''));
+      const searchParams = new URLSearchParams(params).toString();
+      const status_searchParams = new URLSearchParams(params).toString();
+      const url = `${baseUrl}/files/?${searchParams}`;
+      const serve_url = `${baseUrl}/files/serve/?${status_searchParams}`;
 
-            a.remove();
-            window.URL.revokeObjectURL(obj_url);
+      const response = await fetch(url);
+      const resData = await response.json();
 
-        } catch (error) {
-            console.error("Error fetching data:", error);
-            throw error;
-        }
+      while(true){
+
+        const statusRes = await fetch(`${baseUrl}/files/status/?${status_searchParams}`);
+        const data = await statusRes.json();
+        console.log(data);
+        if (data["status"] == "ready") break;
+        SetTotalFiles(data["num_files"]);
+        SetFilesComplete(data["completed"]);
+        SetProgress(Math.round(100*parseFloat(String(data["completed"]))/parseFloat(String(data["num_files"]))))
+        await new Promise(r => setTimeout(r, 2500));
+      }
+
+      const a = document.createElement("a");
+      a.href = serve_url;
+      const file_name = "FRDR_FILES_" + id + ".zip";
+      a.download = file_name;
+      document.body.appendChild(a);
+      a.click();
+
+      a.remove();
+
+      SetDownloadVisible(false);
+
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      SetDownloadVisible(false);
+      throw error;
     }
+  }
 
     const fetchAskStream = async (question: string) => {
         try {
@@ -269,6 +297,25 @@ export function Query() {
     >
       Download Session Files
     </Button >
+
+    {DownloadVisible && (
+            <div className="w-[200px] my-5 space-y-2">
+  <div className="flex justify-between text-sm font-medium">
+    <span>Processing Files</span>
+    <span>{Progress}%</span>
+  </div>
+
+  <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
+    <div
+      className="h-full bg-primary transition-all duration-500 ease-in-out"
+      style={{ width: `${Progress}%` }}
+    />
+  </div>
+
+  <div className="text-xs text-muted-foreground text-right">
+    {FilesComplete} / {TotalFiles} files prepared
+  </div>
+</div> )}
 
             <div className="flex w-1/2 min-w-80 shrink-0 my-4">
                 <QueryInput onSendMessage={handleSendMessage} />
