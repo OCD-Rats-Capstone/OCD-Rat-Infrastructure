@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/tooltip';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Info } from 'lucide-react';
-//import { API_BASE_URL } from '@/config';
+import { API_BASE_URL } from '@/config';
 import {
   Popup,
   PopupTrigger,
@@ -66,7 +66,6 @@ export interface InventoryFilters {
 const COLORS = ['#3b82f6', '#22c55e', '#eab308', '#ef4444', '#8b5cf6', '#06b6d4'];
 
 export function Inventory() {
-  const API_BASE_URL = "http://localhost:8000"
   const [filterOptions, setFilterOptions] = useState<FilterOptions | null>(null);
   const [filters, setFilters] = useState<InventoryFilters>({
     drug_ids: [],
