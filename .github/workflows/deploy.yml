@@ -13,6 +13,9 @@ jobs:
         steps:
             - name: Checkout Code
               uses: actions/checkout@v4
+
+            - name: Disable BuildKit
+              run: echo "DOCKER_BUILDKIT=0" >> $GITHUB_ENV
             - name: Deploy to RatBat2
               run: |
                 # Navigate to shared directory 
