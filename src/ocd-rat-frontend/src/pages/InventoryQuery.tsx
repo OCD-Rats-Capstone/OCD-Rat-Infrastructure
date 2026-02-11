@@ -9,6 +9,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import {v4 as uuidv4} from "uuid";
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
   Tooltip as UITooltip,
@@ -284,7 +285,7 @@ export function Inventory() {
   const fetchFiles = async (Csv: string, Ewb: string, Jpg: string, Mpg: string, Gif: string) => {
     try {
 
-      const id = String(crypto.randomUUID());
+      const id = String(uuidv4());
       SetDownloadVisible(true);
 
       const params = {

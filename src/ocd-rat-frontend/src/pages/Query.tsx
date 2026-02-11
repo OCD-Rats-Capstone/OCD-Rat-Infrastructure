@@ -12,6 +12,7 @@ import {Popup,
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { API_BASE_URL } from "@/config";
+import {v4 as uuidv4} from "uuid";
 
 
 // Message types: text for regular chat, sql for query results
@@ -75,7 +76,7 @@ export function Query() {
     const fetchFiles = async (Csv: string, Ewb: string, Jpg: string, Mpg: string, Gif: string) => {
     try {
 
-      const id = String(crypto.randomUUID());
+      const id = String(uuidv4());
       SetDownloadVisible(true);
 
       const params = {
