@@ -13,6 +13,9 @@ jobs:
         steps:
             - name: Checkout Code
               uses: actions/checkout@v4
+
+            - name: Disable BuildKit
+              run: echo "DOCKER_BUILDKIT=0" >> $GITHUB_ENV
             - name: Deploy to RatBat2
               run: |
                 # Navigate to shared directory 
@@ -34,6 +37,7 @@ jobs:
                 else
                   # Staging: alternative ports (8080, 8001)
                   echo "Deploying STAGING on ports 8080/8001..."
+                  docker compose down
                   docker compose -f docker-compose.yml -f docker-compose.dev.yml -p ocd-staging up -d --build
                 fi
               
