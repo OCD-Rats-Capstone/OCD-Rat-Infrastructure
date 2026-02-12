@@ -292,7 +292,7 @@ export function Query() {
                 </ScrollArea>
             </div>
 
-            <Button disabled={!IsLastMessageSQL()}
+            <Button disabled={!IsLastMessageSQL() || DownloadVisible}
       variant="default"
       onClick={togglePopup}
     >

@@ -555,7 +555,7 @@ export function Inventory() {
                 </Button>
               </div>
               <div className="mt-auto pt-4 flex justify-start">
-              <Button disabled={!(sessions != null && sessions.length > 0)}
+              <Button disabled={!(sessions != null && sessions.length > 0) || DownloadVisible}
               variant="secondary" className="flex-1" onClick={togglePopup}>
                 Download Session Files
               </Button>
