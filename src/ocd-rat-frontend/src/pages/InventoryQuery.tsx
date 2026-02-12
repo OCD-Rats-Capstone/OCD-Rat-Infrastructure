@@ -9,7 +9,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import {v4 as uuidv4} from "uuid";
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
   Tooltip as UITooltip,
   TooltipContent,
@@ -90,7 +91,11 @@ export function Inventory() {
   const [GifChecked, SetGifChecked] = useState(false);
   const [EwbChecked, SetEwbChecked] = useState(false);
   const [JpgChecked, SetJpgChecked] = useState(false);
+  const [FilesComplete, SetFilesComplete] = useState(0);
+  const [Progress, SetProgress] = useState(0);
+  const [TotalFiles, SetTotalFiles] = useState(0);
   const [open, setOpen] = useState(false);
+  const [DownloadVisible, SetDownloadVisible] = useState(false);
   const togglePopup = () => setOpen((prev) => !prev);
 
   useEffect(() => {
@@ -279,35 +284,59 @@ export function Inventory() {
 
   const fetchFiles = async (Csv: string, Ewb: string, Jpg: string, Mpg: string, Gif: string) => {
     try {
+
+      const id = String(uuidv4());
+      SetDownloadVisible(true);
+
       const params = {
         query_type: "FILTER",
         Csv_Flag: Csv,
         Ewb_Flag: Ewb,
         Gif_Flag: Gif,
         Jpg_Flag: Jpg,
-        Mpg_Flag: Mpg
+        Mpg_Flag: Mpg,
+        job_id: id
+      };
+
+      const status_params = {
+        job_id: id
       };
 
       const baseUrl = (API_BASE_URL.replace(/\/$/, ''));
       const searchParams = new URLSearchParams(params).toString();
+      const status_searchParams = new URLSearchParams(params).toString();
       const url = `${baseUrl}/files/?${searchParams}`;
+      const serve_url = `${baseUrl}/files/serve/?${status_searchParams}`;
 
       const response = await fetch(url);
+      const resData = await response.json();
 
-      const blob = await response.blob();
-      const obj_url = window.URL.createObjectURL(blob);
+      while(true){
+
+        const statusRes = await fetch(`${baseUrl}/files/status/?${status_searchParams}`);
+        const data = await statusRes.json();
+        console.log(data);
+        if (data["status"] == "ready") break;
+        SetTotalFiles(data["num_files"]);
+        SetFilesComplete(data["completed"]);
+        SetProgress(Math.round(100*parseFloat(String(data["completed"]))/parseFloat(String(data["num_files"]))))
+        await new Promise(r => setTimeout(r, 2500));
+      }
 
       const a = document.createElement("a");
-      a.href = obj_url;
-      a.download = "FRDR_Files.zip";
+      a.href = serve_url;
+      const file_name = "FRDR_FILES_" + id + ".zip";
+      a.download = file_name;
       document.body.appendChild(a);
       a.click();
 
       a.remove();
-      window.URL.revokeObjectURL(obj_url);
+
+      SetDownloadVisible(false);
 
     } catch (error) {
       console.error("Error fetching data:", error);
+      SetDownloadVisible(false);
       throw error;
     }
   }
@@ -531,6 +560,24 @@ export function Inventory() {
                 Download Session Files
               </Button>
             </div>
+            {DownloadVisible && (
+            <div className="w-[200px] my-5 space-y-2">
+  <div className="flex justify-between text-sm font-medium">
+    <span>Processing Files</span>
+    <span>{Progress}%</span>
+  </div>
+
+  <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
+    <div
+      className="h-full bg-primary transition-all duration-500 ease-in-out"
+      style={{ width: `${Progress}%` }}
+    />
+  </div>
+
+  <div className="text-xs text-muted-foreground text-right">
+    {FilesComplete} / {TotalFiles} files prepared
+  </div>
+</div> )}
             </Card>
           </aside>
 
@@ -614,7 +661,8 @@ export function Inventory() {
                   <Card className="p-4 mt-4">
                     <h3 className="font-semibold mb-3">Sessions ({sessions.length})</h3>
                     <ScrollArea className="h-[300px] w-full rounded border">
-                      <table className="w-full text-sm border-collapse">
+                      <ScrollBar orientation='horizontal'/>
+                      <table className="w-max text-sm border-collapse">
                         <thead>
                           <tr className="bg-muted sticky top-0">
                             {sessions.length > 0 && Object.keys(sessions[0]).map((k) => (
@@ -677,6 +725,7 @@ export function Inventory() {
                   <Checkbox id="downloadMpg" checked={MpgChecked} onCheckedChange={(val) => SetMpgChecked(val === true)} />
                   <label htmlFor="downloadMpg" className="text-sm font-medium leading-none"> MPG </label>
 
+                  <br></br>
 
                   <PopupFooter>
                     <Button

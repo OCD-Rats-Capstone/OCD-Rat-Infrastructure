@@ -169,6 +169,7 @@ def get_inventory_sessions(
         df = df.replace([pd.NA], None)
         print(str(df["session_id"]))
         data = df["session_id"].to_list()
+        
         with open("Filter_sessions.json", "w") as f:
             json.dump(data,f,indent=2)
 
