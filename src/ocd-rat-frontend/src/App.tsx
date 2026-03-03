@@ -14,6 +14,7 @@ import { BarChart } from "./pages/BarChart";
 import { LineChart } from "./pages/LineChart";
 import { Heatmap } from "./pages/Heatmap";
 import { Inventory } from "./pages/InventoryQuery";
+import { ToolBox } from "./pages/ToolBox"
 
 <Route path="*" element={<NotFound />} />
 
@@ -36,6 +37,7 @@ function App() {
           <Route path="/about" element={<About />} />
           <Route path="/filter" element={<Filter />} />
           <Route path="/inventory" element={<Inventory />}/>
+          <Route path = "/ToolBox" element={<ToolBox />}/>
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
