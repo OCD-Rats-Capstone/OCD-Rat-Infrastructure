@@ -7,6 +7,7 @@ Route handlers are organized in the routers/ directory.
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from routers import nlp, filters, ask, files, visualizations, inventory, toolbox
 
@@ -19,6 +20,17 @@ app = FastAPI(
     description="API for querying OCD rat experimental data",
     version="1.0.0",
     root_path=root_path
+)
+
+import os
+
+print("CWD:", os.getcwd())
+print("Media exists:", os.path.exists("media"))
+print(
+    "Image exists:",
+    os.path.exists(
+        "media/Session_analysis61474/Q17Clg3001_PathPlotMontage_inj01to07.jpg"
+    ),
 )
 
 # Configure CORS for frontend access

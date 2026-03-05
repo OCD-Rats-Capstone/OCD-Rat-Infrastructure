@@ -5,6 +5,8 @@ from urllib.request import urlretrieve
 from services.nlp_service import execute_nlp_query
 import shutil
 import json
+import base64
+import math
 
 def NLP_FileDownload(db_connection,file_types: list,job_id: str):
 
@@ -100,7 +102,7 @@ def single_smoothed_download(db_connection,session_id,job_id):
     cnxn = db_connection
     cursor = db_connection.cursor()
     
-    temp_dir = "../Session_analysis" + job_id
+    temp_dir = "../media/Session_analysis" + job_id
     url_query = "SELECT repo_file_url FROM data_file_locations " \
     "LEFT OUTER JOIN session_data_files AS S1 ON S1.data_file_id = data_file_locations.data_file_id " \
     "WHERE S1.session_id = " + session_id + ";"
@@ -108,11 +110,23 @@ def single_smoothed_download(db_connection,session_id,job_id):
     data = cursor.fetchall()
     print(data)
     filtered_data = []
+    filtered_jpg = []
+
     for item in data:
         if "https" not in str(item[0]):
             pass
-        elif item[0] not in filtered_data and "smoothed.csv" in item[0]:
+        elif item[0] not in filtered_data and "TrackFile.csv" in item[0]:
             filtered_data.append(item[0])
+            break
+    
+    for item in data:
+        if "https" not in str(item[0]):
+            pass
+        elif item[0] not in filtered_data and "gif" in item[0]:
+            filtered_jpg.append(item[0])
+            break
+
+
     print(filtered_data)
 
     if os.path.isdir(temp_dir):
@@ -124,21 +138,89 @@ def single_smoothed_download(db_connection,session_id,job_id):
         try:
             temp_file_name = filtered_data[0].split('/')[-1]
             urlretrieve(filtered_data[0],os.path.join(temp_dir, temp_file_name))
-            
-            df = pd.read_csv(os.path.join(temp_dir,temp_file_name))
 
+            temp_file_name_jpg = filtered_jpg[0].split('/')[-1]
+            urlretrieve(filtered_jpg[0],os.path.join(temp_dir, temp_file_name_jpg))
+
+            image_url = os.path.join(temp_dir, temp_file_name_jpg)[2:]
+
+            with open(os.path.join(temp_dir, temp_file_name_jpg), "rb") as img_file:
+                img_base64 = base64.b64encode(img_file.read()).decode("utf-8")
+
+
+
+            skip = 0
+            with open(os.path.join(temp_dir, temp_file_name), 'r') as f:
+                while True:
+                    content = f.readline()
+                    if ('Time' in content and 'X' in content and 'Y' in content):
+                        break
+                    else:
+                        skip+=1
+                    
+            
+            df = pd.read_csv(os.path.join(temp_dir,temp_file_name),skiprows=skip)
             print(df)
+
+            #Calculate Distance travelled
+            X_values = df["X"].to_list()
+            Y_values = df["Y"].to_list()
+            print(df["X"])
+            print(df["Y"])
+            euclidian_dist = 0
+
+            for i in range (len(X_values)-1):
+                try:
+
+                    #If next is invalid, don't update current value
+                    if (X_travel == -1 and Y_travel == -1):
+                        pass
+                    else:
+                        X_travel = abs(round(float(X_values[i]),2))
+                        Y_travel = abs(round(float(Y_values[i]),2))
+
+
+                    #Try to get next value
+                    X_travel = abs(round(float(X_values[i+1]),2))
+                    Y_travel = abs(round(float(Y_values[i+1]),2))
+
+                    dist = math.sqrt(X_travel**2 + Y_travel**2)
+                    euclidian_dist+=dist
+                except Exception as e:
+                    X_travel = -1
+                    Y_travel = -1
+                
+
+
 
             df_show = df.head(500)
             df_show = df_show.to_dict(orient="records")
 
+            index = 0
+            for i, r in df.iterrows():
+                if (r.iloc[0] == 1):
+                    break
+                else:
+                    index+=1
+            
+            df = df.iloc[index:]
+
             return {"status": "success",
-                    "data": df_show}
+                    "data": df_show,
+                    "distance": round(euclidian_dist,2),
+                    "imageData": img_base64,
+                    "imageType": "image/gif"}
             
         except Exception as e:
             print(f"Error Downloading File: {e}")
             return {"status":"Error",
-                "data": None}
+                "data": None,
+                "distance": None,
+                "imageData": None,
+                "imageType": None}
     else:
         return {"status":"No smoothed track file exists",
-                "data": None}
+                "data": None,
+                "distance": None,
+                "imageData": None,
+                "imageType": None}

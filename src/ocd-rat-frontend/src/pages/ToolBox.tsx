@@ -9,34 +9,12 @@ import { API_BASE_URL } from '@/config';
 import { useState, useEffect } from 'react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
-// Simple SVG heatmap icon
-const HeatmapSvg = () => (
-  <svg width="144" height="144" viewBox="0 0 144 144" xmlns="http://www.w3.org/2000/svg" className="mx-auto">
-    <rect x="20" y="20" width="20" height="20" fill="#e0f2fe" stroke="#ccc" strokeWidth="1"/>
-    <rect x="45" y="20" width="20" height="20" fill="#7dd3fc" stroke="#ccc" strokeWidth="1"/>
-    <rect x="70" y="20" width="20" height="20" fill="#38bdf8" stroke="#ccc" strokeWidth="1"/>
-    <rect x="95" y="20" width="20" height="20" fill="#0284c7" stroke="#ccc" strokeWidth="1"/>
-    
-    <rect x="20" y="45" width="20" height="20" fill="#7dd3fc" stroke="#ccc" strokeWidth="1"/>
-    <rect x="45" y="45" width="20" height="20" fill="#38bdf8" stroke="#ccc" strokeWidth="1"/>
-    <rect x="70" y="45" width="20" height="20" fill="#0284c7" stroke="#ccc" strokeWidth="1"/>
-    <rect x="95" y="45" width="20" height="20" fill="#0c63e4" stroke="#ccc" strokeWidth="1"/>
-    
-    <rect x="20" y="70" width="20" height="20" fill="#38bdf8" stroke="#ccc" strokeWidth="1"/>
-    <rect x="45" y="70" width="20" height="20" fill="#0284c7" stroke="#ccc" strokeWidth="1"/>
-    <rect x="70" y="70" width="20" height="20" fill="#0c63e4" stroke="#ccc" strokeWidth="1"/>
-    <rect x="95" y="70" width="20" height="20" fill="#0d47a1" stroke="#ccc" strokeWidth="1"/>
-    
-    <rect x="20" y="95" width="20" height="20" fill="#0284c7" stroke="#ccc" strokeWidth="1"/>
-    <rect x="45" y="95" width="20" height="20" fill="#0c63e4" stroke="#ccc" strokeWidth="1"/>
-    <rect x="70" y="95" width="20" height="20" fill="#0d47a1" stroke="#ccc" strokeWidth="1"/>
-    <rect x="95" y="95" width="20" height="20" fill="#051c4d" stroke="#ccc" strokeWidth="1"/>
-  </svg>
-);
-
 export function ToolBox() {
   const [sessionId, setSessionId] = useState("");
   const [datapoints, setDataPoints] = useState<Record<string, unknown>[] | null>(null);
+  const [distance, setDistance] = useState(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageData, setImageData] = useState<string | null>(null);
   const visualizations = [
 
     {
@@ -75,6 +53,8 @@ export function ToolBox() {
         const resData = await response.json();
         console.log(resData)
         setDataPoints(resData["data"])
+        setDistance(resData["distance"])
+        setImageData(`data:${resData["imageType"]};base64,${resData["imageData"]}`);
 
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -113,6 +93,8 @@ export function ToolBox() {
       </div>
 
       {datapoints != null && (
+        <div className="flex flex-col lg:flex-row gap-6 mt-6 w-full justify-center">
+    
                   <Card className="p-4 mt-4">
                     <h3 className="font-semibold mb-3">Data Points ({datapoints.length})</h3>
                     <ScrollArea className="h-[300px] w-full rounded border">
@@ -137,8 +119,36 @@ export function ToolBox() {
                       </table>
                     </ScrollArea>
                   </Card>
+
+                  <Card className="p-4 w-full lg:w-96 flex flex-col items-center justify-center">
+  <h3 className="font-semibold mb-3">Session Image</h3>
+  <div className="w-full flex justify-center">
+    <img
+      src={imageData || ""}
+      alt="Session Visualization"
+      className="rounded-md object-contain max-h-[300px] w-full"
+    />
+  </div>
+</Card>
+    </div>
                 )}
+      {distance != null && (
+  <div className="flex justify-center mt-8 w-full">
+    <Card className="p-6 w-80 text-center shadow-md">
+      <h3 className="text-sm uppercase tracking-wide text-muted-foreground">
+        Distance Travelled
+      </h3>
+      <p className="text-4xl font-extrabold mt-2">
+        {distance}
+      </p>
+      <p className="text-sm text-muted-foreground mt-1">
+        centimeters
+      </p>
+    </Card>
+  </div>
+)}
 
     </div>
+
   );
 }
