@@ -2,6 +2,8 @@
 
 \usepackage{booktabs}
 \usepackage{tabularx}
+\usepackage{ragged2e}
+\usepackage{graphicx}
 \usepackage{hyperref}
 \hypersetup{
     colorlinks,
@@ -90,8 +92,99 @@ should be highlighted.}
 \section{Automated Testing}
 		
 \section{Trace to Requirements}
-		
-\section{Trace to Modules}		
+\label{sec:trace-req}
+
+This section summarizes how the Verification and Validation activities for Rev.~0
+provide evidence for satisfying the requirements specified in the Volere SRS
+for \progname{}.  Requirement definitions are taken from the SRS (Volere template:
+\texttt{docs/SRS-Volere/SRS.tex}). Test case identifiers and the full
+requirement--test mapping are taken from the VnV Plan
+(\texttt{docs/VnVPlan/VnVPlan.tex}, Table ``Traceability Between Test Cases and Requirements'').
+
+Table~\ref{TblTraceReqToTestsFunc} shows the traceability between the core
+functional requirements (FUNC.R.1--FUNC.R.7) and the primary system tests defined in the
+VnV Plan.  A requirement is considered covered if there exists at least one
+test that would fail should the requirement not hold.
+
+\begin{table}[h!]
+  \centering
+  \caption{Traceability Between Functional Requirements and System Tests}
+  \label{TblTraceReqToTestsFunc}
+  \renewcommand{\arraystretch}{1.2}
+  \footnotesize
+  \begin{tabular}{p{1.4cm}>{\RaggedRight\arraybackslash}p{5.2cm}>{\RaggedRight\arraybackslash}p{5.2cm}}
+    \toprule
+    \textbf{Req.} & \textbf{Description (SRS Volere)} & \textbf{Primary Test(s) (VnV Plan)} \\
+    \midrule
+    FUNC.R.1 & Filter data by predefined labels. & ST-FR1.1 Filter Accuracy Test \\
+    FUNC.R.2 & Generate result sets via NLP queries. & ST-FR2.1 NLP Query Response Test \\
+    FUNC.R.3 & Provide categorized, browsable data sets. & ST-FR3.1 Predefined Dataset Browsing Test \\
+    FUNC.R.4 & Provide behavioural categorization and metrics per trial. & ST-FR4.1 Behavioural Categorization and Metrics Test \\
+    FUNC.R.5 & Create visualizations from result set. & ST-FR5.1 Visualization Generation Test \\
+    FUNC.R.6 & Allow download of data and visualizations. & ST-FR6.1 Data Download and Export Verification Test \\
+    FUNC.R.7 & Globally accessible web platform. & ST-FR7.1 Global Accessibility and Latency Test \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The nonfunctional requirements (APP.R.1--R.3, EOU.R.1--R.2, LEA.R.1--R.2, UAP.R.1--R.2,
+ACC.R.1, SAL.R.1--R.2, ROFT.R.1--R.2, CAP.R.1--R.2, SOE.R.1--R.2, LON.R.1--R.2, EPE.R.1--R.3,
+WE.R.1, IWAS.R.1, PROD.R.1--R.2, REL.R.1--R.2, MAI.R.1--R.2, SUP.R.1--R.2, ADA.R.1--R.3,
+INT.R.1, IMM.R.1--R.2, LEG.R.1, STA.R.1--R.2) are covered by the family of system
+tests labelled ST-NFR in the VnV Plan.  The full mapping from each
+requirement to its associated system test cases is given in the traceability
+matrix in the VnV Plan; that matrix, together with Table~\ref{TblTraceReqToTestsFunc}, provides bidirectional
+traceability between requirements and tests.
+
+\section{Trace to Modules}
+\label{sec:trace-mod}
+
+This section summarizes how the modules identified in the Module Guide (MG) and
+specified in the Module Interface Specification (MIS) collectively implement
+the requirements and how the VnV activities exercise those modules.  Module
+names and numbering (M1--M9) and the requirement--module mapping are taken from the MG
+(\texttt{docs/Design/SoftArchitecture/MG.tex}, Table ``Trace Between Requirements and Modules'').
+
+Table~\ref{TblTraceModulesToReq} gives the main links between the leaf modules
+from the MG and the functional requirements they help satisfy (as per the MG
+traceability matrix), together with representative system tests that exercise
+those responsibilities.
+
+\begin{table}[h!]
+  \centering
+  \caption{Traceability Between Modules, Requirements, and Representative Tests}
+  \label{TblTraceModulesToReq}
+  \renewcommand{\arraystretch}{1.2}
+  \footnotesize
+  \begin{tabular}{@{}p{2.2cm}>{\RaggedRight\arraybackslash}p{5.4cm}>{\RaggedRight\arraybackslash}p{4.2cm}@{}}
+    \toprule
+    \textbf{Module (MG)} & \textbf{Primary SRS Requirements} & \textbf{Representative Tests (VnV Plan)} \\
+    \midrule
+    M1: Hardware-Hiding & FUNC.R.7; CAP.R.2, LON.R.2, EPE.R.1--R.3, WE.R.1, ADA.R.1--R.2 & ST-FR7.1; ST-NFR9.2, 11.2, 12.1--12.3, 13.1, 19.1 \\
+    \midrule
+    M2: NLP Query Processor & FUNC.R.2; EOU.R.1--R.2, LEA.R.1, UAP.R.1 & ST-FR2.1; ST-NFR2.1--2.2, 3.1, 4.1 \\
+    \midrule
+    M3: Front-End Interface & FUNC.R.1, R.3, R.5, R.6, R.7; APP.R.1--3, EOU.R.1--2, LEA.R.1--2, UAP.R.1--2, ACC.R.1; ROFT.R.1, SUP.R.1--2 & ST-FR1.1, 3.1, 5.1, 6.1, 7.1; ST-NFR1.1--1.3, 2.1--2.2, 3.1--3.2, 4.1--4.2, 5.1, 8.1, 18.1--18.2 \\
+    \midrule
+    M4: API Layer & FUNC.R.2, R.5, R.6, R.7; SAL.R.2, POA.R.2, CAP.R.1, SOE.R.1--2, LON.R.2, EPE.R.1--2, IWAS.R.1, ADA.R.1--2, IMM.R.2 & ST-FR2.1, 5.1, 6.1, 7.1; ST-NFR6.2, 7.2, 9.1, 10.1--10.2, 11.2, 12.1--12.2, 14.1, 19.1, 21.2 \\
+    \midrule
+    M5: Data Schema and Storage & FUNC.R.1--R.4, R.6; POA.R.1--R.2, CAP.R.1--R.2, MAI.R.2, IWAS.R.1 & ST-FR1.1, 4.1, 6.1; ST-NFR7.1--7.2, 9.1--9.2, 14.1, 17.2 \\
+    \midrule
+    M6: Data Visualization & FUNC.R.4, R.5; EOU.R.2, LEA.R.2 & ST-FR4.1, 5.1; ST-NFR2.2, 3.2 \\
+    \midrule
+    M7: Data Processing Pipeline & FUNC.R.1, R.3, R.4; APP.R.1, R.3; SAL.R.1, SOE.R.2; POA.R.1 & ST-FR1.1, 3.1, 4.1; ST-NFR1.1, 1.3, 6.1, 7.1, 10.2 \\
+    \midrule
+    M8: Auth.\ and Access Control & INT.R.1, IMM.R.1--R.2 & ST-NFR20.1, 21.1--21.2 \\
+    \midrule
+    M9: Fault and Error Mgmt & ROFT.R.1--R.2, MAI.R.1, LON.R.1; POA.R.2 & ST-NFR8.1--8.2, 11.1, 7.2 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Taken together, the MG requirement--module trace, the MIS specifications, and
+the requirement--test matrices from the VnV Plan provide end-to-end
+traceability from SRS requirements, through the design modules, to the concrete
+tests reported in this document.
 
 \section{Code Coverage Metrics}
 
