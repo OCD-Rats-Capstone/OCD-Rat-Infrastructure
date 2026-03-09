@@ -159,84 +159,14 @@ docker-compose logs db
 
 ---
 
-## Manual Setup (Legacy)
+## Testing
 
-### Local Database Setup
+### Running Backend Tests
 
-Install and start PostgreSQL:
-
-```bash
-brew install postgres
-brew services restart postgresql
-psql postgres
-psql -U postgres
-createdb postgres
 ```
-
-Download the database export from [SharePoint](https://mcmasteru365-my.sharepoint.com/personal/szechtma_mcmaster_ca/_layouts/15/onedrive.aspx?id=%2Fpersonal%2Fszechtma%5Fmcmaster%5Fca%2FDocuments%2FCapstoneProject2024%2D25%2FPostgreSQL%2FExported%5Fszechtman%5Flab%5Fdatabase&viewid=4971addc%2Dbc56%2D49ba%2D8ac1%2Da8ad91132272&csf=1&web=1&e=r4ngWU&CID=82c9bc55%2D11d8%2D464d%2Daf27%2D22085573ed7f&FolderCTID=0x0120000D047C8EA8138E4F8A5F6E0E8106AF73&view=0)
-
-Import the schema:
-
-```bash
-psql -U postgres -d postgres -f OneDrive_1_2025-11-18/szechtman_lab_schema.sql
-```
-
-**Troubleshooting:**
-- List databases: `\l`
-- List users: `\du`
-- Select appropriate user if needed
-
-### Backend Setup
-
-Create and activate virtual environment:
-
-```bash
 cd src/ocd-rat-backend
-python3 -m venv venv
-source venv/bin/activate
+python3 -m pytest tests/ -v --tb=short
 ```
-
-Install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-Run the server:
-
-```bash
-fastapi dev app.py
-```
-
-The API will be available at `http://localhost:8000`
-
-For detailed API documentation, check [Pull Request #332](https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/pull/332)
-
-### Frontend Setup
-
-Install Node.js:
-
-```bash
-brew install node
-```
-
-Install dependencies:
-
-```bash
-cd src/ocd-rat-frontend
-npm install
-npm install -g vite
-```
-
-Run the development server:
-
-```bash
-npm run dev
-```
-
-The frontend will be available at `http://localhost:5173` (or as shown in your terminal)
-
----
 
 ## License
 
