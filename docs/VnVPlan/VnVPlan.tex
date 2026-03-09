@@ -174,7 +174,7 @@ offers the user guidance through the program.
     \item Perry, Nathan, Tim Pokanai, Jeremy Orr, Aidan Goodyer, et al. "OCD-Rat-Infrastructure/Docs/Developmentplan at Main - OCD-Rats-Capstone/OCD-Rat-Infrastructure." GitHub. Accessed 27 Oct. 2025. \url{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/tree/main/docs/DevelopmentPlan}
 \end{itemize}
 
-\citet{SRS-Volere}
+SRS-Volere software requirements specification
 
 \section{Plan}
 
@@ -745,6 +745,7 @@ These tests verify latency, throughput, fault-tolerance, and data integrity.
 
 Table~\ref{tab:traceability} provides a traceability matrix showing the correspondence between each Software Requirements Specification (SRS) requirement and the test cases defined in Sections~4.1 and~4.2. Each requirement identifier (FUNC.R.\#, APP.R.\#, etc.) is mapped to one or more test case identifiers that verify its implementation or satisfaction.
 
+\begin{flushleft}
 \renewcommand{\arraystretch}{1.2}
 \begin{longtable}{|l|p{10cm}|}
 \caption{Traceability Between Test Cases and Requirements}
@@ -818,27 +819,67 @@ STA.R.2 & ST-NFR23.2 Ethical Use of Data Verification Test \\
 
 \section{Unit Test Description}
 
-\wss{This section should not be filled in until after the MIS (detailed design
-  document) has been completed.}
+% \wss{This section should not be filled in until after the MIS (detailed design
+%   document) has been completed.}
 
-\wss{Reference your MIS (detailed design document) and explain your overall
-philosophy for test case selection.}  
+% \wss{Reference your MIS (detailed design document) and explain your overall
+% philosophy for test case selection.}  
 
-\wss{To save space and time, it may be an option to provide less detail in this section.  
-For the unit tests you can potentially layout your testing strategy here.  That is, you 
-can explain how tests will be selected for each module.  For instance, your test building 
-approach could be test cases for each access program, including one test for normal behaviour 
-and as many tests as needed for edge cases.  Rather than create the details of the input 
-and output here, you could point to the unit testing code.  For this to work, you code 
-needs to be well-documented, with meaningful names for all of the tests.}
+% \wss{To save space and time, it may be an option to provide less detail in this section.  
+% For the unit tests you can potentially layout your testing strategy here.  That is, you 
+% can explain how tests will be selected for each module.  For instance, your test building 
+% approach could be test cases for each access program, including one test for normal behaviour 
+% and as many tests as needed for edge cases.  Rather than create the details of the input 
+% and output here, you could point to the unit testing code.  For this to work, you code 
+% needs to be well-documented, with meaningful names for all of the tests.}
+
+The general unit testing strategy will have two axises upon which tests are formulated and determined.
+The set of unit tests for each module will be comprised of subsets
+of unit tests for each sub-module within the module. Thus, the first axis of the unit testing strategy is
+determining which sub-modules or units need to have a set of test cases formulated for them. The general rule
+of thumb for this is that each service, at the most granular level in each module will require a set of unit tests.
+A service will generally be identifiable as a singular function. A service can include things such as executing a query,
+submitting a request to the backend API from a webpage, downloading a file, etc... The second axis of the testing strategy
+is the set of unit tests created for each service identified. The procedure for this will be one test for normal behaviour
+and as many test cases as needed for edge cases, as determined at the discretion of the test developer.
 
 \subsection{Unit Testing Scope}
 
-\wss{What modules are outside of the scope.  If there are modules that are
-  developed by someone else, then you would say here if you aren't planning on
-  verifying them.  There may also be modules that are part of your software, but
-  have a lower priority for verification than others.  If this is the case,
-  explain your rationale for the ranking of module importance.}
+% \wss{What modules are outside of the scope.  If there are modules that are
+%   developed by someone else, then you would say here if you aren't planning on
+%   verifying them.  There may also be modules that are part of your software, but
+%   have a lower priority for verification than others.  If this is the case,
+%   explain your rationale for the ranking of module importance.}
+
+Below lists the modules outlined in our design documentation as well as their priority. In some
+cases, modules will not be tested and an explanation will be given for why.
+
+\begin{itemize}
+  \item \textbf{Module 1: Hardware-Hiding Module -} This module will not be covered by our unit
+  testing plan as it is implemented by the native OS of the machine running our system and thus
+  is not developed by us.
+  \item \textbf{Module 2: Query Processor Module - High testing priority. }This module is a core part
+  of the system and thus should be tested in a robust manner
+  \item \textbf{Module 3: Front-End Interface Module: High testing priority. }Ensuring that the user-facing
+  portion of the system is verified is of critical importance.
+  \item \textbf{Module 4: API Layer Module - High testing priority. }Ensuring the service routing and database calls
+  are functioning properly is of critical importance.
+  \item \textbf{Module 5: Data Schema and Storage Module -} This module will not be covered by our unit testing plan.
+  The schema is complete and live in our database and any verification needed would be related to the API layer that queries it.
+  Any changes made to this would need to be justified via data integrity reviews with our supervisor, not through unit testing. This is
+  also technically implemented by Postgres SQL, not us.
+  \item \textbf{Module 6: Data Visualization Module - Medium testing priority. }While this is important to our systems usefulness and
+  user experience, the three high priority modules are more critical to the system functioning at all and this module
+  actually heavily relies on all three of them.
+  \item \textbf{Module 7: Data Processing Pipeline Module - Medium testing priority. }Reasoning is same as above. Note that this module is not currently implemented
+  in our system and thus testing on it is not currently possible so it will also be omitted.
+  \item \textbf{Module 8: Authentication and Access Control Module -} This module will not be covered by
+  our unit testing plan as this module has been downgraded to a 'Nice to have' in order to focus on the core functionality
+  for the upcoming Capstone demos. Given the low priority for implementation, this module is not far enough along
+  to justify spending time developing unit tests for it.
+  \item \textbf{Module 9: Fault and Error Management Module -} This module will not be covered by
+  our unit testing plan for the same reasons as above.
+\end{itemize}
 
 \subsection{Tests for Functional Requirements}
 
@@ -846,104 +887,308 @@ needs to be well-documented, with meaningful names for all of the tests.}
   appropriate specific modules can be verified by a non-testing based
   technique.  That can also be documented in this section.}
 
-\subsubsection{Module 1}
+\subsubsection{Module 2: Query Processor Module}
 
-\wss{Include a blurb here to explain why the subsections below cover the module.
-  References to the MIS would be good.  You will want tests from a black box
-  perspective and from a white box perspective.  Explain to the reader how the
-  tests were selected.}
+\paragraph{Test 1: Verify NLP Module provides valid SQL queries.}
+\begin{itemize}
+    \item \textbf{Related Requirement:} FUNC.R.2
+    \item \textbf{Test ID:} UT1-FR2-TestGenerateSQL
+    \item \textbf{Type:} Dynamic, Automatic
+    \item \textbf{Initial State Base Case:} API connection to LLM model is live. Database is live.
+    \item \textbf{Input Base Case:} user inputs query. Could be as simple as "test"
+    \item \textbf{Output Base Case:} Any dataset output is acceptable. This test only asserts that legitimate SQL is being generated.
+    \item \textbf{Initial State Edge Case 1:} API connection raises an exception and cannot complete requests.
+    \item \textbf{Input Edge Case 1:} user inputs query. Could be as simple as "test"
+    \item \textbf{Output Base Case 1:} Graceful of error to execute SQL generation
+    \item \textbf{Test Case Derivation:} Based on the non-deterministic property of LLMs, the output must at the very least be acceptable SQL queries as to not cause errors.
+    \item \textbf{How test will be performed:} Pytest assertions. Call the query module's \texttt{generate\_sql()} function with parameter \texttt{user\_query} and then pass the result into a database query.
+\end{itemize}
 
-\begin{enumerate}
+\paragraph{Test 2: Verify NLP module can answer user questions unrelated to SQL}
+\begin{itemize}
+    \item \textbf{Related Requirement:} FUNC.R.2
+    \item \textbf{Test ID:} UT1-FR2-TestAskQuestion
+    \item \textbf{Type:} Dynamic, Automatic
+    \item \textbf{Initial State Base Case:} API connection to LLM model is live
+    \item \textbf{Input Base Case:} user inputs question or phrase such as 'hello'
+    \item \textbf{Output Base Case:} We expect the response to contain the token "Hello"
+    \item \textbf{Initial State Edge Case 1:} API connection raises an exception and cannot complete requests.
+    \item \textbf{Input Edge Case 1:} user inputs question or phrase such as 'hello'
+    \item \textbf{Output Base Case 1:} User is informed of failure to call on model response
+    \item \textbf{Test Case Derivation:} Our query module has a "query" section and an "ask" section. The ask section allows the user to interact with the model and learn more about the tool.
+    \item \textbf{How test will be performed:} Pytest assertions. Call the query module's \texttt{ask\_question()} function with parameter \texttt{user\_phrase}.
+\end{itemize}
 
-\item{test-id1\\}
+\subsubsection{Module 3: Front-End Interface Module}
 
-Type: \wss{Functional, Dynamic, Manual, Automatic, Static etc. Most will
-  be automatic}
-					
-Initial State: 
-					
-Input: 
-					
-Output: \wss{The expected result for the given inputs}
+\paragraph{We have decided that a traditional unit testing approach for this module
+is not the most useful and rather a user-experience oriented approach is more effective.
+This can be done manually by a tester either on the team or not or can be automated using
+a tool such as Selenium. The relevant tests for functional requirements are listed below.}
 
-Test Case Derivation: \wss{Justify the expected value given in the Output field}
+\paragraph{Test 3: Front-End Verification}
+\begin{itemize}
+    \item \textbf{Related Requirement:} FUNC.R.1-6
+    \item \textbf{Test ID:} UT1-FR1.6-VerifyFrontEnd
+    \item \textbf{Type:} Dynamic, Manual or Automatic
+    \item \textbf{Initial State Base Case:} Front-End/Backend Connection/DB is live.
+    \item \textbf{Input Pattern:}
+      \begin{itemize}
+        \item Navigate each of available tabs in the NavBar (Home, Query, Inventory, Visualizations, About)
+        \item Input question into the Query tab, ensure it displays as a message in the chat box and a response is provided
+        \item Input query into the Query tab, ensure a response is given as a table embedded in the chat window
+        \item Select various filters in the Inventory tab, apply and ensure session counts are updated and sessions display in the table
+        \item Clear filters in the Inventory tab, ensure session counts update accordingly
+        \item Select Download button in both the Query and Inventory tabs, ensure they render properly and file extensions can be selected
+        \item Select each of the three available visualizations and select any combination of X and Y parameters. Ensure visualizations render in a user-friendly way
+      \end{itemize}
+    \item \textbf{Output Case:} 200 HTTP code
+    \item \textbf{Test Case Derivation:} Verifies baseline user experience and responsiveness in the front-end
+    \item \textbf{How test will be performed:} User-testing or Selenium automation. Verified with user discretion or Selenium metrics
+\end{itemize}
 
-How test will be performed: 
-					
-\item{test-id2\\}
+\subsubsection{Module 4: API Layer Module}
 
-Type: \wss{Functional, Dynamic, Manual, Automatic, Static etc. Most will
-  be automatic}
-					
-Initial State: 
-					
-Input: 
-					
-Output: \wss{The expected result for the given inputs}
+\paragraph{Test 4: Verify routers return valid responses}
+\begin{itemize}
+    \item \textbf{Related Requirement:} FUNC.R.1-6
+    \item \textbf{Test ID:} UT1-FR1.6-VerifyRouters
+    \item \textbf{Type:} Dynamic, Automatic
+    \item \textbf{Initial State Base Case:} Front-End/Backend Connection is live.
+    \item \textbf{Input Case 1:} Health check backend endpoint
+    \item \textbf{Output Case 1:} 200 HTTP code
+    \item \textbf{Input Case 2:} NLP module backend endpoint, user query in request body
+    \item \textbf{Output Case 2:} 200 HTTP code, JSON response
+    \item \textbf{Input Case 3:} Inventory module backend endpoint, filter set in request body
+    \item \textbf{Output Case 3:} 200 HTTP code, JSON response
+    \item \textbf{Input Case 4:} Visualization module backend endpoint, visualization parameters in 
+    \item \textbf{Output Case 4:} 200 HTTP code, JSON response
+    \item \textbf{Test Case Derivation:} The primary function of the API module is ensuring the data is routed through the system properly.
+    \item \textbf{How test will be performed:} Pytest assertions. Call the various endpoints and assert the response codes are 200 and JSON format is correct
+\end{itemize}
 
-Test Case Derivation: \wss{Justify the expected value given in the Output field}
+\paragraph{Test 4: Verify Database Connection configured}
+\begin{itemize}
+    \item \textbf{Related Requirement:} FUNC.R.1-6
+    \item \textbf{Test ID:} UT1-FR1.6-VerifyDB
+    \item \textbf{Type:} Dynamic, Automatic
+    \item \textbf{Initial State Base Case:} Backend/DB Connection is live.
+    \item \textbf{Input Case:} submit sql statement to db connection ``\texttt{SELECT rat\_id FROM rats}''
+    \item \textbf{Output Case:} pandas dataframe of records
+    \item \textbf{Test Case Derivation:} ensuring database integrity is integral
+    \item \textbf{How test will be performed:} Pytest assertions. Assert records are correct.
+\end{itemize}
 
-How test will be performed: 
+\paragraph{Test 5: Verify Download Functionality}
+\begin{itemize}
+    \item \textbf{Related Requirement:} FUNC.R.6
+    \item \textbf{Test ID:} UT1-FR1.6-VerifyDownloads
+    \item \textbf{Type:} Dynamic, Automatic
+    \item \textbf{Initial State Base Case:} Backend/DB Connection is live.
+     \item \textbf{Input Case:} Download backend endpoint, set of sessions to download and file extensions
+    \item \textbf{Output Case:} 200 HTTP code, file response
+    \item \textbf{Test Case Derivation:} ensures functional requirement 6 is explicitly validated
+    \item \textbf{How test will be performed:} Pytest assertions. Assert file response matches sessions
+\end{itemize}
 
-\item{...\\}
-    
-\end{enumerate}
+\paragraph{Test 6: Verify Filters}
+\begin{itemize}
+    \item \textbf{Related Requirement:} FUNC.R.1
+    \item \textbf{Test ID:} UT1-FR1-VerifyFilters
+    \item \textbf{Type:} Dynamic, Automatic
+    \item \textbf{Initial State Base Case:} Frontend/Backend/DB Connection is live.
+    \item \textbf{Input Case 1:} simple filter set of easily verifiable data (\texttt{rat\_id = 5}) run on \texttt{execute\_filters\_query()} function
+    \item \textbf{Output Case 1:} pandas dataframe of selected records
+    \item \textbf{Input Case 2:} simple filter set of multiple filters run on \texttt{execute\_filters\_query()} function
+    \item \textbf{Output Case 2:} pandas dataframe of selected records
+    \item \textbf{Input Case 3:} disjoint filter set run on \texttt{execute\_filters\_query()} function
+    \item \textbf{Output Case 3:} empty dataframe
+    \item \textbf{Test Case Derivation:} ensures functional requirement 1 is explicitly validated
+    \item \textbf{How test will be performed:} Pytest assertions. Assert all records match inputted filters
+\end{itemize}
 
-\subsubsection{Module 2}
+\subsubsection{Module 6: Data Visualization Module}
 
-...
+\paragraph{Test 7: Verify Visualization Query}
+\begin{itemize}
+    \item \textbf{Related Requirement:} FUNC.R.5
+    \item \textbf{Test ID:} UT1-FR5-VerifyVizQuery
+    \item \textbf{Type:} Dynamic, Automatic
+    \item \textbf{Initial State:} Backend/DB connection is live
+    \item \textbf{Input Case 1:} submit X and Y value labels to \texttt{\_build\_query}
+    \item \textbf{Output Case 1:} pandas dataframe of datapoints
+    \item \textbf{Input Case 2:} submit X and Y value labels to \texttt{\_build\_linechart\_query}
+    \item \textbf{Output Case 2:} pandas dataframe of datapoints
+     \item \textbf{Input Case 3:} submit X and Y and M value labels to \texttt{\_build\_heatmap\_query}
+    \item \textbf{Output Case 3:} pandas dataframe of datapoints
+    \item \textbf{Test Case Derivation:} Must verify that core business logic for building visualizations is correct
+    \item \textbf{How test will be performed:} Pytest assertions. Assert records are configured like X and Y tuples.
+\end{itemize}
 
 \subsection{Tests for Nonfunctional Requirements}
 
-\wss{If there is a module that needs to be independently assessed for
-  performance, those test cases can go here.  In some projects, planning for
-  nonfunctional tests of units will not be that relevant.}
+\par{Most nonfunctional requirements (NFRs) are validated at the system-test
+level but there are several NFRs that it still makes sense to verify with unit
+tests at the module level. I will note that the user tests for the functional requirements outlined above for module 3
+go over some of the usability NFRs but since that has already been outlined in the above section, it will be omitted here but included in the NFR traces.}
 
-\wss{These tests may involve collecting performance data from previously
-  mentioned functional tests.}
+\subsubsection{Module 2: Query Processor Module (NFRs)}
 
-\subsubsection{Module ?}
-		
-\begin{enumerate}
+\paragraph{Test 1: Query Latency Baseline}
+\begin{itemize}
+    \item \textbf{Related Requirement:} SAL.R.1
+    \item \textbf{Test ID:} UT-NFR2.1-QueryLatencyBaseline
+    \item \textbf{Type:} Dynamic, Automatic
+    \item \textbf{Initial State:} Backend/Database connection live.
+    \item \textbf{Input/Condition:} Execute \texttt{generate\_sql()} and the corresponding query for a fixed suite of typical user prompts (e.g., 10 representative queries).
+    \item \textbf{Output/Result:} Median end-to-end generation + query execution time remains below the latency threshold specified by SAL.R.1 for typical queries; no timeouts or unhandled exceptions occur.
+    \item \textbf{Test Case Derivation:} Ensures the query processor meets baseline latency expectations for typical workloads.
+    \item \textbf{How test will be performed:} Implement a PyTest benchmark that times calls to \texttt{generate\_sql()} followed by database execution; record and assert performance meets required benchmark.
+\end{itemize}
 
-\item{test-id1\\}
+\paragraph{Test 2: Invalid Prompt Robustness}
+\begin{itemize}
+    \item \textbf{Related Requirement:} ROFT.R.1
+    \item \textbf{Test ID:} UT-NFR2.2-InvalidPromptRobustness
+    \item \textbf{Type:} Dynamic, Automatic
+    \item \textbf{Initial State:} Bakcned live
+    \item \textbf{Input/Condition:} Pass a set of malformed prompts (e.g., empty string, excessively long string, non-English input) to \texttt{generate\_sql()} and higher-level query entry points.
+    \item \textbf{Output/Result:} Module returns a safe error status without crashing. incorrect SQL is never executed against the database.
+    \item \textbf{Test Case Derivation:} Verifies robustness and safe handling of invalid nonsensical or malicious user prompts.
+    \item \textbf{How test will be performed:} Use PyTest with mocks to force invalid SQL generation.
+\end{itemize}
 
-Type: \wss{Functional, Dynamic, Manual, Automatic, Static etc. Most will
-  be automatic}
-					
-Initial State: 
-					
-Input/Condition: 
-					
-Output/Result: 
-					
-How test will be performed: 
-					
-\item{test-id2\\}
+\paragraph{Test 3: Resource Usage Constraints}
+\begin{itemize}
+    \item \textbf{Related Requirement:} CAP.R.1
+    \item \textbf{Test ID:} UT-NFR2.3-ResourceUsageConstraints
+    \item \textbf{Type:} Dynamic, Automatic
+    \item \textbf{Initial State:} Query processor configured with typical resource limits.
+    \item \textbf{Input/Condition:} Execute a batch of long-running or complex prompts that generate large SQL queries.
+    \item \textbf{Output/Result:} Memory consumption for the process stays within acceptable bounds (no unbounded growth); each query terminates within the configured time limit.
+    \item \textbf{Test Case Derivation:} Confirms that heavy queries to LLM do not overload the system's capacity
+    \item \textbf{How test will be performed:} Use PyTest plus a resource monitor and assert that memory and runtime stay under configured thresholds.
+\end{itemize}
 
-Type: Functional, Dynamic, Manual, Static etc.
-					
-Initial State: 
-					
-Input: 
-					
-Output: 
-					
-How test will be performed: 
+\subsubsection{Module 4: API Layer Module (NFRs)}
 
-\end{enumerate}
+\paragraph{Test 4: Endpoint Latency Limits}
+\begin{itemize}
+    \item \textbf{Related Requirement:} SAL.R.1, SAL.R.2
+    \item \textbf{Test ID:} UT-NFR4.1-EndpointLatencyLimits
+    \item \textbf{Type:} Dynamic, Automatic
+    \item \textbf{Initial State:} Frontend/Backend/Database connection live
+    \item \textbf{Input/Condition:} Perform repeated calls to system endpoints (\texttt{/health}, query, inventory, visualization).
+    \item \textbf{Output/Result:} Average response time for these unit-level calls is within the limits specified by SAL.R.1/SAL.R.2 for normal operation; response status is always 2xx for valid requests.
+    \item \textbf{Test Case Derivation:} Ensures the API layer respects latency targets for core endpoints.
+    \item \textbf{How test will be performed:} Wrap existing functional API unit tests with timing assertions (e.g., PyTest plugin or custom timing helper) and fail the test if latency exceeds the configured per-endpoint threshold.
+\end{itemize}
 
-\subsubsection{Module ?}
+\paragraph{Test 5: Error Handling and Logging}
+\begin{itemize}
+    \item \textbf{Related Requirement:} ROFT.R.1, ROFT.R.2
+    \item \textbf{Test ID:} UT-NFR4.2-ErrorHandlingAndLogging
+    \item \textbf{Type:} Dynamic, Automatic
+    \item \textbf{Initial State:} Frontend/Backend/Database connection live
+    \item \textbf{Input/Condition:} Call endpoints with bad requests or simulate backend failures such as failed db connections
+    \item \textbf{Output/Result:} API responds with appropriate HTTP 4xx/5xx codes and user-safe error messages; no stack traces are exposed.
+    \item \textbf{Test Case Derivation:} Validates robust error handling and observability at the API boundary.
+    \item \textbf{How test will be performed:} Use PyTest and the FastAPI test client to send bad requests and to mock backend exceptions, then assert on status codes.
+\end{itemize}
 
-...
+\paragraph{Test 6: Throughput Under Unit Load}
+\begin{itemize}
+    \item \textbf{Related Requirement:} CAP.R.1, SOE.R.2
+    \item \textbf{Test ID:} UT-NFR4.3-ThroughputUnderUnitLoad
+    \item \textbf{Type:} Dynamic, Automatic
+    \item \textbf{Initial State:} Frontend/Backend/Database connection live
+    \item \textbf{Input/Condition:} Fire a burst of concurrent requests to core endpoints.
+    \item \textbf{Output/Result:} All requests complete successfully, no deadlocks or incorrect serving of data occurs. Latency is within reasonable limits.
+    \item \textbf{Test Case Derivation:} Provides a unit-level check that the API layer can sustain moderate concurrency in line with capacity and scalability goals.
+    \item \textbf{How test will be performed:} Use Pytest and a load-testing tool (such as Jmeter) to issue concurrent calls and compute latency statistics. assert on success rate and timing.
+\end{itemize}
+
+\subsubsection{Module 6: Data Visualization Module (NFRs)}
+
+\paragraph{Test 7: Visualization Query Performance}
+\begin{itemize}
+    \item \textbf{Related Requirement:} SAL.R.1
+    \item \textbf{Test ID:} UT-NFR6.1-VisualizationQueryPerformance
+    \item \textbf{Type:} Dynamic, Automatic
+    \item \textbf{Initial State:} Visualization query builder functions (\texttt{\_build\_query}, \texttt{\_build\_linechart\_query}, \texttt{\_build\_heatmap\_query}) available; database populated with a representative dataset.
+    \item \textbf{Input/Condition:} Invoke each builder with typical X, Y (and M) parameters and execute the resulting queries.
+    \item \textbf{Output/Result:} Query generation and execution times satisfy the same performance thresholds as general query operations; no redundant or inefficient queries (e.g., unnecessary full-table scans) are introduced.
+    \item \textbf{Test Case Derivation:} Ensures visualization-specific queries do not degrade performance relative to their child queries.
+    \item \textbf{How test will be performed:} Same as functional tests but with a timing function and timing related assertions.
+\end{itemize}
+
+\paragraph{Test 8: Visualization Memory Usage}
+\begin{itemize}
+    \item \textbf{Related Requirement:} CAP.R.1, CAP.R.2
+    \item \textbf{Test ID:} UT-NFR6.2-VisualizationMemoryUsage
+    \item \textbf{Type:} Dynamic, Automatic
+    \item \textbf{Initial State:} Visualization module running with profiling tools enabled.
+    \item \textbf{Input/Condition:} Request visualizations for increasingly large result sets until the upper bound specified in CAP.R.1/CAP.R.2.
+    \item \textbf{Output/Result:} Memory footprint grows at most linearly with the number of points; no memory leaks or crashes occur when generating charts.
+    \item \textbf{Test Case Derivation:} Validates that visualization generation scales with dataset size without exhausting resources.
+    \item \textbf{How test will be performed:} Use a profiling/test harness to repeatedly call visualization generation functions with synthetic data and assert that memory usage remains within expected bounds.
+\end{itemize}
 
 \subsection{Traceability Between Test Cases and Modules}
 
-\wss{Provide evidence that all of the modules have been considered.}
-				
-\bibliographystyle{plainnat}
 
-\bibliography{../../refs/References}
+\renewcommand{\arraystretch}{1.2}
+\begin{longtable}{|p{5cm}|p{12cm}|}
+\caption{Traceability Between Unit Test Cases and Modules}
+\label{tab:unit-traceability} \\
+\hline
+\textbf{Module} & \textbf{Associated Unit Test Case(s)} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Module} & \textbf{Associated Unit Test Case(s)} \\
+\hline
+\endhead
+\hline \multicolumn{2}{r}{{Continued on next page}} \\
+\endfoot
+\hline
+\endlastfoot
+
+Module 1: Hardware-Hiding Module &
+Out of scope for unit testing (implemented by the native OS). \\
+\hline
+Module 2: Query Processor Module &
+UT1-FR2-TestGenerateSQL \newline UT1-FR2-TestAskQuestion \newline UT-NFR2.1-QueryLatencyBaseline\newline UT-NFR2.2-InvalidPromptRobustness\newline UT-NFR2.3-ResourceUsageConstraints. \\
+\hline
+Module 3: Front-End Interface Module &
+UT1-FR1.6-VerifyFrontEnd. \\
+\hline
+Module 4: API Layer Module &
+UT1-FR1.6-VerifyRouters; UT1-FR1.6-VerifyDB\newline UT1-FR1.6-VerifyDownloads\newline UT1-FR1-VerifyFilters\newline UT-NFR4.1-EndpointLatencyLimits\newline UT-NFR4.2-ErrorHandlingAndLogging\newline UT-NFR4.3-ThroughputUnderUnitLoad. \\
+\hline
+Module 5: Data Schema and Storage Module &
+Out of scope for unit testing \newline (schema owned by PostgreSQL and validated via data integrity reviews). \\
+\hline
+Module 6: Data Visualization Module &
+UT1-FR5-VerifyVizQuery\newline UT-NFR6.1-VisualizationQueryPerformance\newline UT-NFR6.2-VisualizationMemoryUsage. \\
+\hline
+Module 7: Data Processing Pipeline Module &
+Covered by higher-level integration and system tests\newline (no dedicated unit tests defined in this plan). \\
+\hline
+Module 8: Authentication and Access Control Module &
+Out of scope for the current capstone phase\newline (deprioritized ``nice-to-have''). \\
+\hline
+Module 9: Fault and Error Management Module &
+Out of scope for the current capstone phase \newline (module not sufficiently implemented for unit tests). \\
+
+\end{longtable}
+\end{flushleft}
+
+% Bibliography disabled for standalone compilation of this document.
+% The shared references file (../../refs/References) is not required here,
+% so we omit the bibliography commands to avoid BibTeX build failures.
+% \bibliographystyle{plainnat}
+% \bibliography{../../refs/References}
 
 \newpage
 
