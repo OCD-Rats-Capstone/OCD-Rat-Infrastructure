@@ -818,27 +818,66 @@ STA.R.2 & ST-NFR23.2 Ethical Use of Data Verification Test \\
 
 \section{Unit Test Description}
 
-\wss{This section should not be filled in until after the MIS (detailed design
-  document) has been completed.}
+% \wss{This section should not be filled in until after the MIS (detailed design
+%   document) has been completed.}
 
-\wss{Reference your MIS (detailed design document) and explain your overall
-philosophy for test case selection.}  
+% \wss{Reference your MIS (detailed design document) and explain your overall
+% philosophy for test case selection.}  
 
-\wss{To save space and time, it may be an option to provide less detail in this section.  
-For the unit tests you can potentially layout your testing strategy here.  That is, you 
-can explain how tests will be selected for each module.  For instance, your test building 
-approach could be test cases for each access program, including one test for normal behaviour 
-and as many tests as needed for edge cases.  Rather than create the details of the input 
-and output here, you could point to the unit testing code.  For this to work, you code 
-needs to be well-documented, with meaningful names for all of the tests.}
+% \wss{To save space and time, it may be an option to provide less detail in this section.  
+% For the unit tests you can potentially layout your testing strategy here.  That is, you 
+% can explain how tests will be selected for each module.  For instance, your test building 
+% approach could be test cases for each access program, including one test for normal behaviour 
+% and as many tests as needed for edge cases.  Rather than create the details of the input 
+% and output here, you could point to the unit testing code.  For this to work, you code 
+% needs to be well-documented, with meaningful names for all of the tests.}
+
+The general unit testing strategy will have two axises upon which tests are formulated and determined.
+The set of unit tests for each module will be comprised of subsets
+of unit tests for each sub-module within the module. Thus, the first axis of the unit testing strategy is
+determining which sub-modules or units need to have a set of test cases formulated for them. The general rule
+of thumb for this is that each service, at the most granular level in each module will require a set of unit tests.
+A service will generally be identifiable as a singular function. A service can include things such as executing a query,
+submitting a request to the backend API from a webpage, downloading a file, etc... The second axis of the testing strategy
+is the set of unit tests created for each service identified. The procedure for this will be one test for normal behaviour
+and as many test cases as needed for edge cases, as determined at the discretion of the test developer.
 
 \subsection{Unit Testing Scope}
 
-\wss{What modules are outside of the scope.  If there are modules that are
-  developed by someone else, then you would say here if you aren't planning on
-  verifying them.  There may also be modules that are part of your software, but
-  have a lower priority for verification than others.  If this is the case,
-  explain your rationale for the ranking of module importance.}
+% \wss{What modules are outside of the scope.  If there are modules that are
+%   developed by someone else, then you would say here if you aren't planning on
+%   verifying them.  There may also be modules that are part of your software, but
+%   have a lower priority for verification than others.  If this is the case,
+%   explain your rationale for the ranking of module importance.}
+
+Below lists the modules outlined in our design documentation as well as their priority. In some
+cases, modules will not be tested and an explanation will be given for why.
+
+\begin{itemize}
+  \item \textbf{Module 1: Hardware-Hiding Module -} This module will not be covered by our unit
+  testing plan as it is implemented by the native OS of the machine running our system and thus
+  is not developed by us.
+  \item \textbf{Module 2: Query Processor Module - High testing priority. }This module is a core part
+  of the system and thus should be tested in a robust manner
+  \item \textbf{Module 3: Front-End Interface Module: High testing priority. }Ensuring that the user-facing
+  portion of the system is verified is of critical importance.
+  \item \textbf{Module 4: API Layer Module - High testing priority. }Ensuring the service routing and database calls
+  are functioning properly is of critical importance.
+  \item \textbf{Module 5: Data Schema and Storage Module -} This module will not be covered by our unit testing plan.
+  The schema is complete and live in our database and any verification needed would be related to the API layer that queries it.
+  Any changes made to this would need to be justified via data integrity reviews with our supervisor, not through unit testing. This is
+  also technically implemented by Postgres SQL, not us.
+  \item \textbf{Module 6: Data Visualization Module - Medium testing priority. }While this is important to our systems usefulness and
+  user experience, the three high priority modules are more critical to the system functioning at all and this module
+  actually heavily relies on all three of them.
+  \item \textbf{Module 7: Data Processing Pipeline Module - Medium testing priority. }Reasoning is same as above.
+  \item \textbf{Module 8: Authentication and Access Control Module -} This module will not be covered by
+  our unit testing plan as this module has been downgraded to a 'Nice to have' in order to focus on the core functionality
+  for the upcoming Capstone demos. Given the low priority for implementation, this module is not far enough along
+  to justify spending time developing unit tests for it.
+  \item \textbf{Module 9: Fault and Error Management Module -} This module will not be covered by
+  our unit testing plan for the same reasons as above.
+\end{itemize}
 
 \subsection{Tests for Functional Requirements}
 
@@ -846,52 +885,143 @@ needs to be well-documented, with meaningful names for all of the tests.}
   appropriate specific modules can be verified by a non-testing based
   technique.  That can also be documented in this section.}
 
-\subsubsection{Module 1}
+\subsubsection{Module 2: Query Processor Module}
 
-\wss{Include a blurb here to explain why the subsections below cover the module.
-  References to the MIS would be good.  You will want tests from a black box
-  perspective and from a white box perspective.  Explain to the reader how the
-  tests were selected.}
+\paragraph{Test 1: Verify NLP Module provides valid SQL queries.}
+\begin{itemize}
+    \item \textbf{Related Requirement:} FUNC.R.2
+    \item \textbf{Test ID:} UT1-FR2-TestGenerateSQL
+    \item \textbf{Type:} Dynamic, Automatic
+    \item \textbf{Initial State Base Case:} API connection to LLM model is live. Database is live.
+    \item \textbf{Input Base Case:} user inputs query. Could be as simple as "test"
+    \item \textbf{Output Base Case:} Any dataset output is acceptable. This test only asserts that legitimate SQL is being generated.
+    \item \textbf{Initial State Edge Case 1:} API connection raises an exception and cannot complete requests.
+    \item \textbf{Input Edge Case 1:} user inputs query. Could be as simple as "test"
+    \item \textbf{Output Base Case 1:} Graceful of error to execute SQL generation
+    \item \textbf{Test Case Derivation:} Based on the non-deterministic property of LLMs, the output must at the very least be acceptable SQL queries as to not cause errors.
+    \item \textbf{How test will be performed:} Pytest assertions. Call the query module's generate_sql() function with parameter -> user_query and then pass the result into a database query.
+\end{itemize}
 
-\begin{enumerate}
+\paragraph{Test 2: Verify NLP module can answer user questions unrelated to SQL}
+\begin{itemize}
+    \item \textbf{Related Requirement:} FUNC.R.2
+    \item \textbf{Test ID:} UT1-FR2-TestAskQuestion
+    \item \textbf{Type:} Dynamic, Automatic
+    \item \textbf{Initial State Base Case:} API connection to LLM model is live
+    \item \textbf{Input Base Case:} user inputs question or phrase such as 'hello'
+    \item \textbf{Output Base Case:} We expect the response to contain the token "Hello"
+    \item \textbf{Initial State Edge Case 1:} API connection raises an exception and cannot complete requests.
+    \item \textbf{Input Edge Case 1:} user inputs question or phrase such as 'hello'
+    \item \textbf{Output Base Case 1:} User is informed of failure to call on model response
+    \item \textbf{Test Case Derivation:} Our query module has a "query" section and an "ask" section. The ask section allows the user to interact with the model and learn more about the tool.
+    \item \textbf{How test will be performed:} Pytest assertions. Call the query module's ask_question() function with parameter -> user_phrase.
+\end{itemize}
 
-\item{test-id1\\}
+\subsubsection{Module 3: Front-End Interface Module}
 
-Type: \wss{Functional, Dynamic, Manual, Automatic, Static etc. Most will
-  be automatic}
-					
-Initial State: 
-					
-Input: 
-					
-Output: \wss{The expected result for the given inputs}
+\paragraph{We have decided that a traditional unit testing approach for this module
+is not the most useful and rather a user-experience oriented approach is more effective.
+This can be done manually by a tester either on the team or not or can be automated using
+a tool such as Selenium. The relevant tests for functional requirements are listed below.}
 
-Test Case Derivation: \wss{Justify the expected value given in the Output field}
+\paragraph{Test 3: Front-End Verification}
+\begin{itemize}
+    \item \textbf{Related Requirement:} FUNC.R.1-6
+    \item \textbf{Test ID:} UT1-FR1.6-VerifyFrontEnd
+    \item \textbf{Type:} Dynamic, Manual or Automatic
+    \item \textbf{Initial State Base Case:} Front-End/Backend Connection/DB is live.
+    \item \textbf{Input Pattern:}
+      \begin{itemize}
+        \item Navigate each of available tabs in the NavBar (Home, Query, Inventory, Visualizations, About)
+        \item Input question into the Query tab, ensure it displays as a message in the chat box and a response is provided
+        \item Input query into the Query tab, ensure a response is given as a table embedded in the chat window
+        \item Select various filters in the Inventory tab, apply and ensure session counts are updated and sessions display in the table
+        \item Clear filters in the Inventory tab, ensure session counts update accordingly
+        \item Select Download button in both the Query and Inventory tabs, ensure they render properly and file extensions can be selected
+        \item Select each of the three available visualizations and select any combination of X and Y parameters. Ensure visualizations render in a user-friendly way
+      \end{itemize}
+    \item \textbf{Output Case:} 200 HTTP code
+    \item \textbf{Test Case Derivation:} Verifies baseline user experience and responsiveness in the front-end
+    \item \textbf{How test will be performed:} User-testing or Selenium automation. Verified with user discretion or Selenium metrics
+\end{itemize}
 
-How test will be performed: 
-					
-\item{test-id2\\}
+\subsubsection{Module 4: API Layer Module}
 
-Type: \wss{Functional, Dynamic, Manual, Automatic, Static etc. Most will
-  be automatic}
-					
-Initial State: 
-					
-Input: 
-					
-Output: \wss{The expected result for the given inputs}
+\paragraph{Test 4: Verify routers return valid responses}
+\begin{itemize}
+    \item \textbf{Related Requirement:} FUNC.R.1-6
+    \item \textbf{Test ID:} UT1-FR1.6-VerifyRouters
+    \item \textbf{Type:} Dynamic, Automatic
+    \item \textbf{Initial State Base Case:} Front-End/Backend Connection is live.
+    \item \textbf{Input Case 1:} Health check backend endpoint
+    \item \textbf{Output Case 1:} 200 HTTP code
+    \item \textbf{Input Case 2:} NLP module backend endpoint, user query in request body
+    \item \textbf{Output Case 2:} 200 HTTP code, JSON response
+    \item \textbf{Input Case 3:} Inventory module backend endpoint, filter set in request body
+    \item \textbf{Output Case 3:} 200 HTTP code, JSON response
+    \item \textbf{Input Case 4:} Visualization module backend endpoint, visualization parameters in 
+    \item \textbf{Output Case 4:} 200 HTTP code, JSON response
+    \item \textbf{Test Case Derivation:} The primary function of the API module is ensuring the data is routed through the system properly.
+    \item \textbf{How test will be performed:} Pytest assertions. Call the various endpoints and assert the response codes are 200 and JSON format is correct
+\end{itemize}
 
-Test Case Derivation: \wss{Justify the expected value given in the Output field}
+\paragraph{Test 4: Verify Database Connection configured}
+\begin{itemize}
+    \item \textbf{Related Requirement:} FUNC.R.1-6
+    \item \textbf{Test ID:} UT1-FR1.6-VerifyDB
+    \item \textbf{Type:} Dynamic, Automatic
+    \item \textbf{Initial State Base Case:} Backend/DB Connection is live.
+    \item \textbf{Input Case:} submit sql statement to db connection "SELECT rat_id FROM rats"
+    \item \textbf{Output Case:} pandas dataframe of records
+    \item \textbf{Test Case Derivation:} ensuring database integrity is integral
+    \item \textbf{How test will be performed:} Pytest assertions. Assert records are correct.
+\end{itemize}
 
-How test will be performed: 
+\paragraph{Test 5: Verify Download Functionality}
+\begin{itemize}
+    \item \textbf{Related Requirement:} FUNC.R.6
+    \item \textbf{Test ID:} UT1-FR1.6-VerifyDownloads
+    \item \textbf{Type:} Dynamic, Automatic
+    \item \textbf{Initial State Base Case:} Backend/DB Connection is live.
+     \item \textbf{Input Case:} Download backend endpoint, set of sessions to download and file extensions
+    \item \textbf{Output Case:} 200 HTTP code, file response
+    \item \textbf{Test Case Derivation:} ensures functional requirement 6 is explicitly validated
+    \item \textbf{How test will be performed:} Pytest assertions. Assert file response matches sessions
+\end{itemize}
 
-\item{...\\}
-    
-\end{enumerate}
+\paragraph{Test 6: Verify Filters}
+\begin{itemize}
+    \item \textbf{Related Requirement:} FUNC.R.1
+    \item \textbf{Test ID:} UT1-FR1-VerifyFilters
+    \item \textbf{Type:} Dynamic, Automatic
+    \item \textbf{Initial State Base Case:} Frontend/Backend/DB Connection is live.
+    \item \textbf{Input Case 1:} simple filter set of easily verifiable data (rat_id = 5) run on execute_filters_query() function
+    \item \textbf{Output Case 1:} pandas dataframe of selected records
+    \item \textbf{Input Case 2:} simple filter set of multiple filters run on execute_filters_query() function
+    \item \textbf{Output Case 2:} pandas dataframe of selected records
+    \item \textbf{Input Case 3:} disjoint filter set run on execute_filters_query() function
+    \item \textbf{Output Case 3:} empty dataframe
+    \item \textbf{Test Case Derivation:} ensures functional requirement 1 is explicitly validated
+    \item \textbf{How test will be performed:} Pytest assertions. Assert all records match inputted filters
+\end{itemize}
 
-\subsubsection{Module 2}
+\subsubsection{Module 6: Data Visualization Module}
 
-...
+\paragraph{Test 7: Verify Visualization Query}
+\begin{itemize}
+    \item \textbf{Related Requirement:} FUNC.R.5
+    \item \textbf{Test ID:} UT1-FR5-VerifyVizQuery
+    \item \textbf{Type:} Dynamic, Automatic
+    \item \textbf{Initial State:} Backend/DB connection is live
+    \item \textbf{Input Case 1:} submit X and Y value labels to _build_query
+    \item \textbf{Output Case 1:} pandas dataframe of datapoints
+    \item \textbf{Input Case 2:} submit X and Y value labels to _build_linechart_query
+    \item \textbf{Output Case 2:} pandas dataframe of datapoints
+     \item \textbf{Input Case 3:} submit X and Y and M value labels to _build_heatmap_query
+    \item \textbf{Output Case 3:} pandas dataframe of datapoints
+    \item \textbf{Test Case Derivation:} Must verify that core business logic for building visualizations is correct
+    \item \textbf{How test will be performed:} Pytest assertions. Assert records are configured like X and Y tuples.
+\end{itemize}
 
 \subsection{Tests for Nonfunctional Requirements}
 
