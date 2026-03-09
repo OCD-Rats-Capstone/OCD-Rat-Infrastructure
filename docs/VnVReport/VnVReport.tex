@@ -88,6 +88,19 @@ the feedback from the Rev 0 demo to the supervisor (or to potential users)
 should be highlighted.}
 
 \section{Automated Testing}
+
+\par{Automated testing is used in this project to help ensure consistent verification of 
+the system during development. One component used for automated testing is a 
+continuous integration (CI) pipeline that uses CodeQL Advanced, which is implemented via GitHub Actions. 
+CodeQL Advanced performs automated static analysis on the codebase whenever new code is pushed to the repository or when 
+pull requests are created. This analysis allows us developers to potentially discover security vulnerabilities, 
+unsafe coding practices, and other issues that could affect system reliability. Running this analysis automatically 
+ensures that each code change is checked for potential problems without requiring manual 
+intervention, and that these changes can be evaluated before merging into the main branch. 
+Automated unit testing is another component of our automated testing. Unit tests are executed 
+automatically as part of a test suite using Pytest, which verifies the correctness of individual components 
+of the system. The specific design and coverage of these unit tests are described in the Unit Testing 
+section of the VnV Plan.}
 		
 \section{Trace to Requirements}
 		
