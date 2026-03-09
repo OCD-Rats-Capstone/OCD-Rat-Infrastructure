@@ -4,6 +4,8 @@
 \usepackage{tabularx}
 \usepackage{longtable}
 \usepackage{enumitem}
+\usepackage{ragged2e}
+\usepackage{graphicx}
 \usepackage{hyperref}
 \hypersetup{
     colorlinks,
@@ -13,6 +15,15 @@
     urlcolor=blue
 }
 \usepackage[round]{natbib}
+
+\usepackage{listings}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  columns=fullflexible
+}
 
 \input{../Comments}
 \input{../Common}
@@ -541,22 +552,298 @@ verified and merged prior to this report.
 	
 \section{Comparison to Existing Implementation}	
 
-This section will not be appropriate for every project.
+\par{Technically there are two existing implementations of the software. There is the FRDR database,
+which was created and populated by our supervisors, and then there is the first implementation 
+version of the application, which is named RatBat1.0. In terms of the FRDR database, this was the 
+standard research tool used by our supervisors and their collaborators for storing and analyzing 
+research data. The functionality provided was limited, in the sense that it only allowed a bare bones
+graphical interface which displayed the structure of the repository, and users were able to download data files
+contained in the database. In contrast, RatBat1.0 was an initial implementation done by another team in 
+last year's capstone. RatBat1.0 provided a much more user friendly interface through the form of 
+a well designed user-interface. The web application provided more functionality than the FRDR database, 
+allowing users to filter data by predefined labels, show summaries of repository data, write structured 
+SQL-like queries to generate result sets, and provide data preprocessing options to users. 
+Comparing the existing implementations to our implementation, we have made 
+significant improvements in terms of the user interface and the functionality provided. The database 
+querying component of our implementation is much more user friendly, since we integrated a natural language 
+processing (NLP) query processor, which allows users to write queries in natural language instead of SQL. 
+Additionally, we have implemented a data visualization component that allows users to create visualizations of 
+relevant categories of data and metrics, which was not present in either of the existing implementations. 
+On top of these new features, we have also significantly improved the user-friendliness of our UI, 
+and provided similar functionality to RatBat1.0 in terms of data filtering, browsing, displaying summary data, 
+and downloading.}
 
 \section{Unit Testing}
 
+\paragraph{Shown below is the output of our PyTest unit testing suite which is available in the src/ocd-rat-backend/tests directory. Some comments on
+the final unit test suite relative to the VnV Plan are necessary. Each unit test outlined in the VnV Plan generally relates to one core requirement
+or function that may map to several requirements. When actually developing the tests, we seperated these higher level unit tests into more granular
+function calls and thus one unit test in the plan may be represented by several tests in our implementation but the ideas presented in the VnV Plan
+are reflected in the implementation. Revamping our VnV Plan to reflect this increased granularity would be highly tedious both to write and to evaluate
+whereas the existing, higher level overview of the unit tests provides a more comprehensive look into the motivation behind the tests and thus was
+left as is.}
+
+\begin{lstlisting}
+tests/test_core.py::TestSettings::test_default_values PASSED
+tests/test_core.py::TestSettings::test_env_override PASSED
+tests/test_core.py::TestSettings::test_extra_fields_ignored PASSED
+tests/test_core.py::TestGetSettings::test_returns_settings_instance PASSED
+tests/test_core.py::TestGetSettings::test_caching PASSED
+tests/test_core.py::TestGetDb::test_yields_connection PASSED
+tests/test_core.py::TestGetDb::test_closes_on_exit PASSED
+tests/test_core.py::TestGetDb::test_closes_on_exception PASSED
+tests/test_filter_service.py::TestBuildWhereClause::test_empty_filters_returns_empty PASSED
+tests/test_filter_service.py::TestBuildWhereClause::test_single_equal_filter PASSED
+tests/test_filter_service.py::TestBuildWhereClause::test_comparison_operators[gte->=] PASSED
+tests/test_filter_service.py::TestBuildWhereClause::test_comparison_operators[lte-<=] PASSED
+tests/test_filter_service.py::TestBuildWhereClause::test_comparison_operators[gt->] PASSED
+tests/test_filter_service.py::TestBuildWhereClause::test_comparison_operators[lt-<] PASSED
+tests/test_filter_service.py::TestBuildWhereClause::test_range_operator PASSED
+tests/test_filter_service.py::TestBuildWhereClause::test_range_invalid_format_raises PASSED
+tests/test_filter_service.py::TestBuildWhereClause::test_field_mapping_resolution PASSED
+tests/test_filter_service.py::TestBuildWhereClause::test_unmapped_field_defaults_to_e1 PASSED
+tests/test_filter_service.py::TestBuildWhereClause::test_multiple_filters_anded PASSED
+tests/test_filter_service.py::TestBuildWhereClause::test_where_keyword_present PASSED
+tests/test_filter_service.py::TestExecuteFilterQuery::test_returns_dataframe PASSED
+tests/test_filter_service.py::TestExecuteFilterQuery::test_nan_inf_replaced PASSED
+tests/test_filter_service.py::TestExecuteFilterQuery::test_empty_result PASSED
+tests/test_filter_service.py::TestExecuteFilterQuery::test_query_uses_base_query PASSED
+tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_no_filters_base_condition PASSED
+tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_apparatus_id_filter PASSED
+tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_pattern_id_filter PASSED
+tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_session_type_filter PASSED
+tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_room_id_filter PASSED
+tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_drug_ids_having_clause PASSED
+tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_file_type_ids_having_clause PASSED
+tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_rx_ids_in_clause PASSED
+tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_surgery_type_adds_brain_join PASSED
+tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_target_region_adds_brain_join PASSED
+tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_multiple_filters_combined PASSED
+tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_cte_structure PASSED
+tests/test_inventory_service.py::TestGetInventoryCounts::test_returns_response_model PASSED
+tests/test_inventory_service.py::TestGetInventoryCounts::test_empty_result PASSED
+tests/test_llm.py::TestBuildSystemPrompt::test_contains_key_phrases PASSED
+tests/test_llm.py::TestBuildSystemPrompt::test_no_dangling_placeholders PASSED
+tests/test_llm.py::TestBuildSystemPrompt::test_includes_semantic_context PASSED
+tests/test_llm.py::TestInspectSchema::test_returns_formatted_string PASSED
+tests/test_llm.py::TestInspectSchema::test_error_handling PASSED
+tests/test_llm.py::TestPlanAndGenerateSql::test_valid_json_response PASSED
+tests/test_llm.py::TestPlanAndGenerateSql::test_markdown_wrapped_json_cleaned PASSED
+tests/test_llm.py::TestPlanAndGenerateSql::test_missing_fields_fallback PASSED
+tests/test_llm.py::TestPlanAndGenerateSql::test_json_decode_error_fallback PASSED
+tests/test_llm.py::TestGenerateSql::test_removes_markdown_code_blocks PASSED
+tests/test_llm.py::TestGenerateSql::test_error_returns_comment PASSED
+tests/test_llm.py::TestAskQuestion::test_yields_tokens PASSED
+tests/test_llm.py::TestAskQuestion::test_yields_error_on_exception PASSED
+tests/test_routers.py::TestRootEndpoint::test_health_check PASSED
+tests/test_routers.py::TestFiltersRouter::test_valid_filter_returns_200 PASSED
+tests/test_routers.py::TestFiltersRouter::test_empty_filters_returns_200 PASSED
+tests/test_routers.py::TestFiltersRouter::test_invalid_operator_returns_422 PASSED
+tests/test_routers.py::TestNlpRouter::test_nlp_query_returns_result PASSED
+tests/test_routers.py::TestAskRouter::test_ask_returns_streaming PASSED
+tests/test_routers.py::TestVisualizationsRouter::test_available_returns_200 PASSED
+tests/test_routers.py::TestVisualizationsRouter::test_barchart_valid_params PASSED
+tests/test_routers.py::TestVisualizationsRouter::test_barchart_invalid_x_axis_returns_400 PASSED
+tests/test_routers.py::TestVisualizationsRouter::test_linechart_valid_params PASSED
+tests/test_routers.py::TestVisualizationsRouter::test_linechart_invalid_returns_400 PASSED
+tests/test_routers.py::TestVisualizationsRouter::test_heatmap_valid_params PASSED
+tests/test_routers.py::TestVisualizationsRouter::test_heatmap_same_axes_returns_400 PASSED
+tests/test_inventory_router.py::TestInventoryRouter::test_counts_returns_200 PASSED
+tests/test_inventory_router.py::TestInventoryRouter::test_sessions_returns_200 PASSED
+tests/test_inventory_router.py::TestInventoryRouter::test_filter_options_returns_200 PASSED
+tests/test_schemas.py::TestFilterItem::test_valid_creation PASSED
+tests/test_schemas.py::TestFilterItem::test_all_valid_operators[equal] PASSED
+tests/test_schemas.py::TestFilterItem::test_all_valid_operators[gte] PASSED
+tests/test_schemas.py::TestFilterItem::test_all_valid_operators[lte] PASSED
+tests/test_schemas.py::TestFilterItem::test_all_valid_operators[gt] PASSED
+tests/test_schemas.py::TestFilterItem::test_all_valid_operators[lt] PASSED
+tests/test_schemas.py::TestFilterItem::test_all_valid_operators[range] PASSED
+tests/test_schemas.py::TestFilterItem::test_invalid_operator_rejected PASSED
+tests/test_schemas.py::TestFilterItem::test_field_with_underscores_allowed PASSED
+tests/test_schemas.py::TestFilterItem::test_field_sql_injection_rejected PASSED
+tests/test_schemas.py::TestFilterItem::test_field_with_special_chars_rejected PASSED
+tests/test_schemas.py::TestFilterItem::test_range_value_format PASSED
+tests/test_schemas.py::TestFilterRequest::test_empty_filters_list PASSED
+tests/test_schemas.py::TestFilterRequest::test_multiple_filters PASSED
+tests/test_schemas.py::TestAskRequest::test_valid_question PASSED
+tests/test_schemas.py::TestAskRequest::test_empty_question_allowed PASSED
+tests/test_schemas.py::TestInventoryModels::test_counts_request_defaults PASSED
+tests/test_schemas.py::TestInventoryModels::test_counts_request_with_filters PASSED
+tests/test_schemas.py::TestInventoryModels::test_data_type_count PASSED
+tests/test_schemas.py::TestInventoryModels::test_counts_response PASSED
+tests/test_schemas.py::TestInventoryModels::test_sessions_limit_constant PASSED
+tests/test_schemas.py::TestVisualizationModels::test_bar_chart_data_request PASSED
+tests/test_schemas.py::TestVisualizationModels::test_visualization_data_response PASSED
+tests/test_schemas.py::TestVisualizationModels::test_available_visualizations_response PASSED
+tests/test_visualization_service.py::TestRegistries::test_x_axis_registry_nonempty PASSED
+tests/test_visualization_service.py::TestRegistries::test_y_axis_registry_nonempty PASSED
+tests/test_visualization_service.py::TestRegistries::test_x_axis_entries_are_configs PASSED
+tests/test_visualization_service.py::TestRegistries::test_y_axis_entries_are_configs PASSED
+tests/test_visualization_service.py::TestRegistries::test_x_axis_ids_match_keys PASSED
+tests/test_visualization_service.py::TestRegistries::test_y_axis_ids_match_keys PASSED
+tests/test_visualization_service.py::TestRegistries::test_linechart_registries_nonempty PASSED
+tests/test_visualization_service.py::TestRegistries::test_heatmap_registries_share_barchart PASSED
+tests/test_visualization_service.py::TestGetAvailableVisualizations::test_returns_all_keys PASSED
+tests/test_visualization_service.py::TestGetAvailableVisualizations::test_x_axis_options_nonempty PASSED
+tests/test_visualization_service.py::TestGetAvailableVisualizations::test_option_structure PASSED
+tests/test_visualization_service.py::TestGetAvailableVisualizations::test_y_axis_has_unit PASSED
+tests/test_visualization_service.py::TestBuildFromClause::test_empty_joins PASSED
+tests/test_visualization_service.py::TestBuildFromClause::test_single_join_r1 PASSED
+tests/test_visualization_service.py::TestBuildFromClause::test_multiple_joins PASSED
+tests/test_visualization_service.py::TestBuildFromClause::test_drug_dependency_chain PASSED
+tests/test_visualization_service.py::TestBuildFromClause::test_join_order_preserved PASSED
+tests/test_visualization_service.py::TestVizBuildWhereClause::test_default_without_observation PASSED
+tests/test_visualization_service.py::TestVizBuildWhereClause::test_with_observation_code PASSED
+tests/test_visualization_service.py::TestVizBuildWhereClause::test_observation_code_sql_injection_escaped PASSED
+tests/test_visualization_service.py::TestBuildQuery::test_produces_select_group_order PASSED
+tests/test_visualization_service.py::TestBuildLinechartQuery::test_time_based_grouping PASSED
+tests/test_visualization_service.py::TestBuildHeatmapQuery::test_two_dimensional_grouping PASSED
+tests/test_visualization_service.py::TestBarchartValidation::test_invalid_x_axis_raises PASSED
+tests/test_visualization_service.py::TestBarchartValidation::test_invalid_y_axis_raises PASSED
+tests/test_visualization_service.py::TestLinechartValidation::test_invalid_x_axis_raises PASSED
+tests/test_visualization_service.py::TestLinechartValidation::test_invalid_y_axis_raises PASSED
+tests/test_visualization_service.py::TestHeatmapValidation::test_invalid_x_axis_raises PASSED
+tests/test_visualization_service.py::TestHeatmapValidation::test_invalid_y_axis_raises PASSED
+tests/test_visualization_service.py::TestHeatmapValidation::test_invalid_metric_raises PASSED
+tests/test_visualization_service.py::TestHeatmapValidation::test_same_x_y_raises PASSED
+\end{lstlisting}
+
 \section{Changes Due to Testing}
 
-\wss{This section should highlight how feedback from the users and from 
-the supervisor (when one exists) shaped the final product.  In particular 
-the feedback from the Rev 0 demo to the supervisor (or to potential users) 
-should be highlighted.}
+\paragraph{Listed below are both the completed and anticipated changes that have been planned or completed as a result of supervisor/instructor feedback,
+automated tests and unit tests.}
+
+\begin{enumerate}
+  \item \textbf{Anticipated: }The download action is too slow for sizeable datasets. Any meaningful dataset will take several minutes to download. This needs to be optimized or
+  this reality must be more effectively communicated with the user.
+  \item \textbf{Anticipated: }The session results in the query session need to be removed from the chat bubble to make them more interactive and show a more robust result.
+  \item \textbf{Completed: }Download action was failing for multiple concurrent users. A background task implementation with hashed job ids was used to
+  rectify this issue.
+  \item \textbf{Anticipated: }Line chart visualization skips dates that do not have any values. This creates a very malformed temporal representation as large
+  chunks of dates are missing. 
+  \item \textbf{Completed: }Code QL gave a warning about not allowing building SQL using user input (from the front end requests). Even though the database is read-only,
+  this is bad practice so we wrapped the user input to ensure there is no potentially malicious SQL injection occuring
+  \item \textbf{Anticipated: }Some of the download action logic takes user input for path determination (a job id in the request parameters). This leaves the system
+  vulnerable to path traversal and thus access to files a user should not be able to see.
+  \item \textbf{Anticipated: }The session counts for specific file types are technically inaccurate. For example, some of the EWB files contain the data for multiple
+  sessions. However, the logic adds to the file count as long an EWB is tied to a session. So, if 20,000 sessions have an EWB file, the file count will be 20,000 even though
+  only a few hundred EWB files exist.
+  \item \textbf{Anticipated: }The chat tab currently determines whether the user is asking a question or submitting a query based on keywords (select, show, records etc...) It was
+  found that this approach often leads to the chat bot entering question mode when it should be in query mode and vice versa. This will likely be rectified
+  with an explicit mode button.
+  \item \textbf{Completed: }The download and inventory filter actions did not have proper error handling and failures would cause a 500: Internal Server Error. More robust
+  try and catch blocks were implemented to handle failures due to faulty requests more gracefully.
+\end{enumerate}
 
 \section{Automated Testing}
+
+\par{Automated testing is used in this project to help ensure consistent verification of 
+the system during development. One component used for automated testing is a 
+continuous integration (CI) pipeline that uses CodeQL Advanced, which is implemented via GitHub Actions. 
+CodeQL Advanced performs automated static analysis on the codebase whenever new code is pushed to the repository or when 
+pull requests are created. This analysis allows us developers to potentially discover security vulnerabilities, 
+unsafe coding practices, and other issues that could affect system reliability. Running this analysis automatically 
+ensures that each code change is checked for potential problems without requiring manual 
+intervention, and that these changes can be evaluated before merging into the main branch. 
+Automated unit testing is another component of our automated testing. Unit tests are executed 
+automatically as part of a test suite using Pytest, which verifies the correctness of individual components 
+of the system. The specific design and coverage of these unit tests are described in the Unit Testing 
+section of the VnV Plan.}
 		
 \section{Trace to Requirements}
-		
-\section{Trace to Modules}		
+\label{sec:trace-req}
+
+This section summarizes how the Verification and Validation activities for Rev.~0
+provide evidence for satisfying the requirements specified in the Volere SRS
+for \progname{}.  Requirement definitions are taken from the SRS (Volere template:
+\texttt{docs/SRS-Volere/SRS.tex}). Test case identifiers and the full
+requirement--test mapping are taken from the VnV Plan
+(\texttt{docs/VnVPlan/VnVPlan.tex}, Table ``Traceability Between Test Cases and Requirements'').
+
+Table~\ref{TblTraceReqToTestsFunc} shows the traceability between the core
+functional requirements (FUNC.R.1--FUNC.R.7) and the primary system tests defined in the
+VnV Plan.  A requirement is considered covered if there exists at least one
+test that would fail should the requirement not hold.
+
+\begin{table}[h!]
+  \centering
+  \caption{Traceability Between Functional Requirements and System Tests}
+  \label{TblTraceReqToTestsFunc}
+  \renewcommand{\arraystretch}{1.2}
+  \footnotesize
+  \begin{tabular}{p{1.4cm}>{\RaggedRight\arraybackslash}p{5.2cm}>{\RaggedRight\arraybackslash}p{5.2cm}}
+    \toprule
+    \textbf{Req.} & \textbf{Description (SRS Volere)} & \textbf{Primary Test(s) (VnV Plan)} \\
+    \midrule
+    FUNC.R.1 & Filter data by predefined labels. & ST-FR1.1 Filter Accuracy Test \\
+    FUNC.R.2 & Generate result sets via NLP queries. & ST-FR2.1 NLP Query Response Test \\
+    FUNC.R.3 & Provide categorized, browsable data sets. & ST-FR3.1 Predefined Dataset Browsing Test \\
+    FUNC.R.4 & Provide behavioural categorization and metrics per trial. & ST-FR4.1 Behavioural Categorization and Metrics Test \\
+    FUNC.R.5 & Create visualizations from result set. & ST-FR5.1 Visualization Generation Test \\
+    FUNC.R.6 & Allow download of data and visualizations. & ST-FR6.1 Data Download and Export Verification Test \\
+    FUNC.R.7 & Globally accessible web platform. & ST-FR7.1 Global Accessibility and Latency Test \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The nonfunctional requirements (APP.R.1--R.3, EOU.R.1--R.2, LEA.R.1--R.2, UAP.R.1--R.2,
+ACC.R.1, SAL.R.1--R.2, ROFT.R.1--R.2, CAP.R.1--R.2, SOE.R.1--R.2, LON.R.1--R.2, EPE.R.1--R.3,
+WE.R.1, IWAS.R.1, PROD.R.1--R.2, REL.R.1--R.2, MAI.R.1--R.2, SUP.R.1--R.2, ADA.R.1--R.3,
+INT.R.1, IMM.R.1--R.2, LEG.R.1, STA.R.1--R.2) are covered by the family of system
+tests labelled ST-NFR in the VnV Plan.  The full mapping from each
+requirement to its associated system test cases is given in the traceability
+matrix in the VnV Plan; that matrix, together with Table~\ref{TblTraceReqToTestsFunc}, provides bidirectional
+traceability between requirements and tests.
+
+\section{Trace to Modules}
+\label{sec:trace-mod}
+
+This section summarizes how the modules identified in the Module Guide (MG) and
+specified in the Module Interface Specification (MIS) collectively implement
+the requirements and how the VnV activities exercise those modules.  Module
+names and numbering (M1--M9) and the requirement--module mapping are taken from the MG
+(\texttt{docs/Design/SoftArchitecture/MG.tex}, Table ``Trace Between Requirements and Modules'').
+
+Table~\ref{TblTraceModulesToReq} gives the main links between the leaf modules
+from the MG and the functional requirements they help satisfy (as per the MG
+traceability matrix), together with representative system tests that exercise
+those responsibilities.
+
+\begin{table}[h!]
+  \centering
+  \caption{Traceability Between Modules, Requirements, and Representative Tests}
+  \label{TblTraceModulesToReq}
+  \renewcommand{\arraystretch}{1.2}
+  \footnotesize
+  \begin{tabular}{@{}p{2.2cm}>{\RaggedRight\arraybackslash}p{5.4cm}>{\RaggedRight\arraybackslash}p{4.2cm}@{}}
+    \toprule
+    \textbf{Module (MG)} & \textbf{Primary SRS Requirements} & \textbf{Representative Tests (VnV Plan)} \\
+    \midrule
+    M1: Hardware-Hiding & FUNC.R.7; CAP.R.2, LON.R.2, EPE.R.1--R.3, WE.R.1, ADA.R.1--R.2 & ST-FR7.1; ST-NFR9.2, 11.2, 12.1--12.3, 13.1, 19.1 \\
+    \midrule
+    M2: NLP Query Processor & FUNC.R.2; EOU.R.1--R.2, LEA.R.1, UAP.R.1 & ST-FR2.1; ST-NFR2.1--2.2, 3.1, 4.1 \\
+    \midrule
+    M3: Front-End Interface & FUNC.R.1, R.3, R.5, R.6, R.7; APP.R.1--3, EOU.R.1--2, LEA.R.1--2, UAP.R.1--2, ACC.R.1; ROFT.R.1, SUP.R.1--2 & ST-FR1.1, 3.1, 5.1, 6.1, 7.1; ST-NFR1.1--1.3, 2.1--2.2, 3.1--3.2, 4.1--4.2, 5.1, 8.1, 18.1--18.2 \\
+    \midrule
+    M4: API Layer & FUNC.R.2, R.5, R.6, R.7; SAL.R.2, POA.R.2, CAP.R.1, SOE.R.1--2, LON.R.2, EPE.R.1--2, IWAS.R.1, ADA.R.1--2, IMM.R.2 & ST-FR2.1, 5.1, 6.1, 7.1; ST-NFR6.2, 7.2, 9.1, 10.1--10.2, 11.2, 12.1--12.2, 14.1, 19.1, 21.2 \\
+    \midrule
+    M5: Data Schema and Storage & FUNC.R.1--R.4, R.6; POA.R.1--R.2, CAP.R.1--R.2, MAI.R.2, IWAS.R.1 & ST-FR1.1, 4.1, 6.1; ST-NFR7.1--7.2, 9.1--9.2, 14.1, 17.2 \\
+    \midrule
+    M6: Data Visualization & FUNC.R.4, R.5; EOU.R.2, LEA.R.2 & ST-FR4.1, 5.1; ST-NFR2.2, 3.2 \\
+    \midrule
+    M7: Data Processing Pipeline & FUNC.R.1, R.3, R.4; APP.R.1, R.3; SAL.R.1, SOE.R.2; POA.R.1 & ST-FR1.1, 3.1, 4.1; ST-NFR1.1, 1.3, 6.1, 7.1, 10.2 \\
+    \midrule
+    M8: Auth.\ and Access Control & INT.R.1, IMM.R.1--R.2 & ST-NFR20.1, 21.1--21.2 \\
+    \midrule
+    M9: Fault and Error Mgmt & ROFT.R.1--R.2, MAI.R.1, LON.R.1; POA.R.2 & ST-NFR8.1--8.2, 11.1, 7.2 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Taken together, the MG requirement--module trace, the MIS specifications, and
+the requirement--test matrices from the VnV Plan provide end-to-end
+traceability from SRS requirements, through the design modules, to the concrete
+tests reported in this document.
 
 \section{Code Coverage Metrics}
 
@@ -572,9 +859,13 @@ graduate attribute of Reflection.
 \input{../Reflection.tex}
 
 \begin{enumerate}
-  \item What went well while writing this deliverable? 
+  \item What went well while writing this deliverable?
+
+
   \item What pain points did you experience during this deliverable, and how
     did you resolve them?
+
+  \paragraph{Frankly, as final year}
   \item Which parts of this document stemmed from speaking to your client(s) or
   a proxy (e.g. your peers)? Which ones were not, and why?
   \item In what ways was the Verification and Validation (VnV) Plan different
