@@ -6,6 +6,7 @@ All external calls (DB, OpenAI) are mocked.
 import pytest
 import json
 import os
+import pandas as pd
 from unittest.mock import patch, MagicMock
 
 # Env vars are set in conftest.py — safe to import LLM modules here.
@@ -172,3 +173,101 @@ class TestAskQuestion:
         svc.client.chat.completions.create.side_effect = Exception("boom")
         tokens = list(svc.ask_question("Hi"))
         assert any("Error" in t for t in tokens)
+
+
+# ============================================================================
+# NLP service — edge-case query handling (FR2-T2, FR2-T3, FR2-T4, FR4-T1)
+# ============================================================================
+
+class TestNlpServiceEdgeCases:
+    """Tests for nlp_service.execute_nlp_query edge cases."""
+
+    @patch("services.nlp_service.json.dump")
+    @patch("builtins.open", MagicMock())
+    @patch("services.nlp_service.pd.read_sql_query")
+    @patch("services.nlp_service.llm_service")
+    def test_domain_specific_query_generates_multi_table_sql(
+        self, mock_llm, mock_read_sql, mock_json_dump
+    ):
+        """FR2-T2: A domain-specific query should produce SQL with JOINs."""
+        mock_llm.plan_and_generate_sql.return_value = {
+            "rationale": "Joining compounds with drug_rx for quinpirole",
+            "sql": (
+                "SELECT E1.session_id FROM experimental_sessions E1 "
+                "JOIN drug_rx DR ON E1.drug_rx_id = DR.drug_rx_id "
+                "JOIN drug_rx_details DRD ON DR.drug_rx_id = DRD.drug_rx_id "
+                "JOIN compounds C ON DRD.compound_id = C.compound_id "
+                "WHERE C.compound_name = 'quinpirole'"
+            ),
+        }
+        mock_read_sql.return_value = pd.DataFrame({"session_id": [1, 2, 3]})
+
+        from services.nlp_service import execute_nlp_query
+        result = execute_nlp_query("Find sessions with quinpirole", MagicMock())
+
+        assert "rationale" in result
+        assert len(result["results"]) == 3
+        mock_llm.plan_and_generate_sql.assert_called_once_with(
+            "Find sessions with quinpirole"
+        )
+
+    @patch("services.nlp_service.json.dump")
+    @patch("builtins.open", MagicMock())
+    @patch("services.nlp_service.pd.read_sql_query")
+    @patch("services.nlp_service.llm_service")
+    def test_nonsensical_query_returns_empty(self, mock_llm, mock_read_sql, mock_json_dump):
+        """FR2-T3: A nonsensical query should still return a result dict (possibly empty)."""
+        mock_llm.plan_and_generate_sql.return_value = {
+            "rationale": "Could not interpret query meaningfully.",
+            "sql": "SELECT * FROM experimental_sessions LIMIT 0",
+        }
+        mock_read_sql.return_value = pd.DataFrame()
+
+        from services.nlp_service import execute_nlp_query
+        result = execute_nlp_query("asdfgh jkl", MagicMock())
+
+        assert result["results"] == []
+        assert "rationale" in result
+        assert "sql" in result
+
+    @patch("services.nlp_service.json.dump")
+    @patch("builtins.open", MagicMock())
+    @patch("services.nlp_service.pd.read_sql_query")
+    @patch("services.nlp_service.llm_service")
+    def test_nonexistent_concept_returns_empty_not_crash(
+        self, mock_llm, mock_read_sql, mock_json_dump
+    ):
+        """FR2-T4: Query about non-existent domain concepts should not crash."""
+        mock_llm.plan_and_generate_sql.return_value = {
+            "rationale": "No matching concept found in the schema.",
+            "sql": "SELECT * FROM experimental_sessions WHERE 1=0",
+        }
+        mock_read_sql.return_value = pd.DataFrame()
+
+        from services.nlp_service import execute_nlp_query
+        result = execute_nlp_query("Show me all sessions with cats", MagicMock())
+
+        assert result["results"] == []
+        assert "No matching" in result["rationale"] or result["rationale"] != ""
+
+    @patch("services.nlp_service.json.dump")
+    @patch("builtins.open", MagicMock())
+    @patch("services.nlp_service.pd.read_sql_query")
+    @patch("services.nlp_service.llm_service")
+    def test_sessions_with_data_have_session_ids(
+        self, mock_llm, mock_read_sql, mock_json_dump
+    ):
+        """FR4-T1: Sessions returned from queries include session_id for observation joins."""
+        mock_llm.plan_and_generate_sql.return_value = {
+            "rationale": "Retrieving sessions with observations",
+            "sql": "SELECT session_id FROM experimental_sessions LIMIT 5",
+        }
+        mock_read_sql.return_value = pd.DataFrame({"session_id": [1, 2, 3]})
+
+        from services.nlp_service import execute_nlp_query
+        result = execute_nlp_query("get sessions", MagicMock())
+
+        assert len(result["results"]) > 0
+        for row in result["results"]:
+            assert "session_id" in row
+

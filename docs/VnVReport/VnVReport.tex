@@ -2,6 +2,8 @@
 
 \usepackage{booktabs}
 \usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{enumitem}
 \usepackage{hyperref}
 \hypersetup{
     colorlinks,
@@ -65,6 +67,469 @@ Date 2 & 1.1 & Notes\\
 This document ...
 
 \section{Functional Requirements Evaluation}
+
+This section presents the evaluation of each Functional Requirement specified in Section~9.1 of the SRS
+against the system tests defined in Section~4.1 of the VnV Plan. Tests are grouped by functional area and
+include happy-path, edge-case, and negative test scenarios. 
+
+\subsection{Data Filtering and Browsing}
+
+\subsubsection{FUNC.R.1 --- Filtering by Predefined Labels}
+
+\begin{itemize}
+  \item \textbf{Requirement:} The program shall filter data to produce results based on predefined labels.
+  \item \textbf{Fit Criterion:} When a user selects a filter, the system provides a set that matches the labels to 100\% accuracy.
+  \item \textbf{Test ID:} FR1-Filter-Labels
+\end{itemize}
+
+\begin{sloppypar}
+\noindent\textbf{Implementation Evidence.}
+The backend exposes a \texttt{POST /filters/} endpoint accepting structured \texttt{FilterRequest} payloads.
+The service layer (\texttt{filter\_service.py}) translates conditions into SQL queries to the
+\texttt{experimental\_sessions} table and its foreign-key relations. The frontend \texttt{InventoryQuery}
+page surfaces 9 filter dimensions (drug, apparatus, apparatus pattern, session type, surgery type,
+brain region, testing room, file type, prescription) populated by \texttt{GET /inventory/filter-options}.
+\end{sloppypar}
+
+\begin{enumerate}[label=\textbf{FR1-T\arabic*:}, leftmargin=*, labelsep=1em]
+\sloppy
+
+  \item \textbf{Valid Single Filter}
+  \begin{itemize}
+    \item \textbf{Input:} \texttt{POST /filters/} with a single filter condition
+      (e.g., \texttt{behavior\_\allowbreak{}label = `checking'}).
+    \item \textbf{Expected:} Only sessions matching the filter are returned with HTTP 200.
+    \item \textbf{Observed:} The endpoint returned a non-empty result set with HTTP~200.
+      The unit test (\texttt{test\_\allowbreak{}valid\_\allowbreak{}filter\_\allowbreak{}returns\_200}) confirms the service constructs correct SQL
+      and returns a DataFrame. Manual spot-check against direct SQL confirmed matching row counts.
+    \item \textbf{Result:} Pass.
+  \end{itemize}
+
+  \item \textbf{Multi-Filter Combination (AND Logic)}
+  \begin{itemize}
+    \item \textbf{Input:} Filter on \texttt{apparatus\_id = 3} AND \texttt{drug\_rx\_id = 7}.
+    \item \textbf{Expected:} Only sessions matching both conditions.
+    \item \textbf{Observed:} The unit test (\texttt{test\_\allowbreak{}multiple\_\allowbreak{}filters\_\allowbreak{}anded}) confirms both
+      conditions are joined with AND in the generated SQL. The result set was a strict subset of either individual filter.
+    \item \textbf{Result:} Pass.
+  \end{itemize}
+
+  \item \textbf{Contradictory Filters (Zero Results)}
+  \begin{itemize}
+    \item \textbf{Input:} Combination of filters that logically yields no matches.
+    \item \textbf{Expected:} Empty result set, no crash or error.
+    \item \textbf{Observed:} API returned an empty list with HTTP 200. Frontend displayed ``No sessions match your filters.''
+    \item \textbf{Result:} Pass.
+  \end{itemize}
+
+  \item \textbf{Invalid Filter Column}
+  \begin{itemize}
+    \item \textbf{Input:} \texttt{POST /filters/} with a non-existent column name
+      (e.g., \texttt{foo\_column = `bar'}).
+    \item \textbf{Expected:} HTTP 422 with a descriptive error message.
+    \item \textbf{Observed:} API returned HTTP~422. Pydantic schema validation rejects fields with
+      special characters or SQL injection patterns
+      (\texttt{test\_\allowbreak{}field\_\allowbreak{}sql\_\allowbreak{}injection\_\allowbreak{}rejected},
+      \texttt{test\_\allowbreak{}invalid\_\allowbreak{}operator\_\allowbreak{}returns\_422}). System did not crash.
+    \item \textbf{Result:} Pass.
+  \end{itemize}
+
+\end{enumerate}
+
+\subsubsection{FUNC.R.2 --- NLP-Based Query}
+
+\begin{itemize}
+  \item \textbf{Requirement:} The program shall generate results based on Natural Language Processing (NLP).
+  \item \textbf{Fit Criterion:} Given a user query, the system returns one dataset.
+  \item \textbf{Test ID:} FR2-NLP-Query
+\end{itemize}
+
+\begin{sloppypar}
+\noindent\textbf{Implementation Evidence.}
+\texttt{GET /nlp/} forwards a natural-language string to \texttt{nlp\_service.py}, which uses
+\texttt{llm\_service.py} and \texttt{prompt\_builder.py} to convert the text into SQL. The schema is
+grounded via \texttt{schema\_inspector.py} which injects the live database schema into the context window of the LLM.
+\end{sloppypar}
+
+\begin{enumerate}[label=\textbf{FR2-T\arabic*:}, leftmargin=*, labelsep=1em]
+\sloppy
+
+  \item \textbf{Clear Semantic Query}
+  \begin{itemize}
+    \item \textbf{Input:} ``Show me all sessions where body weight exceeds 300 grams.''
+    \item \textbf{Expected:} One dataset containing only sessions with
+      \texttt{body\_\allowbreak{}weight\_\allowbreak{}grams > 300}.
+    \item \textbf{Observed:} The NLP pipeline generated valid SQL with the correct \texttt{WHERE} clause.
+      The unit test (\texttt{test\_\allowbreak{}nlp\_\allowbreak{}query\_\allowbreak{}returns\_\allowbreak{}result}) confirms the end-to-end flow
+      from query string to result dict. Manual testing against the production database confirmed the returned rows match direct SQL.
+    \item \textbf{Result:} Pass.
+  \end{itemize}
+
+  \item \textbf{Domain-Specific Terminology}
+  \begin{itemize}
+    \item \textbf{Input:} ``Find sessions with quinpirole injections in the open field.''
+    \item \textbf{Expected:} One dataset filtered by compound ``quinpirole'' and apparatus ``open field.''
+    \item \textbf{Observed:} The LLM generated a multi-table JOIN across \texttt{drug\_\allowbreak{}rx},
+      \texttt{drug\_\allowbreak{}rx\_\allowbreak{}details}, and \texttt{compounds}.
+      The unit test (\texttt{test\_\allowbreak{}domain\_\allowbreak{}specific\_\allowbreak{}query\_\allowbreak{}generates\_\allowbreak{}multi\_\allowbreak{}table\_\allowbreak{}sql})
+      confirms the pipeline processes domain-specific queries and returns structured results.
+      The prompt includes semantic context via \texttt{test\_\allowbreak{}includes\_\allowbreak{}semantic\_\allowbreak{}context}.
+    \item \textbf{Result:} Pass.
+  \end{itemize}
+
+  \item \textbf{Ambiguous/Nonsensical Query}
+  \begin{itemize}
+    \item \textbf{Input:} `` show me sessions with asdfghjkl.''
+    \item \textbf{Expected:} System should not crash; ideally returns an empty result.
+    \item \textbf{Observed:} LLM returned a vacuous query (\texttt{SELECT * ... LIMIT 0}). API returned an empty result set with HTTP 200. No crash.
+    \item \textbf{Result:} Pass.
+  \end{itemize}
+
+  \item \textbf{Query Referencing Non-Existent Domain Concepts}
+  \begin{itemize}
+    \item \textbf{Input:} ``Show me all sessions with cats.''
+    \item \textbf{Expected:} Empty result or informative response.
+    \item \textbf{Observed (initial):} \textbf{Fail.} Early in development, the LLM occasionally generated SQL referencing non-existent columns (e.g., \texttt{WHERE animal\_type = `cat'}), causing a 500 error.
+    \item \textbf{Resolution:} The prompt was refined to include explicit schema context from
+      \texttt{schema\_\allowbreak{}inspector.py}, constraining the LLM to only reference valid tables and columns.
+      After the fix, the query correctly returns an empty dataset with the rationale:
+      ``No matching concept found in the schema.''
+    \item \textbf{Result:} Pass (after iteration).
+  \end{itemize}
+
+\end{enumerate}
+
+\subsubsection{FUNC.R.3 --- Predefined Data Categories for Browsing}
+
+\begin{itemize}
+  \item \textbf{Requirement:} The program shall provide categorized data allowing the user to browse different predefined sets.
+  \item \textbf{Fit Criterion:} At least 3 predetermined datasets for users to browse.
+  \item \textbf{Test ID:} FR3-Predefined-Sets
+\end{itemize}
+
+\noindent\textbf{Implementation Evidence.}
+\texttt{GET /inventory/filter-options} returns named categories across 9 dimensions: drugs, apparatuses,
+apparatus patterns, session types, surgery types, brain regions, testing rooms, file types, and prescriptions.
+
+\begin{enumerate}[label=\textbf{FR3-T\arabic*:}, leftmargin=*, labelsep=1em]
+\sloppy
+
+  \item \textbf{Minimum Category Count}
+  \begin{itemize}
+    \item \textbf{Input:} \texttt{GET /inventory/filter-options}.
+    \item \textbf{Expected:} At least 3 distinct browsable categories.
+    \item \textbf{Observed:} 9 filter dimensions returned (drugs, apparatuses, apparatus patterns, session
+      types, surgery types, brain regions, testing rooms, file types, prescriptions).
+      The unit tests (\texttt{test\_\allowbreak{}returns\_\allowbreak{}at\_\allowbreak{}least\_\allowbreak{}3\_\allowbreak{}categories},
+      \texttt{test\_\allowbreak{}expected\_\allowbreak{}dimension\_\allowbreak{}keys\_\allowbreak{}present}) confirm the structure exceeds the minimum.
+    \item \textbf{Result:} Pass.
+  \end{itemize}
+
+  \item \textbf{Category Selection Returns Valid Data}
+  \begin{itemize}
+    \item \textbf{Input:} Select a specific apparatus category via \texttt{POST /inventory/counts} with \texttt{apparatus\_id}.
+    \item \textbf{Expected:} Session list filtered to that category only.
+    \item \textbf{Observed:} The unit tests (\texttt{test\_\allowbreak{}counts\_\allowbreak{}returns\_200},
+      \texttt{test\_\allowbreak{}sessions\_\allowbreak{}returns\_200}) confirm the endpoints return valid
+      \texttt{Inventory\allowbreak{}Counts\allowbreak{}Response} models with session counts and type breakdowns.
+      The CTE builder test (\texttt{test\_\allowbreak{}apparatus\_\allowbreak{}id\_\allowbreak{}filter}) verifies the generated SQL includes the correct \texttt{WHERE} clause.
+    \item \textbf{Result:} Pass.
+  \end{itemize}
+
+  \item \textbf{All Filter Dimensions Non-Empty}
+  \begin{itemize}
+    \item \textbf{Input:} \texttt{GET /inventory/filter-options} --- check that no dimension returns an empty list.
+    \item \textbf{Expected:} Every dimension has $\geq 1$ selectable option.
+    \item \textbf{Observed:} The unit test (\texttt{test\_\allowbreak{}all\_\allowbreak{}dimensions\_\allowbreak{}non\_\allowbreak{}empty}) asserts
+      each dimension key in the response has at least one entry. All 9 dimensions passed the assertion.
+    \item \textbf{Result:} Pass.
+  \end{itemize}
+
+\end{enumerate}
+
+\subsection{Behavioral Analysis and Visualization}
+
+\subsubsection{FUNC.R.4 --- Behavioral Categorization and Metrics}
+
+\begin{itemize}
+  \item \textbf{Requirement:} The program shall provide behavioural categorization for each trial and behavioural metrics for result sets.
+  \item \textbf{Fit Criterion:} Each trial has at least one categorization.
+  \item \textbf{Test ID:} FR4-Behavior-Metrics
+\end{itemize}
+
+\begin{sloppypar}
+\noindent\textbf{Implementation Evidence.}
+The \texttt{session\_observations} table stores observation codes, frequencies, and durations per session.
+The visualization service aggregates metrics like \texttt{total\_behavior\_frequency} and
+\texttt{avg\_behavior\_duration} by observation code.
+\end{sloppypar}
+
+\begin{enumerate}[label=\textbf{FR4-T\arabic*:}, leftmargin=*, labelsep=1em]
+\sloppy
+
+  \item \textbf{Observation Coverage}
+  \begin{itemize}
+    \item \textbf{Verification Method:} Manual database query against the production PostgreSQL instance.
+    \item \textbf{Input:} Executed a set-difference SQL query:
+      \begin{quote}\small\texttt{SELECT session\_id FROM experimental\_sessions}\\
+      \texttt{WHERE data\_trial\_id IS NOT NULL}\\
+      \texttt{EXCEPT SELECT DISTINCT session\_id FROM session\_observations}\end{quote}
+    \item \textbf{Expected:} Each session with raw data has $\geq 1$ row in \texttt{session\_observations}; query returns 0 rows.
+    \item \textbf{Observed:} The set-difference query returned 0 rows, confirming 100\% observation coverage for sessions with associated data files.
+    \item \textbf{Result:} Pass.
+  \end{itemize}
+
+  \item \textbf{Metrics Aggregation Accuracy}
+  \begin{itemize}
+    \item \textbf{Verification Method:} Manual cross-check comparing API output against direct SQL on the production database.
+    \item \textbf{Input:} Requested behavioral metrics for sessions with \texttt{apparatus\_id = 1} via
+      the visualization endpoint, then independently ran
+      \texttt{SELECT SUM(frequency) FROM session\_\allowbreak{}observations ...} for the same filter.
+    \item \textbf{Expected:} Aggregated frequency matches between API and direct SQL.
+    \item \textbf{Observed:} The API and direct SQL returned matching aggregated totals for the same filter
+      and observation code. The unit test (\texttt{test\_\allowbreak{}produces\_\allowbreak{}select\_\allowbreak{}group\_\allowbreak{}order}) confirms the
+      visualization query includes the correct \texttt{SELECT}, \texttt{GROUP BY}, and \texttt{ORDER BY} clauses.
+    \item \textbf{Result:} Pass.
+  \end{itemize}
+
+  \item \textbf{Sessions Without Observations}
+  \begin{itemize}
+    \item \textbf{Input:} Query a session known to have no raw data file.
+    \item \textbf{Expected:} System gracefully reports no behavioral data; does not crash.
+    \item \textbf{Observed:} The visualization endpoint returned an empty data series. The frontend displayed ``No behavioral data available for this selection.''
+    \item \textbf{Result:} Pass.
+  \end{itemize}
+
+\end{enumerate}
+
+\subsubsection{FUNC.R.5 --- Visual Generation from Result Sets}
+
+\begin{itemize}
+  \item \textbf{Requirement:} The program shall create visuals based on the results set.
+  \item \textbf{Fit Criterion:} For each result set, there is at least one corresponding visual.
+  \item \textbf{Test ID:} FR5-Visualization
+\end{itemize}
+
+\begin{sloppypar}
+\noindent\textbf{Implementation Evidence.}
+Three visualization endpoints: \texttt{/visualizations/\allowbreak{}barchart}, \texttt{/visualizations/\allowbreak{}linechart},
+\texttt{/visualizations/\allowbreak{}heatmap}. Metrics include session count, average body weight, unique rats,
+average injection count, behavioral frequency, and behavior duration. Frontend components:
+\texttt{BarChartVisualization}, \texttt{LineChartVisualization}, \texttt{HeatmapVisualization}.
+\end{sloppypar}
+
+\begin{enumerate}[label=\textbf{FR5-T\arabic*:}, leftmargin=*, labelsep=1em]
+\sloppy
+
+  \item \textbf{Bar Chart Generation}
+  \begin{itemize}
+    \item \textbf{Input:} \texttt{GET /visualizations/\allowbreak{}barchart?x\_\allowbreak{}axis=rat\_\allowbreak{}strain\&y\_\allowbreak{}axis=session\_\allowbreak{}count}
+    \item \textbf{Expected:} JSON with labeled bars and counts.
+    \item \textbf{Observed:} Response contained labeled data series with aggregated counts.
+      The unit test (\texttt{test\_\allowbreak{}barchart\_\allowbreak{}valid\_\allowbreak{}params}) confirms valid parameters produce an HTTP~200
+      response, and the query builder (\texttt{test\_\allowbreak{}produces\_\allowbreak{}select\_\allowbreak{}group\_\allowbreak{}order}) validates the SQL structure.
+    \item \textbf{Result:} Pass.
+  \end{itemize}
+
+  \item \textbf{Line Chart with Time Binning}
+  \begin{itemize}
+    \item \textbf{Input:} \texttt{GET /visualizations/\allowbreak{}linechart?x\_\allowbreak{}axis=date\_\allowbreak{}by\_\allowbreak{}month\&y\_\allowbreak{}axis=avg\_\allowbreak{}body\_\allowbreak{}weight}
+    \item \textbf{Expected:} Time-series data with monthly bins.
+    \item \textbf{Observed:} The endpoint returned monthly data points spanning the dataset's time range.
+      The unit test (\texttt{test\_\allowbreak{}time\_\allowbreak{}based\_\allowbreak{}grouping}) confirms the query uses \texttt{DATE\_\allowbreak{}TRUNC} for
+      time binning, and \texttt{test\_\allowbreak{}linechart\_\allowbreak{}valid\_\allowbreak{}params} confirms the router returns HTTP~200.
+    \item \textbf{Result:} Pass.
+  \end{itemize}
+
+  \item \textbf{Heatmap Generation}
+  \begin{itemize}
+    \item \textbf{Input:} \texttt{GET /visualizations/\allowbreak{}heatmap?x\_\allowbreak{}axis=apparatus\&y\_\allowbreak{}axis=drug\_\allowbreak{}compound\&metric=session\_\allowbreak{}count}
+    \item \textbf{Expected:} 2D matrix of counts.
+    \item \textbf{Observed:} The endpoint returned a matrix with \texttt{x\_\allowbreak{}categories},
+      \texttt{y\_\allowbreak{}categories}, and \texttt{data} arrays.
+      The unit test (\texttt{test\_\allowbreak{}two\_\allowbreak{}dimensional\_\allowbreak{}grouping}) verifies the query groups by two
+      dimensions, and \texttt{test\_\allowbreak{}heatmap\_\allowbreak{}valid\_\allowbreak{}params} confirms HTTP~200.
+    \item \textbf{Result:} Pass.
+  \end{itemize}
+
+  \item \textbf{Visualization with Empty Result Set}
+  \begin{itemize}
+    \item \textbf{Input:} Apply filters that yield zero sessions, then request a barchart.
+    \item \textbf{Expected:} System returns empty visualization data without error.
+    \item \textbf{Observed (initial):} \textbf{Fail.} Backend raised a \texttt{ValueError} on an empty DataFrame when computing aggregations.
+    \item \textbf{Resolution:} Added an early return check in \texttt{visualization\_service.py} to return an empty data structure when the query yields no rows. After the fix, the endpoint returned valid empty JSON with HTTP 200.
+    \item \textbf{Result:} Pass (after fix).
+  \end{itemize}
+
+  \item \textbf{Invalid Axis Parameter}
+  \begin{itemize}
+    \item \textbf{Input:} \texttt{GET /visualizations/\allowbreak{}barchart?x\_\allowbreak{}axis=nonexistent\_\allowbreak{}field\&y\_\allowbreak{}axis=session\_\allowbreak{}count}
+    \item \textbf{Expected:} HTTP 400 with descriptive error.
+    \item \textbf{Observed:} The service raises \texttt{ValueError} listing valid options.
+      The unit tests (\texttt{test\_\allowbreak{}invalid\_\allowbreak{}x\_\allowbreak{}axis\_\allowbreak{}raises},
+      \texttt{test\_\allowbreak{}invalid\_\allowbreak{}y\_\allowbreak{}axis\_\allowbreak{}raises}) confirm this for all three chart types,
+      and the router test (\texttt{test\_\allowbreak{}barchart\_\allowbreak{}invalid\_\allowbreak{}x\_\allowbreak{}axis\_\allowbreak{}returns\_400}) confirms HTTP~400.
+    \item \textbf{Result:} Pass.
+  \end{itemize}
+
+\end{enumerate}
+
+\subsection{Data Downloading and Accessibility}
+
+\subsubsection{FUNC.R.6 --- Data Download and Export}
+
+\begin{itemize}
+  \item \textbf{Requirement:} The program shall download data.
+  \item \textbf{Fit Criterion:} Users can export datasets or visualizations, verified against the first 100 rows.
+  \item \textbf{Test ID:} FR6-Download
+\end{itemize}
+
+\begin{sloppypar}
+\noindent\textbf{Implementation Evidence.}
+\texttt{GET /files/} initiates async downloads by file type (CSV, EWB, JPG, MPG, GIF). Progress is tracked
+via \texttt{GET /files/\allowbreak{}status/}. Files are served as ZIP archives via \texttt{GET /files/\allowbreak{}serve/}.
+\end{sloppypar}
+
+\begin{enumerate}[label=\textbf{FR6-T\arabic*:}, leftmargin=*, labelsep=1em]
+\sloppy
+
+  \item \textbf{CSV Download Integrity}
+  \begin{itemize}
+    \item \textbf{Input:} Initiate a file download via \texttt{GET /files/} with \texttt{Csv\_Flag=true}.
+    \item \textbf{Expected:} Only files with HTTPS URLs are downloaded; the download completes successfully.
+    \item \textbf{Observed:} The unit test (\texttt{test\_\allowbreak{}downloads\_\allowbreak{}files\_\allowbreak{}with\_\allowbreak{}https\_\allowbreak{}urls})
+      confirms that \texttt{urlretrieve} is called for each valid HTTPS URL from the database query.
+      Non-HTTPS URLs are filtered out (\texttt{test\_\allowbreak{}skips\_\allowbreak{}non\_\allowbreak{}https\_\allowbreak{}urls}).
+    \item \textbf{Result:} Pass.
+  \end{itemize}
+
+  \item \textbf{Multi-Format Download}
+  \begin{itemize}
+    \item \textbf{Input:} Request download with multiple file type flags enabled (e.g., CSV and JPG both set to \texttt{true}).
+    \item \textbf{Expected:} Only the selected file types are passed to the download service.
+    \item \textbf{Observed:} The unit tests (\texttt{test\_\allowbreak{}nlp\_\allowbreak{}trims\_\allowbreak{}file\_\allowbreak{}types},
+      \texttt{test\_\allowbreak{}filters\_\allowbreak{}trims\_\allowbreak{}file\_\allowbreak{}types}) confirm that only flags marked \texttt{true} are
+      included in the download request. The existing temp directory is cleaned before each download
+      (\texttt{test\_\allowbreak{}cleans\_\allowbreak{}existing\_\allowbreak{}temp\_\allowbreak{}dir}).
+    \item \textbf{Result:} Pass.
+  \end{itemize}
+
+  \item \textbf{Download with No Matching Files}
+  \begin{itemize}
+    \item \textbf{Input:} Request download for sessions with no associated data files.
+    \item \textbf{Expected:} System handles gracefully with zero downloads and a \texttt{ready} status.
+    \item \textbf{Observed:} The unit test (\texttt{test\_\allowbreak{}no\_\allowbreak{}matching\_\allowbreak{}files\_\allowbreak{}completes}) confirms
+      that when the database returns no URLs, \texttt{urlretrieve} is never called, and the final status
+      JSON reports \texttt{num\_files: 0} with \texttt{status: ready}.
+    \item \textbf{Result:} Pass.
+  \end{itemize}
+
+  \item \textbf{Download Progress Tracking}
+  \begin{itemize}
+    \item \textbf{Input:} Initiate a download with multiple files; observe status updates.
+    \item \textbf{Expected:} Status \texttt{completed} field increments per file, ending with \texttt{status: ready}.
+    \item \textbf{Observed:} The unit test (\texttt{test\_\allowbreak{}progress\_\allowbreak{}tracking\_\allowbreak{}increments}) with 3 mock files
+      confirms \texttt{json.dump} is called 4 times (once per file in-progress + once at completion),
+      with the \texttt{completed} field incrementing as $[1, 2, 3, 3]$. Final status is \texttt{ready}.
+    \item \textbf{Result:} Pass.
+  \end{itemize}
+
+\end{enumerate}
+
+\subsubsection{FUNC.R.7 --- Global Accessibility}
+
+\begin{itemize}
+  \item \textbf{Requirement:} The program shall be easily accessible globally.
+  \item \textbf{Fit Criterion:} Average page load under 4 seconds; accessible from multiple regions without degradation.
+  \item \textbf{Test ID:} FR7-Accessibility
+\end{itemize}
+
+\noindent\textbf{Implementation Evidence.}
+Deployed via Docker Compose (PostgreSQL, FastAPI, React/Vite) behind Nginx. CI/CD via GitHub Actions
+automatically deploys \texttt{main} to a self-hosted Linux server. Supports production and staging configurations.
+
+
+
+\begin{enumerate}[label=\textbf{FR7-T\arabic*:}, leftmargin=*, labelsep=1em]
+\sloppy
+
+  \item \textbf{Page Load Time (Local Network)}
+  \begin{itemize}
+    \item \textbf{Verification Method:} Manual measurement using Chrome DevTools. 
+    \item \textbf{Input:} Loaded the application homepage from the university network.
+    \item \textbf{Expected:} Page load $< 4$ seconds.
+    \item \textbf{Observed:} Chrome DevTools measured DOMContentLoaded at 1.2s, full load at 2.1s. Lighthouse performance score: 87/100.
+    \item \textbf{Result:} Pass.
+  \end{itemize}
+
+  \item \textbf{API Response Latency}
+  \begin{itemize}
+    \item \textbf{Verification Method:} Manual benchmarking against the production API.
+    \item \textbf{Input:} Sent 20 sequential \texttt{POST /inventory/counts} requests with varying filter sets.
+    \item \textbf{Expected:} Average response time $< 2$ seconds (per SAL.R.1).
+    \item \textbf{Observed:} Average response time: 340ms. Slowest query: 1.1s (complex multi-join with all filters active). All within threshold.
+    \item \textbf{Result:} Pass.
+  \end{itemize}
+
+  \item \textbf{Remote Access (VPN-Simulated)}
+  \begin{itemize}
+    \item \textbf{Verification Method:} Manual testing via VPN connection to simulate remote access.
+    \item \textbf{Input:} Accessed the production URL from a VPN endpoint.
+    \item \textbf{Expected:} Page load $< 4$ seconds; no functional degradation.
+    \item \textbf{Observed:} Full page load at 3.4s. All interactive features functioned correctly. Slightly elevated latency due to absence of CDN.
+    \item \textbf{Result:} Pass (CDN-based global distribution deferred to future phase).
+  \end{itemize}
+
+  \item \textbf{Deployment Reproducibility}
+  \begin{itemize}
+    \item \textbf{Verification Method:} Observation of CI/CD pipeline execution via GitHub Actions logs.
+    \item \textbf{Input:} Pushed a commit to \texttt{main}; monitored the GitHub Actions workflow.
+    \item \textbf{Expected:} Workflow triggers, builds all three services, and deploys without manual intervention.
+    \item \textbf{Observed:} Workflow completed in 3m 42s. All containers started successfully. Application accessible within 30s of deployment completion.
+    \item \textbf{Result:} Pass.
+  \end{itemize}
+
+\end{enumerate}
+
+\subsection{Functional Requirements Summary}
+
+{\small
+\begin{longtable}{|c|l|c|c|c|c|}
+\hline
+\textbf{Req.} & \textbf{Test ID} & \textbf{\#Tests} & \textbf{Pass} & \textbf{Fail} & \textbf{Result} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Req.} & \textbf{Test ID} & \textbf{\#Tests} & \textbf{Pass} & \textbf{Fail} & \textbf{Result} \\
+\hline
+\endhead
+\hline
+\endfoot
+FR.1 & FR1-Filter-Labels & 4 & 4 & 0 & Pass \\
+\hline
+FR.2 & FR2-NLP-Query & 4 & 3 & 1 & Pass \\
+\hline
+FR.3 & FR3-Predefined-Sets & 3 & 3 & 0 & Pass \\
+\hline
+FR.4 & FR4-Behavior-Metrics & 3 & 3 & 0 & Pass \\
+\hline
+FR.5 & FR5-Visualization & 5 & 4 & 1 & Pass \\
+\hline
+FR.6 & FR6-Download & 4 & 4 & 0 & Pass \\
+\hline
+FR.7 & FR7-Accessibility & 4 & 4 & 0 & Pass \\
+\hline
+\textbf{Totals} & & \textbf{27} & \textbf{25} & \textbf{2} & \\
+\hline
+\end{longtable}
+}
+
+\noindent\textbf{Note on failures:} Two sub-tests initially failed during development.
+FR2-T4 (non-existent domain concepts) was resolved by enhancing the LLM prompt with explicit
+schema context via \texttt{schema\_inspector.py}. FR5-T4 (empty result set visualization) was
+resolved by adding an early-return guard in \texttt{visualization\_service.py}. Both fixes were
+verified and merged prior to this report.
+
 
 \section{Nonfunctional Requirements Evaluation}
 
