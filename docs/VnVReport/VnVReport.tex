@@ -428,6 +428,22 @@ graduate attribute of Reflection.
   \item Which parts of this document stemmed from speaking to your client(s) or
   a proxy (e.g.\ your peers)? Which ones were not, and why?
 
+  As software engineering students, we are not domain experts in the field of neuroscience, 
+  nor animal biology or obsessive compulsive disorder. In order to adequately validate our system,
+  we relied heavily on the domain expertise of our clients to ensure alignment with the 
+  requirements and expectations of the project. For example, to validate the system's natural 
+  language capabilities, we worked with our supervisor to establish a mapping between numerous sample queries
+  and expected results. Frontloading these kinds of validation activities allowed us to independently 
+  verify the system's capabilities in a way that we would not have been able to do on our own. 
+
+  System components that were independent of domain expertise, such as the 
+  API behaviour under various error conditions, or connectivity with external systems 
+  including the LLM and the FRDR database were major portions of the document that 
+  could be completed without client input. In these cases, the team was equipped to discern the
+  expections of the product without external validation. In these cases where the team was able to 
+  self-validate certain subsystems, we still ensured indirect supervisor validation, typically via an 
+  interactive demo of the corresponding feature tied to the subsystem. 
+
   \item In what ways was the Verification and Validation (VnV) Plan different
   from the activities that were actually conducted for VnV? If there were
   differences, what changes required the modification in the plan? Why did
