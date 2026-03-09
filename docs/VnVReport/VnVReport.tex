@@ -87,7 +87,26 @@ This document ...
 	
 \section{Comparison to Existing Implementation}	
 
-This section will not be appropriate for every project.
+\par{Technically there are two existing implementations of the software. There is the FRDR database,
+which was created and populated by our supervisors, and then there is the first implementation 
+version of the application, which is named RatBat1.0. In terms of the FRDR database, this was the 
+standard research tool used by our supervisors and their collaborators for storing and analyzing 
+research data. The functionality provided was limited, in the sense that it only allowed a bare bones
+graphical interface which displayed the structure of the repository, and users were able to download data files
+contained in the database. In contrast, RatBat1.0 was an initial implementation done by another team in 
+last year's capstone. RatBat1.0 provided a much more user friendly interface through the form of 
+a well designed user-interface. The web application provided more functionality than the FRDR database, 
+allowing users to filter data by predefined labels, show summaries of repository data, write structured 
+SQL-like queries to generate result sets, and provide data preprocessing options to users. 
+Comparing the existing implementations to our implementation, we have made 
+significant improvements in terms of the user interface and the functionality provided. The database 
+querying component of our implementation is much more user friendly, since we integrated a natural language 
+processing (NLP) query processor, which allows users to write queries in natural language instead of SQL. 
+Additionally, we have implemented a data visualization component that allows users to create visualizations of 
+relevant categories of data and metrics, which was not present in either of the existing implementations. 
+On top of these new features, we have also significantly improved the user-friendliness of our UI, 
+and provided similar functionality to RatBat1.0 in terms of data filtering, browsing, displaying summary data, 
+and downloading.}
 
 \section{Unit Testing}
 
@@ -376,7 +395,14 @@ graduate attribute of Reflection.
 
 \begin{enumerate}
   \item What went well while writing this deliverable?
-
+  
+  Something that contributed to how smooth the writing process went was the fact that 
+  we had a large portion of pre-existing information that allowed us to complete the VnV Report, 
+  largely coming from the VnV Plan. Not only did the VnV Plan provide us with a majority of 
+  the information we needed, but our consistent and lengthy meetings with our supervisors 
+  throughout the project allowed us to have a very clear understanding of the requirements, 
+  and finer-grained details for our implementation, and from the previously existing implmentations 
+  made by them and the previous capstone team. 
 
   \item What pain points did you experience during this deliverable, and how
     did you resolve them?
