@@ -1089,22 +1089,108 @@ graduate attribute of Reflection.
 
 \begin{enumerate}
   \item What went well while writing this deliverable?
-
+  
+  Something that contributed to how smooth the writing process went was the fact that 
+  we had a large portion of pre-existing information that allowed us to complete the VnV Report, 
+  largely coming from the VnV Plan. Not only did the VnV Plan provide us with a majority of 
+  the information we needed, but our consistent and lengthy meetings with our supervisors 
+  throughout the project allowed us to have a very clear understanding of the requirements, 
+  and finer-grained details for our implementation, and from the previously existing implmentations 
+  made by them and the previous capstone team. 
 
   \item What pain points did you experience during this deliverable, and how
     did you resolve them?
 
-  \paragraph{Frankly, as final year}
+  Frankly, as students in our final month of university, the finish line is 
+  very much in sight and thus it is becoming difficult to stay locked in and 
+  motivated to complete assignments to the best of our abilities. Especially 
+  considering the fact that writing a verification and validation report is not 
+  the most interesting thing to be doing (when compared to our other, more 
+  technical classes). So, this specific deliverable was subject to quite a bit 
+  of procrastination, most of it being completed the weekend before the due date 
+  (it is currently 5:11 p.m. on Monday). Hopefully, this doesn't result in too 
+  much of a decrease in quality but we are all at the point that we won't be 
+  overly bothered if that is the case.
+
+  Another pain point was that the VnV Plan was not completed yet. The unit 
+  testing section was not supposed to be completed when we first wrote the plan 
+  and we never got around to it after drafting our system design. So, we 
+  essentially had 4 additional sections that needed to be completed than we 
+  initially thought, which unexpectedly added to our workload and caused some 
+  issues with task delegation and timely completion.
+
   \item Which parts of this document stemmed from speaking to your client(s) or
-  a proxy (e.g. your peers)? Which ones were not, and why?
+  a proxy (e.g.\ your peers)? Which ones were not, and why?
+
+  As software engineering students, we are not domain experts in the field of neuroscience, 
+  nor animal biology or obsessive compulsive disorder. In order to adequately validate our system,
+  we relied heavily on the domain expertise of our clients to ensure alignment with the 
+  requirements and expectations of the project. For example, to validate the system's natural 
+  language capabilities, we worked with our supervisor to establish a mapping between numerous sample queries
+  and expected results. Frontloading these kinds of validation activities allowed us to independently 
+  verify the system's capabilities in a way that we would not have been able to do on our own. 
+
+  System components that were independent of domain expertise, such as the 
+  API behaviour under various error conditions, or connectivity with external systems 
+  including the LLM and the FRDR database were major portions of the document that 
+  could be completed without client input. In these cases, the team was equipped to discern the
+  expections of the product without external validation. In these cases where the team was able to 
+  self-validate certain subsystems, we still ensured indirect supervisor validation, typically via an 
+  interactive demo of the corresponding feature tied to the subsystem. 
+
   \item In what ways was the Verification and Validation (VnV) Plan different
-  from the activities that were actually conducted for VnV?  If there were
-  differences, what changes required the modification in the plan?  Why did
-  these changes occur?  Would you be able to anticipate these changes in future
-  projects?  If there weren't any differences, how was your team able to clearly
+  from the activities that were actually conducted for VnV? If there were
+  differences, what changes required the modification in the plan? Why did
+  these changes occur? Would you be able to anticipate these changes in future
+  projects? If there weren't any differences, how was your team able to clearly
   predict a feasible amount of effort and the right tasks needed to build the
-  evidence that demonstrates the required quality?  (It is expected that most
-  teams will have had to deviate from their original VnV Plan.)
+  evidence that demonstrates the required quality?
+  (It is expected that most teams will have had to deviate from their original 
+  VnV Plan.)
+
+  The Verification and Validation activities conducted during this project 
+  deviated from the original VnV Plan in one primary structural way: the 
+  granularity of unit tests. Each unit test outlined in the VnV Plan was 
+  written at a higher level of abstraction, generally corresponding to one 
+  core requirement or function that might map to several requirements. 
+  However, during implementation, these higher-level unit tests were 
+  decomposed into more granular, function-level test cases. As a result, 
+  a single unit test described in the VnV Plan is often represented by 
+  multiple concrete tests in the PyTest suite located in the 
+  \texttt{src/ocd-rat-backend/tests} directory.
+
+  This change occurred naturally as part of the development process. When 
+  translating high-level test intentions into executable test code, it 
+  became clear that individual functions required isolated verification, 
+  leading to a finer-grained test structure than originally anticipated. 
+  Revamping the VnV Plan to reflect this increased granularity was 
+  deemed impractical --- it would have been highly tedious both to write 
+  and to evaluate --- whereas the existing higher-level overview provides 
+  a more comprehensive view of the motivation behind the tests. Therefore, 
+  the VnV Plan was intentionally left as written.
+
+  Beyond the structural granularity difference, testing also surfaced 
+  several functional issues not fully anticipated in the plan, including: 
+  concurrent download failures (resolved via background tasks with hashed 
+  job IDs), SQL injection risks identified through CodeQL static analysis 
+  (resolved by wrapping user inputs), and insufficient error handling in 
+  the download and inventory filter endpoints (resolved with more robust 
+  \texttt{try}/\texttt{catch} blocks). Additionally, several anticipated 
+  issues were uncovered but remain unresolved, such as slow download 
+  performance for large datasets, malformed line chart rendering due to 
+  missing date values, path traversal vulnerabilities in download logic, 
+  inaccurate session-to-file-count mapping, and brittle keyword-based 
+  chat mode detection.
+
+  In future projects, some of these deviations could be anticipated. The 
+  granularity gap between plan-level and implementation-level tests is a 
+  common and foreseeable consequence of translating requirements into code. 
+  Planning for test decomposition explicitly --- or writing the VnV Plan 
+  after an initial implementation pass --- could reduce this disconnect. 
+  Security and concurrency issues, however, are harder to predict without 
+  first engaging in implementation, and thus may inherently require an 
+  iterative approach to VnV planning.
+
 \end{enumerate}
 
 \end{document}
