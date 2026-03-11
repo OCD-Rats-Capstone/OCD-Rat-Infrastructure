@@ -51,7 +51,8 @@ def FILTERS_FileDownload(db_connection,file_types: list,job_id: str):
 
 def FRDR_download(cnxn,cursor,file_ids,file_exts,job_id):
 
-    temp_dir = "../FRDR_Files" + job_id
+    safe_job_id = "".join(c if (c.isalnum() or c in "-_") else "_" for c in str(job_id))
+    temp_dir = os.path.join("..", "FRDR_Files" + safe_job_id)
     url_query = "SELECT repo_file_url FROM data_file_locations " \
     "LEFT OUTER JOIN session_data_files AS S1 ON S1.data_file_id = data_file_locations.data_file_id " \
     "WHERE S1.session_id IN %s AND S1.file_extension IN %s;"
@@ -102,7 +103,8 @@ def single_smoothed_download(db_connection,session_id,job_id):
     cnxn = db_connection
     cursor = db_connection.cursor()
     
-    temp_dir = "../media/Session_analysis" + job_id
+    safe_job_id = "".join(c if (c.isalnum() or c in "-_") else "_" for c in str(job_id))
+    temp_dir = os.path.join("..", "media", "Session_analysis" + safe_job_id)
     url_query = "SELECT repo_file_url FROM data_file_locations " \
     "LEFT OUTER JOIN session_data_files AS S1 ON S1.data_file_id = data_file_locations.data_file_id " \
     "WHERE S1.session_id = " + session_id + ";"
