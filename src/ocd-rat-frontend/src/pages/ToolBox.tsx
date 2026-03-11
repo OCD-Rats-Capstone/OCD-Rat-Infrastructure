@@ -8,35 +8,21 @@ import { Link } from 'react-router-dom';
 import { API_BASE_URL } from '@/config';
 import { useState, useEffect } from 'react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { PathPlot } from "./PathPlot.tsx"
 
 export function ToolBox() {
+
+  interface Point {
+  x: number;
+  y: number;
+}
+
   const [sessionId, setSessionId] = useState("");
   const [datapoints, setDataPoints] = useState<Record<string, unknown>[] | null>(null);
   const [distance, setDistance] = useState(null);
+  const [PlotData, setPlotData] = useState<Point[]>([]);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageData, setImageData] = useState<string | null>(null);
-  const visualizations = [
-
-    {
-      img: ChartImg,
-      title: 'Bar Chart',
-      desc: 'Categorical comparisons using configurable X and Y axes.',
-      href: '/visualizations/bar-chart'
-    },
-    {
-      img: LineChartImg,
-      title: 'Line Chart',
-      desc: 'Time-series trends showing how metrics change over time.',
-      href: '/visualizations/line-chart'
-    },
-    {
-      img: null,
-      title: 'Heatmap',
-      desc: '2D categorical patterns revealing relationships between two dimensions.',
-      href: '/visualizations/heatmap',
-      svgIcon: true
-    },
-  ];
 
     const select_analysis = async (session_id: string) => {
       try {
@@ -55,6 +41,13 @@ export function ToolBox() {
         setDataPoints(resData["data"])
         setDistance(resData["distance"])
         setImageData(`data:${resData["imageType"]};base64,${resData["imageData"]}`);
+
+        const pointsArray: Point[] = resData["data"].map((row: any) => ({
+          x: row.X,
+          y: row.Y,
+        }));
+
+        setPlotData(pointsArray)
 
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -92,12 +85,12 @@ export function ToolBox() {
         </Button>
       </div>
 
-      {datapoints != null && (
+      {datapoints != null && PlotData != null && (
         <div className="flex flex-col lg:flex-row gap-6 mt-6 w-full justify-center">
-    
+     
                   <Card className="p-4 mt-4">
                     <h3 className="font-semibold mb-3">Data Points ({datapoints.length})</h3>
-                    <ScrollArea className="h-[300px] w-full rounded border">
+                    <ScrollArea className="h-[500px] w-full rounded border">
                       <ScrollBar orientation='horizontal'/>
                       <table className="w-max text-sm border-collapse">
                         <thead>
@@ -120,16 +113,17 @@ export function ToolBox() {
                     </ScrollArea>
                   </Card>
 
-                  <Card className="p-4 w-full lg:w-96 flex flex-col items-center justify-center">
-  <h3 className="font-semibold mb-3">Session Image</h3>
-  <div className="w-full flex justify-center">
-    <img
-      src={imageData || ""}
-      alt="Session Visualization"
-      className="rounded-md object-contain max-h-[300px] w-full"
-    />
-  </div>
+                  <Card className="p-0 w-full lg:w-150 flex flex-col items-center justify-center h-150">
+  <img
+    src={imageData || ""}
+    alt="Session Visualization"
+    className="w-full h-full rounded-md object-cover"
+  />
 </Card>
+
+<Card className="p-4">
+        <PathPlot points={PlotData} />
+      </Card>
     </div>
                 )}
       {distance != null && (

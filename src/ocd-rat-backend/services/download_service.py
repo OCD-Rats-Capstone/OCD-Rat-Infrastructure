@@ -193,7 +193,7 @@ def single_smoothed_download(db_connection,session_id,job_id):
 
 
 
-            df_show = df.head(500)
+            df_show = df.head(5000)
             df_show = df_show.to_dict(orient="records")
 
             index = 0
