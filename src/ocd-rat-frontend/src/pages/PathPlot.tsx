@@ -21,17 +21,17 @@ interface PathPlotProps {
 export function PathPlot({ points }: PathPlotProps) {
 
 const PAD = 40;
-const W = 700;
+const W = 500;
 const H = 500;
 const PLOT_W = W - PAD * 2;
 const PLOT_H = H - PAD * 2;
 
 const xVals = points.map((p) => p.x);
 const yVals = points.map((p) => p.y);
-const MIN_X = 0;
-const MAX_X = 200;
-const MIN_Y = 0;
-const MAX_Y = 200;
+const MIN_X = Math.min(...xVals);
+const MAX_X = Math.max(...xVals);
+const MIN_Y = Math.min(...yVals);
+const MAX_Y = Math.max(...yVals);
 
 function toSvg(px: number, py: number): SvgPoint {
   return {

@@ -1,18 +1,28 @@
 import { QueryInput } from "@/components/QueryInput";
 import { ChatSqlResult } from "@/components/ChatSqlResult";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Card } from '@/components/ui/card';
 import React, { useState } from "react";
-import {Popup,
-  PopupTrigger,
-  PopupContent,
-  PopupHeader,
-  PopupFooter,
-  PopupTitle,
-  PopupDescription} from '@/components/FilePopout';
+import { Switch } from '@/components/ui/switch';
+import {
+    Popup,
+    PopupTrigger,
+    PopupContent,
+    PopupHeader,
+    PopupFooter,
+    PopupTitle,
+    PopupDescription
+} from '@/components/FilePopout';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { API_BASE_URL } from "@/config";
-import {v4 as uuidv4} from "uuid";
+import { v4 as uuidv4 } from "uuid";
+import {
+    Tooltip as UITooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 
 // Message types: text for regular chat, sql for query results
@@ -50,6 +60,8 @@ export function Query() {
     const [Progress, SetProgress] = useState(0);
     const [TotalFiles, SetTotalFiles] = useState(0);
     const [DownloadVisible, SetDownloadVisible] = useState(false);
+    const [sessions, setSessions] = useState<Record<string, unknown>[] | null>(null);
+    const [mode, setMode] = useState<'ask' | 'select'>('ask');
 
     const togglePopup = () => setOpen((prev) => !prev);
 
@@ -74,63 +86,63 @@ export function Query() {
     }
 
     const fetchFiles = async (Csv: string, Ewb: string, Jpg: string, Mpg: string, Gif: string) => {
-    try {
+        try {
 
-      const id = String(uuidv4());
-      SetDownloadVisible(true);
+            const id = String(uuidv4());
+            SetDownloadVisible(true);
 
-      const params = {
-        query_type: "NLP",
-        Csv_Flag: Csv,
-        Ewb_Flag: Ewb,
-        Gif_Flag: Gif,
-        Jpg_Flag: Jpg,
-        Mpg_Flag: Mpg,
-        job_id: id
-      };
+            const params = {
+                query_type: "NLP",
+                Csv_Flag: Csv,
+                Ewb_Flag: Ewb,
+                Gif_Flag: Gif,
+                Jpg_Flag: Jpg,
+                Mpg_Flag: Mpg,
+                job_id: id
+            };
 
-      const status_params = {
-        job_id: id
-      };
+            const status_params = {
+                job_id: id
+            };
 
-      const baseUrl = (API_BASE_URL.replace(/\/$/, ''));
-      const searchParams = new URLSearchParams(params).toString();
-      const status_searchParams = new URLSearchParams(params).toString();
-      const url = `${baseUrl}/files/?${searchParams}`;
-      const serve_url = `${baseUrl}/files/serve/?${status_searchParams}`;
+            const baseUrl = (API_BASE_URL.replace(/\/$/, ''));
+            const searchParams = new URLSearchParams(params).toString();
+            const status_searchParams = new URLSearchParams(params).toString();
+            const url = `${baseUrl}/files/?${searchParams}`;
+            const serve_url = `${baseUrl}/files/serve/?${status_searchParams}`;
 
-      const response = await fetch(url);
-      const resData = await response.json();
+            const response = await fetch(url);
+            const resData = await response.json();
 
-      while(true){
+            while (true) {
 
-        const statusRes = await fetch(`${baseUrl}/files/status/?${status_searchParams}`);
-        const data = await statusRes.json();
-        console.log(data);
-        if (data["status"] == "ready") break;
-        SetTotalFiles(data["num_files"]);
-        SetFilesComplete(data["completed"]);
-        SetProgress(Math.round(100*parseFloat(String(data["completed"]))/parseFloat(String(data["num_files"]))))
-        await new Promise(r => setTimeout(r, 2500));
-      }
+                const statusRes = await fetch(`${baseUrl}/files/status/?${status_searchParams}`);
+                const data = await statusRes.json();
+                console.log(data);
+                if (data["status"] == "ready") break;
+                SetTotalFiles(data["num_files"]);
+                SetFilesComplete(data["completed"]);
+                SetProgress(Math.round(100 * parseFloat(String(data["completed"])) / parseFloat(String(data["num_files"]))))
+                await new Promise(r => setTimeout(r, 2500));
+            }
 
-      const a = document.createElement("a");
-      a.href = serve_url;
-      const file_name = "FRDR_FILES_" + id + ".zip";
-      a.download = file_name;
-      document.body.appendChild(a);
-      a.click();
+            const a = document.createElement("a");
+            a.href = serve_url;
+            const file_name = "FRDR_FILES_" + id + ".zip";
+            a.download = file_name;
+            document.body.appendChild(a);
+            a.click();
 
-      a.remove();
+            a.remove();
 
-      SetDownloadVisible(false);
+            SetDownloadVisible(false);
 
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      SetDownloadVisible(false);
-      throw error;
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            SetDownloadVisible(false);
+            throw error;
+        }
     }
-  }
 
     const fetchAskStream = async (question: string) => {
         try {
@@ -208,7 +220,7 @@ export function Query() {
             messageText.toLowerCase().includes(kw)
         );
 
-        if (isLikelySQL) {
+        if (mode == "select") {
             try {
                 const data = await fetchData(messageText);
 
@@ -221,6 +233,7 @@ export function Query() {
                     sql: data.sql,
                     results: data.results
                 };
+                setSessions(data.results);
                 setMessages(prev => [...prev, sqlMessage]);
             } catch (error) {
                 setMessages(prev => [...prev, {
@@ -235,11 +248,11 @@ export function Query() {
         }
     }
 
-    const IsLastMessageSQL = () =>{
-        if (messages.length == 0){
+    const IsLastMessageSQL = () => {
+        if (messages.length == 0) {
             return false
-        }else{
-            return messages[messages.length - 1].type=="sql"
+        } else {
+            return messages[messages.length - 1].type == "sql"
         }
     }
 
@@ -247,6 +260,19 @@ export function Query() {
     return (
 
         <div className="flex flex-col h-full items-center px-4 lg:px-40 relative">
+
+            <div className="flex items-center gap-3 mt-4 mb-2">
+                <span className={`text-sm font-medium ${mode === 'ask' ? 'text-foreground' : 'text-muted-foreground'}`}>
+                    Ask
+                </span>
+                <Switch
+                    checked={mode === 'select'}
+                    onCheckedChange={(val) => setMode(val ? 'select' : 'ask')}
+                />
+                <span className={`text-sm font-medium ${mode === 'select' ? 'text-foreground' : 'text-muted-foreground'}`}>
+                    Select
+                </span>
+            </div>
 
             {showIntroMessage &&
                 (
@@ -293,86 +319,124 @@ export function Query() {
             </div>
 
             <Button disabled={!IsLastMessageSQL() || DownloadVisible}
-      variant="default"
-      onClick={togglePopup}
-    >
-      Download Session Files
-    </Button >
+                variant="default"
+                onClick={togglePopup}
+            >
+                Download Session Files
+            </Button >
 
-    {DownloadVisible && (
-            <div className="w-[200px] my-5 space-y-2">
-  <div className="flex justify-between text-sm font-medium">
-    <span>Processing Files</span>
-    <span>{Progress}%</span>
-  </div>
+            {DownloadVisible && (
+                <div className="w-[200px] my-5 space-y-2">
+                    <div className="flex justify-between text-sm font-medium">
+                        <span>Processing Files</span>
+                        <span>{Progress}%</span>
+                    </div>
 
-  <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
-    <div
-      className="h-full bg-primary transition-all duration-500 ease-in-out"
-      style={{ width: `${Progress}%` }}
-    />
-  </div>
+                    <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
+                        <div
+                            className="h-full bg-primary transition-all duration-500 ease-in-out"
+                            style={{ width: `${Progress}%` }}
+                        />
+                    </div>
 
-  <div className="text-xs text-muted-foreground text-right">
-    {FilesComplete} / {TotalFiles} files prepared
-  </div>
-</div> )}
+                    <div className="text-xs text-muted-foreground text-right">
+                        {FilesComplete} / {TotalFiles} files prepared
+                    </div>
+                </div>)}
 
             <div className="flex w-1/2 min-w-80 shrink-0 my-4">
                 <QueryInput onSendMessage={handleSendMessage} />
             </div>
 
+            {sessions != null && (
+                <Card className="w-full max-w-4xl mt-4 overflow-hidden">
+    <div className="px-6 py-4 border-b">
+        <h3 className="text-lg font-semibold">Sessions</h3>
+        <p className="text-sm text-muted-foreground">{sessions.length} results found</p>
+    </div>
+                <TooltipProvider>
+                    <Card className="p-4 mt-4">
+                        <h3 className="font-semibold mb-3">Sessions ({sessions.length})</h3>
+                        <ScrollArea className="h-[300px] w-full rounded border">
+                            <ScrollBar orientation='horizontal' />
+                            <table className="w-max text-sm border-collapse">
+                                <thead>
+                                    <tr className="bg-muted sticky top-0">
+                                        {sessions.length > 0 && Object.keys(sessions[0]).map((k) => (
+                                            <th key={k} className="text-left py-2 px-3 font-medium">{k}</th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {sessions.map((row, i) => (
+                                        <tr key={i} className="border-b">
+                                            {Object.values(row).map((v, j) => (
+                                                <td key={j} className="py-1.5 px-3">{String(v ?? '')}</td>
+                                            ))}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </ScrollArea>
+                    </Card>
+                </TooltipProvider>
+                </Card>
+            )}
+
+
+
             <div className="flex items-center space-x-2">
-            <Popup open={open} onOpenChange={setOpen}>
+                <Popup open={open} onOpenChange={setOpen}>
 
-    <PopupContent>
-      <PopupHeader>
-        <PopupTitle> Download Session Files
-        </PopupTitle>
-        <PopupDescription>
-          The download action will download files related to every session
-          queried in your previous search. If you would like to refine your search before downloading,
-          please cancel.
-        </PopupDescription>
+                    <PopupContent>
+                        <PopupHeader>
+                            <PopupTitle> Download Session Files
+                            </PopupTitle>
+                            <PopupDescription>
+                                The download action will download files related to every session
+                                queried in your previous search. If you would like to refine your search before downloading,
+                                please cancel.
+                            </PopupDescription>
 
-        <br></br>
-        
-      </PopupHeader>
+                            <br></br>
 
-      <PopupTitle>Select Desired File Extensions:</PopupTitle>
-      
-      <Checkbox id="downloadCsv" checked={CsvChecked} onCheckedChange={(val) => SetCsvChecked(val === true)}/>
-            <label htmlFor="downloadCsv" className="text-sm font-medium leading-none"> CSV </label>
-    <br></br>
-      <Checkbox id="downloadEwb" checked={EwbChecked} onCheckedChange={(val) => SetEwbChecked(val === true)}/>
-            <label htmlFor="downloadEwb" className="text-sm font-medium leading-none"> EWB </label>
-      <br></br>
-      <Checkbox id="downloadGif" checked={GifChecked} onCheckedChange={(val) => SetGifChecked(val === true)}/>
-            <label htmlFor="downloadGif" className="text-sm font-medium leading-none"> GIF </label>
-        <br></br>
-        <Checkbox id="downloadJpg" checked={JpgChecked} onCheckedChange={(val) => SetJpgChecked(val === true)}/>
-            <label htmlFor="downloadJpg" className="text-sm font-medium leading-none"> JPG </label>
-        <br></br>
-        <Checkbox id="downloadMpg" checked={MpgChecked} onCheckedChange={(val) => SetMpgChecked(val === true)}/>
-            <label htmlFor="downloadMpg" className="text-sm font-medium leading-none"> MPG </label>
+                        </PopupHeader>
 
-      
-      <PopupFooter>
-        <Button
-          variant="secondary"
-          onClick={() => setOpen(false)}
-        >
-          Cancel
-        </Button>
-        <Button onClick={() => { fetchFiles(String(CsvChecked),String(EwbChecked), String(JpgChecked),String(MpgChecked),String(GifChecked));
+                        <PopupTitle>Select Desired File Extensions:</PopupTitle>
+
+                        <Checkbox id="downloadCsv" checked={CsvChecked} onCheckedChange={(val) => SetCsvChecked(val === true)} />
+                        <label htmlFor="downloadCsv" className="text-sm font-medium leading-none"> CSV </label>
+                        <br></br>
+                        <Checkbox id="downloadEwb" checked={EwbChecked} onCheckedChange={(val) => SetEwbChecked(val === true)} />
+                        <label htmlFor="downloadEwb" className="text-sm font-medium leading-none"> EWB </label>
+                        <br></br>
+                        <Checkbox id="downloadGif" checked={GifChecked} onCheckedChange={(val) => SetGifChecked(val === true)} />
+                        <label htmlFor="downloadGif" className="text-sm font-medium leading-none"> GIF </label>
+                        <br></br>
+                        <Checkbox id="downloadJpg" checked={JpgChecked} onCheckedChange={(val) => SetJpgChecked(val === true)} />
+                        <label htmlFor="downloadJpg" className="text-sm font-medium leading-none"> JPG </label>
+                        <br></br>
+                        <Checkbox id="downloadMpg" checked={MpgChecked} onCheckedChange={(val) => SetMpgChecked(val === true)} />
+                        <label htmlFor="downloadMpg" className="text-sm font-medium leading-none"> MPG </label>
+
+
+                        <PopupFooter>
+                            <Button
+                                variant="secondary"
+                                onClick={() => setOpen(false)}
+                            >
+                                Cancel
+                            </Button>
+                            <Button onClick={() => {
+                                fetchFiles(String(CsvChecked), String(EwbChecked), String(JpgChecked), String(MpgChecked), String(GifChecked));
                                 setOpen(false);
-                                }}>Download</Button>
-      </PopupFooter>
-    </PopupContent>
-  </Popup>
-          </div>
+                            }}>Download</Button>
+                        </PopupFooter>
+                    </PopupContent>
+                </Popup>
+            </div>
         </div>
 
-        
+
     );
 }
