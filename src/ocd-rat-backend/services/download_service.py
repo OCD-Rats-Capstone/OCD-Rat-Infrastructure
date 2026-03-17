@@ -7,6 +7,7 @@ import shutil
 import json
 import base64
 import math
+from services.summary_service import total_distance_for_session, total_checks_for_session
 
 def NLP_FileDownload(db_connection,file_types: list,job_id: str):
 
@@ -162,38 +163,40 @@ def single_smoothed_download(db_connection,session_id,job_id):
             df = pd.read_csv(os.path.join(temp_dir,temp_file_name),skiprows=skip)
             print(df)
 
-            #Calculate Distance travelled
-            X_values = df["X"].to_list()
-            Y_values = df["Y"].to_list()
-            print(df["X"])
-            print(df["Y"])
-            euclidian_dist = 0
+            # #Calculate Distance travelled
+            # X_values = df["X"].to_list()
+            # Y_values = df["Y"].to_list()
+            # print(df["X"])
+            # print(df["Y"])
+            # euclidian_dist = 0
 
-            for i in range (len(X_values)-1):
-                try:
+            # for i in range (len(X_values)-1):
+            #     try:
 
-                    #If next is invalid, don't update current value
-                    if (X_travel == -1 and Y_travel == -1):
-                        pass
-                    else:
-                        X_travel = abs(round(float(X_values[i]),2))
-                        Y_travel = abs(round(float(Y_values[i]),2))
+            #         #If next is invalid, don't update current value
+            #         if (X_travel == -1 and Y_travel == -1):
+            #             pass
+            #         else:
+            #             X_travel = abs(round(float(X_values[i]),2))
+            #             Y_travel = abs(round(float(Y_values[i]),2))
 
 
-                    #Try to get next value
-                    X_travel = abs(round(float(X_values[i+1]),2))
-                    Y_travel = abs(round(float(Y_values[i+1]),2))
+            #         #Try to get next value
+            #         X_travel = abs(round(float(X_values[i+1]),2))
+            #         Y_travel = abs(round(float(Y_values[i+1]),2))
 
-                    dist = math.sqrt(X_travel**2 + Y_travel**2)
-                    euclidian_dist+=dist
-                except Exception as e:
-                    X_travel = -1
-                    Y_travel = -1
+            #         dist = math.sqrt(X_travel**2 + Y_travel**2)
+            #         euclidian_dist+=dist
+            #     except Exception as e:
+            #         X_travel = -1
+            #         Y_travel = -1
                 
 
+            distance = total_distance_for_session(db_connection,session_id)
+            total_checks = total_checks_for_session(db_connection,session_id)
+            check_duration = total_checks_for_session(db_connection,session_id,measure="Length of Check")
 
-
-            df_show = df.head(5000)
+            df_show = df.iloc[::4]
             df_show = df_show.to_dict(orient="records")
 
             index = 0
@@ -207,7 +210,9 @@ def single_smoothed_download(db_connection,session_id,job_id):
 
             return {"status": "success",
                     "data": df_show,
-                    "distance": round(euclidian_dist,2),
+                    "distance": distance,
+                    "totalChecks": total_checks,
+                    "checkDuration": check_duration,
                     "imageData": img_base64,
                     "imageType": "image/gif"}
             
@@ -216,11 +221,15 @@ def single_smoothed_download(db_connection,session_id,job_id):
             return {"status":"Error",
                 "data": None,
                 "distance": None,
+                "totalChecks": None,
+                "checkDuration": None,
                 "imageData": None,
                 "imageType": None}
     else:
         return {"status":"No smoothed track file exists",
                 "data": None,
                 "distance": None,
+                "totalChecks": None,
+                "checkDuration": None,
                 "imageData": None,
                 "imageType": None}

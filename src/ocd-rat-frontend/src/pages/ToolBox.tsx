@@ -20,6 +20,8 @@ export function ToolBox() {
   const [sessionId, setSessionId] = useState("");
   const [datapoints, setDataPoints] = useState<Record<string, unknown>[] | null>(null);
   const [distance, setDistance] = useState(null);
+  const [totalChecks, settotalChecks] = useState(null);
+  const [checkDuration, setCheckDuration] = useState(null);
   const [PlotData, setPlotData] = useState<Point[]>([]);
   const [session, setSession] = useState(0);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -42,6 +44,8 @@ export function ToolBox() {
       console.log(resData)
       setDataPoints(resData["data"])
       setDistance(resData["distance"])
+      settotalChecks(resData["totalChecks"])
+      setCheckDuration(resData["checkDuration"])
       setImageData(`data:${resData["imageType"]};base64,${resData["imageData"]}`);
 
       if (resData["status"] == "success") {
@@ -155,7 +159,29 @@ export function ToolBox() {
               {distance}
             </p>
             <p className="text-sm text-muted-foreground mt-1">
-              centimeters
+              Meters
+            </p>
+          </Card>
+          <Card className="p-6 w-80 text-center shadow-md">
+            <h3 className="text-sm uppercase tracking-wide text-muted-foreground">
+              Total Number of Checks
+            </h3>
+            <p className="text-4xl font-extrabold mt-2">
+              {totalChecks}
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Checks
+            </p>
+          </Card>
+          <Card className="p-6 w-80 text-center shadow-md">
+            <h3 className="text-sm uppercase tracking-wide text-muted-foreground">
+              Average Check Time
+            </h3>
+            <p className="text-4xl font-extrabold mt-2">
+              {checkDuration}
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">
+              log(10) seconds
             </p>
           </Card>
         </div>

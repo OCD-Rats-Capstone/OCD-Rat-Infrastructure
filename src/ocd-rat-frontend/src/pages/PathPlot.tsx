@@ -147,18 +147,10 @@ const startDot = toSvg(points[0].x, points[0].y);
             />
           )}
 
-          <circle
-            cx={startDot.sx}
-            cy={startDot.sy}
-            r={4}
-            fill="#00ff99"
-            style={{ filter: "drop-shadow(0 0 5px #00ff99)" }}
-          />
-
           {current && (
             <g>
               <circle cx={current.sx} cy={current.sy} r={6} fill="none" stroke="#00c8ff" strokeWidth={1.5} opacity={0.4} />
-              <circle cx={current.sx} cy={current.sy} r={3} fill="#00c8ff" style={{ filter: "drop-shadow(0 0 6px #00c8ff)" }} />
+              <circle cx={current.sx} cy={current.sy} r={3} fill="#00ff99" style={{ filter: "drop-shadow(0 0 6px #00c8ff)" }} />
             </g>
           )}
         </svg>

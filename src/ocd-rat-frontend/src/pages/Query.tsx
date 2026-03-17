@@ -350,36 +350,36 @@ export function Query() {
 
             {sessions != null && (
                 <Card className="w-full max-w-4xl mt-4 overflow-hidden">
-    <div className="px-6 py-4 border-b">
-        <h3 className="text-lg font-semibold">Sessions</h3>
-        <p className="text-sm text-muted-foreground">{sessions.length} results found</p>
-    </div>
-                <TooltipProvider>
-                    <Card className="p-4 mt-4">
-                        <h3 className="font-semibold mb-3">Sessions ({sessions.length})</h3>
-                        <ScrollArea className="h-[300px] w-full rounded border">
-                            <ScrollBar orientation='horizontal' />
-                            <table className="w-max text-sm border-collapse">
-                                <thead>
-                                    <tr className="bg-muted sticky top-0">
-                                        {sessions.length > 0 && Object.keys(sessions[0]).map((k) => (
-                                            <th key={k} className="text-left py-2 px-3 font-medium">{k}</th>
-                                        ))}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {sessions.map((row, i) => (
-                                        <tr key={i} className="border-b">
-                                            {Object.values(row).map((v, j) => (
-                                                <td key={j} className="py-1.5 px-3">{String(v ?? '')}</td>
+                    <div className="px-6 py-4 border-b">
+                        <h3 className="text-lg font-semibold">Sessions</h3>
+                        <p className="text-sm text-muted-foreground">{sessions.length} results found</p>
+                    </div>
+                    <TooltipProvider>
+                        <Card className="p-4 mt-4">
+                            <h3 className="font-semibold mb-3">Sessions ({sessions.length})</h3>
+                            <ScrollArea className="h-[300px] w-full rounded border">
+                                <ScrollBar orientation='horizontal' />
+                                <table className="w-max text-sm border-collapse">
+                                    <thead>
+                                        <tr className="bg-muted sticky top-0">
+                                            {sessions.length > 0 && Object.keys(sessions[0]).map((k) => (
+                                                <th key={k} className="text-left py-2 px-3 font-medium">{k}</th>
                                             ))}
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </ScrollArea>
-                    </Card>
-                </TooltipProvider>
+                                    </thead>
+                                    <tbody>
+                                        {sessions.map((row, i) => (
+                                            <tr key={i} className="border-b">
+                                                {Object.values(row).map((v, j) => (
+                                                    <td key={j} className="py-1.5 px-3">{String(v ?? '')}</td>
+                                                ))}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </ScrollArea>
+                        </Card>
+                    </TooltipProvider>
                 </Card>
             )}
 
