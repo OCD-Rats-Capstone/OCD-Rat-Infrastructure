@@ -32,13 +32,21 @@ jobs:
                 if [ "${{ github.ref_name }}" == "main" ]; then
                   # Production: standard ports (80/443, 8000, 5433)
                   echo "Deploying PRODUCTION on ports 80/8000/5433..."
-                  docker compose down -v
+                  # Force remove containers, volumes, and images
+                  docker compose -f docker-compose.yml -f docker-compose.override.yml -p ocd-prod down -v
+                  docker image prune -f
+                  docker volume prune -f
+                  
                   docker compose -f docker-compose.yml -f docker-compose.override.yml -p ocd-prod build --no-cache
                   docker compose -f docker-compose.yml -f docker-compose.override.yml -p ocd-prod up -d
                 else
-                  # Staging: alternative ports (8080, 8001)
                   echo "Deploying STAGING on ports 8080/8001..."
-                  docker compose down -v
+                  
+                  # Force remove containers, volumes, and images
+                  docker compose -f docker-compose.yml -f docker-compose.dev.yml -p ocd-staging down -v
+                  docker image prune -f
+                  docker volume prune -f
+                  
                   docker compose -f docker-compose.yml -f docker-compose.dev.yml -p ocd-staging build --no-cache
                   docker compose -f docker-compose.yml -f docker-compose.dev.yml -p ocd-staging up -d
                 fi
