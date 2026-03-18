@@ -11,6 +11,7 @@ import zipfile
 from io import BytesIO
 import os
 import json
+import shutil
 
 router = APIRouter(prefix="/files", tags=["Files"])
 
@@ -93,19 +94,38 @@ async def get_status(job_id: str):
     return status
 
 @router.get("/serve/")
-def serve_files(job_id: str):
+def serve_files(job_id: str,
+                background_tasks: BackgroundTasks):
     try:
-        dir_path = "../FRDR_Files"
+        dir_path = "../FRDR_Files" + job_id
         file_name = "FRDR_Files_" + job_id + ".zip"
 
         zipped_dir = zip_directory_stream(dir_path)
 
-        return StreamingResponse(
+
+        response = StreamingResponse(
             zipped_dir,
             media_type="application/zip",
             headers={"Content-Disposition": f"attachment; filename={file_name}"}
         )
+
+        background_tasks.add_task(cleanup_files,job_id)
+        return response
     except Exception as e:
+        print(f"[FILES Router] Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    
+def cleanup_files(job_id: str):
+    try:
+        dir_path = "../FRDR_Files" + job_id
+
+        if not os.path.exists(dir_path):
+            return {"cleanup_status": "File not Found"}
+        else:
+            shutil.rmtree(dir_path)
+            return {"cleanup_status": "success"}
+    except Exception as e:
+
         print(f"[FILES Router] Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
