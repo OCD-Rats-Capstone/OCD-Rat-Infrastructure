@@ -32,6 +32,7 @@ class XAxisType(str, Enum):
     LIGHTING_CONDITION = "lighting_condition"
     TESTER = "tester"
     DRUG_COMPOUND = "drug_compound"
+    DRUG_COMBINATION = "drug_combination"
     BRAIN_REGION = "brain_region"
     MANIPULATION_TYPE = "manipulation_type"
 
@@ -81,7 +82,6 @@ class YAxisType(str, Enum):
     """Available Y-axis metrics for bar charts."""
     SESSION_COUNT = "session_count"
     UNIQUE_RATS = "unique_rats"
-    AVG_BODY_WEIGHT = "avg_body_weight"
     AVG_INJECTION_COUNT = "avg_injection_count"
 
 
@@ -89,7 +89,6 @@ class YAxisLineChartType(str, Enum):
     """Available Y-axis metrics for line charts."""
     SESSION_COUNT = "session_count"
     UNIQUE_RATS = "unique_rats"
-    AVG_BODY_WEIGHT = "avg_body_weight"
     AVG_INJECTION_COUNT = "avg_injection_count"
 
 
@@ -170,6 +169,13 @@ X_AXIS_REGISTRY: Dict[str, XAxisConfig] = {
         required_joins={"D1", "DRD", "DR"},  # Dependency chain: D1 <- DRD <- DR
         group_by_sql="COALESCE(D1.drug_name, 'No Drug')",
     ),
+    XAxisType.DRUG_COMBINATION.value: XAxisConfig(
+        id=XAxisType.DRUG_COMBINATION.value,
+        label="Drug Combination",
+        description="Group results by drug combinations with dosages",
+        required_joins={"DR"},  # Just need drug_rx table
+        group_by_sql="COALESCE(DR.rx_label, 'No Drug')",
+    ),
     XAxisType.BRAIN_REGION.value: XAxisConfig(
         id=XAxisType.BRAIN_REGION.value,
         label="Brain Region",
@@ -236,21 +242,13 @@ LINECHART_Y_AXIS_REGISTRY: Dict[str, YAxisConfig] = {
         required_joins=set(),
         aggregation_sql="COUNT(DISTINCT E1.rat_id)",
     ),
-    YAxisLineChartType.AVG_BODY_WEIGHT.value: YAxisConfig(
-        id=YAxisLineChartType.AVG_BODY_WEIGHT.value,
-        label="Average Body Weight",
-        description="Average body weight of rats",
-        unit="grams",
-        required_joins=set(),
-        aggregation_sql="COALESCE(ROUND(AVG(CAST(E1.body_weight_grams AS NUMERIC)), 2), 0)",
-    ),
     YAxisLineChartType.AVG_INJECTION_COUNT.value: YAxisConfig(
         id=YAxisLineChartType.AVG_INJECTION_COUNT.value,
-        label="Average Injection Count",
-        description="Average number of drug injections",
+        label="Injection Count",
+        description="Total number of drug injections",
         unit="count",
         required_joins=set(),
-        aggregation_sql="COALESCE(ROUND(AVG(CAST(E1.cumulative_drug_injection_number AS NUMERIC)), 2), 0)",
+        aggregation_sql="COALESCE(SUM(CAST(E1.cumulative_drug_injection_number AS NUMERIC)), 0)",
     ),
 }
 
@@ -271,21 +269,13 @@ Y_AXIS_REGISTRY: Dict[str, YAxisConfig] = {
         required_joins=set(),
         aggregation_sql="COUNT(DISTINCT E1.rat_id)",
     ),
-    YAxisType.AVG_BODY_WEIGHT.value: YAxisConfig(
-        id=YAxisType.AVG_BODY_WEIGHT.value,
-        label="Average Body Weight",
-        description="Average body weight of rats",
-        unit="grams",
-        required_joins=set(),
-        aggregation_sql="COALESCE(ROUND(AVG(CAST(E1.body_weight_grams AS NUMERIC)), 2), 0)",
-    ),
     YAxisType.AVG_INJECTION_COUNT.value: YAxisConfig(
         id=YAxisType.AVG_INJECTION_COUNT.value,
-        label="Average Injection Count",
-        description="Average number of drug injections",
+        label="Injection Count",
+        description="Total number of drug injections",
         unit="count",
         required_joins=set(),
-        aggregation_sql="COALESCE(ROUND(AVG(CAST(E1.cumulative_drug_injection_number AS NUMERIC)), 2), 0)",
+        aggregation_sql="COALESCE(SUM(CAST(E1.cumulative_drug_injection_number AS NUMERIC)), 0)",
     ),
 }
 
@@ -898,3 +888,141 @@ def _build_heatmap_query(
     """
     
     return query
+
+def get_dose_response_rats(db_connection, drug_name: str = None) -> Dict[str, Any]:
+    """
+    Get rats that have dose response curves for a specific drug.
+
+    Args:
+        db_connection: Database connection object
+        drug_name: Optional drug name to filter by (defaults to all drugs)
+
+    Returns:
+        Dictionary with:
+        - rats: List of rat IDs with dose response data
+        - drug_doses: Dictionary mapping rat_id to list of doses
+        - summary: Summary statistics
+    """
+    try:
+        cur = db_connection.cursor()
+
+        # Query to find rats with multiple doses of the same drug
+        query = """
+        SELECT
+            E1.rat_id,
+            D1.drug_name,
+            COUNT(DISTINCT E1.session_id) as session_count
+        FROM experimental_sessions E1
+        LEFT JOIN drug_rx DR ON DR.drug_rx_id = E1.drug_rx_id
+        LEFT JOIN drug_rx_details DRD ON DRD.drug_rx_id = DR.drug_rx_id
+        LEFT JOIN drugs D1 ON D1.drug_id = DRD.drug_id
+        WHERE D1.drug_name IS NOT NULL
+        """
+
+        if drug_name:
+            escaped_name = drug_name.replace("'", "''")
+            query += f" AND D1.drug_name = '{escaped_name}'"
+
+        query += """
+        GROUP BY E1.rat_id, D1.drug_name
+        HAVING COUNT(DISTINCT E1.session_id) > 1
+        ORDER BY E1.rat_id, D1.drug_name
+        """
+
+        cur.execute(query)
+        rows = cur.fetchall()
+        cur.close()
+
+        # Process results
+        rats_data = {}
+        for row in rows:
+            rat_id, drug, sessions = row
+            if rat_id not in rats_data:
+                rats_data[rat_id] = {
+                    'drugs': {}
+                }
+            if drug not in rats_data[rat_id]['drugs']:
+                rats_data[rat_id]['drugs'][drug] = {
+                    'total_sessions': 0,
+                    'doses': []  # Will be empty since we don't have dose data
+                }
+            rats_data[rat_id]['drugs'][drug]['total_sessions'] += sessions
+
+        return {
+            'rats': list(rats_data.keys()),
+            'rat_details': rats_data,
+            'total_rats': len(rats_data)
+        }
+
+    except Exception as e:
+        raise Exception(f"Failed to get dose response data: {str(e)}")
+
+
+def get_session_data_types(db_connection) -> Dict[str, Any]:
+    """
+    Get data types available for each session and file type counts.
+
+    Returns:
+        Dictionary with:
+        - file_type_counts: Count of sessions by file type combinations
+        - data_type_summary: Summary of data types per session
+        - sessions_with_data: List of sessions with their available data types
+    """
+    try:
+        cur = db_connection.cursor()
+
+        # Query session data files
+        query = """
+        SELECT
+            SDF.session_id,
+            SDF.file_type,
+            COUNT(*) as file_count
+        FROM session_data_files SDF
+        GROUP BY SDF.session_id, SDF.file_type
+        ORDER BY SDF.session_id, SDF.file_type
+        """
+
+        cur.execute(query)
+        rows = cur.fetchall()
+        cur.close()
+
+        # Process results
+        session_data = {}
+        file_type_combinations = {}
+
+        for row in rows:
+            session_id, file_type, count = row
+            if session_id not in session_data:
+                session_data[session_id] = {}
+            session_data[session_id][file_type] = count
+
+            # Track combinations
+            combo = tuple(sorted(session_data[session_id].keys()))
+            if combo not in file_type_combinations:
+                file_type_combinations[combo] = 0
+            file_type_combinations[combo] += 1
+
+        # Convert combinations to readable format
+        combination_summary = {}
+        for combo, count in file_type_combinations.items():
+            combo_str = " + ".join(combo) if combo else "No Data"
+            combination_summary[combo_str] = count
+
+        return {
+            'file_type_counts': combination_summary,
+            'sessions_with_data': session_data,
+            'total_sessions': len(session_data)
+        }
+
+    except Exception as e:
+        raise Exception(f"Failed to get session data types: {str(e)}")
+
+
+def get_quinprole_rats_detail(db_connection) -> Dict[str, Any]:
+    """
+    Get detailed information about rats treated with Quinprole.
+
+    Returns:
+        Dictionary with detailed Quinprole rat data
+    """
+    return get_dose_response_rats(db_connection, "Quinprole")
