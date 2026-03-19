@@ -16,6 +16,9 @@ from services.visualization_service import (
     generate_linechart_data,
     generate_heatmap_data,
     get_available_observation_codes,
+    get_dose_response_rats,
+    get_session_data_types,
+    get_quinprole_rats_detail,
     VisualizationType,
 )
 
@@ -278,6 +281,86 @@ async def generate_heatmap(
     except ValueError as e:
         # Validation errors (invalid x_axis, y_axis, metric, or same dimensions)
         raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        print(f"[Visualizations Router] Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/dose-response")
+async def get_dose_response(
+    drug_name: str = Query(None, description="Optional drug name to filter by (e.g., 'Quinprole')"),
+    db=Depends(get_db),
+):
+    """
+    Get rats that have dose response curves for a specific drug.
+    
+    Args:
+        drug_name: Optional drug name to filter results (defaults to all drugs)
+        
+    Returns:
+        Dictionary with dose response data:
+        {
+            "rats": [1, 2, 3],
+            "rat_details": {
+                "1": {
+                    "name": "Rat001",
+                    "drugs": {
+                        "Quinprole": [
+                            {"dose": 0.1, "sessions": 5},
+                            {"dose": 0.2, "sessions": 3}
+                        ]
+                    }
+                }
+            },
+            "total_rats": 3
+        }
+    """
+    try:
+        data = get_dose_response_rats(db, drug_name)
+        return data
+    except Exception as e:
+        print(f"[Visualizations Router] Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/data-types")
+async def get_data_types(db=Depends(get_db)):
+    """
+    Get data types available for each session and file type counts.
+    
+    Returns:
+        Dictionary with data type information:
+        {
+            "file_type_counts": {
+                "CSV + JSON": 45,
+                "CSV": 12,
+                "No Data": 3
+            },
+            "sessions_with_data": {
+                "1": {"CSV": 2, "JSON": 1},
+                "2": {"CSV": 1}
+            },
+            "total_sessions": 60
+        }
+    """
+    try:
+        data = get_session_data_types(db)
+        return data
+    except Exception as e:
+        print(f"[Visualizations Router] Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/quinprole-detail")
+async def get_quinprole_detail(db=Depends(get_db)):
+    """
+    Get detailed information about rats treated with Quinprole.
+    
+    Returns:
+        Dictionary with Quinprole-specific rat data (same format as dose-response)
+    """
+    try:
+        data = get_quinprole_rats_detail(db)
+        return data
     except Exception as e:
         print(f"[Visualizations Router] Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
