@@ -304,7 +304,7 @@ export function Inventory() {
 
       const baseUrl = (API_BASE_URL.replace(/\/$/, ''));
       const searchParams = new URLSearchParams(params).toString();
-      const status_searchParams = new URLSearchParams(params).toString();
+      const status_searchParams = new URLSearchParams(status_params).toString();
       const url = `${baseUrl}/files/?${searchParams}`;
       const serve_url = `${baseUrl}/files/serve/?${status_searchParams}`;
 
@@ -333,6 +333,8 @@ export function Inventory() {
       a.remove();
 
       SetDownloadVisible(false);
+
+
 
     } catch (error) {
       console.error("Error fetching data:", error);
