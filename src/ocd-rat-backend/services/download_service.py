@@ -192,9 +192,21 @@ def single_smoothed_download(db_connection,session_id,job_id):
             #         Y_travel = -1
                 
 
-            distance = total_distance_for_session(db_connection,session_id)
-            total_checks = total_checks_for_session(db_connection,session_id)
-            check_duration = total_checks_for_session(db_connection,session_id,measure="Length of Check")
+            try:
+                distance = total_distance_for_session(db_connection,session_id)
+            except Exception as e:
+                distance = "N/A"
+
+            try:
+                total_checks = total_checks_for_session(db_connection,session_id)
+            except Exception as e:
+                total_checks = "N/A"
+
+
+            try:
+                check_duration = total_checks_for_session(db_connection,session_id,measure="Length of Check")
+            except Exception as e:
+                check_duration = "N/A"
 
             df_show = df.iloc[::4]
             df_show = df_show.to_dict(orient="records")

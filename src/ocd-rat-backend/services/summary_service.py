@@ -15,23 +15,49 @@ measures = {
     "Length of Check": {"component_measure": "Length of check","measure_variable": "Duration of visit to key locale (log s)"}
 }
 
+def get_relevant_sessions(db_connection, input):
+    query = f"SELECT session_id FROM experimental_sessions WHERE session_id::text LIKE '{input}%';"
+
+    df = pd.read_sql_query(query,db_connection)
+
+    print(df)
+
+    df_list = df["session_id"].head(100).to_list()
+
+    print(df_list)
+
+    return df_list
+
 def total_distance_for_session(db_connection,session_id,measure="Distance Travelled"):
     
     query = f"SELECT measure_value FROM session_sm_locomotion WHERE session_id = {session_id}\
     AND component_measure = '{measures[measure]['component_measure']}' AND measure_variable = '{measures[measure]['measure_variable']}';"
 
-    distance = pd.read_sql_query(query, db_connection).squeeze()
+    
+    df = pd.read_sql_query(query, db_connection)
 
-    return distance
+    if (df.empty):
+        attribute = "N/A"
+    else:
+        attribute = df.squeeze()
+
+
+    return attribute
 
 def total_checks_for_session(db_connection,session_id,measure="Total Checking"):
     
     query = f"SELECT measure_value FROM session_sm_checking WHERE session_id = {session_id}\
     AND component_measure = '{measures[measure]['component_measure']}' AND measure_variable = '{measures[measure]['measure_variable']}';"
 
-    distance = pd.read_sql_query(query, db_connection).squeeze()
+    df = pd.read_sql_query(query, db_connection)
+    
+    if (df.empty):
+        attribute = "N/A"
+    else:
+        attribute = df.squeeze()
 
-    return distance
+
+    return attribute
 
 
 

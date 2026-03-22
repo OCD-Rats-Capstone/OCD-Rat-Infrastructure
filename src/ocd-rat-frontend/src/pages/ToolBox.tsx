@@ -6,7 +6,7 @@ import ChartImg from "@/assets/barchart.png";
 import LineChartImg from "@/assets/linechart.png";
 import { Link } from 'react-router-dom';
 import { API_BASE_URL } from '@/config';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { PathPlot } from "./PathPlot.tsx"
 
@@ -18,6 +18,8 @@ export function ToolBox() {
   }
 
   const [sessionId, setSessionId] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [datapoints, setDataPoints] = useState<Record<string, unknown>[] | null>(null);
   const [distance, setDistance] = useState(null);
   const [totalChecks, settotalChecks] = useState(null);
@@ -27,6 +29,25 @@ export function ToolBox() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageData, setImageData] = useState<string | null>(null);
   const [ResStatus, setResStatus] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [SessionOptions, setSessionOptions] = useState<number[]>([]);
+  const [ButtonDisabled, setButtonDisabled] = useState(false);
+
+
+  const filteredSessions = SessionOptions.filter((id) =>
+    String(id).includes(searchQuery)
+  );
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const select_analysis = async (session_id: string) => {
     try {
@@ -35,17 +56,19 @@ export function ToolBox() {
         session_id: session_id
       };
 
+      setButtonDisabled(true);
+
       const baseUrl = (API_BASE_URL.replace(/\/$/, ''));
       const searchParams = new URLSearchParams(params).toString();
       const url = `${baseUrl}/toolbox/session/?${searchParams}`;
 
       const response = await fetch(url);
       const resData = await response.json();
-      console.log(resData)
-      setDataPoints(resData["data"])
-      setDistance(resData["distance"])
-      settotalChecks(resData["totalChecks"])
-      setCheckDuration(resData["checkDuration"])
+      console.log(resData);
+      setDataPoints(resData["data"]);
+      setDistance(resData["distance"]);
+      settotalChecks(resData["totalChecks"]);
+      setCheckDuration(resData["checkDuration"]);
       setImageData(`data:${resData["imageType"]};base64,${resData["imageData"]}`);
 
       if (resData["status"] == "success") {
@@ -61,12 +84,40 @@ export function ToolBox() {
         y: row.Y,
       }));
 
-      setPlotData(pointsArray)
+      setPlotData(pointsArray);
 
     } catch (error) {
       console.error("Error fetching data:", error);
       throw error;
     }
+
+    setButtonDisabled(false);
+  }
+
+  const filter_dropdown = async (input: string) => {
+
+    try {
+
+      const params = {
+        input: input
+      };
+
+      const baseUrl = (API_BASE_URL.replace(/\/$/, ''));
+      const searchParams = new URLSearchParams(params).toString();
+      const url = `${baseUrl}/toolbox/dropdown/?${searchParams}`;
+
+      console.log("fetching")
+      const response = await fetch(url);
+      const resData = await response.json();
+      setSessionOptions(resData["data"]);
+
+      console.log(resData["data"])
+
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      throw error;
+    }
+
   }
 
   return (
@@ -83,20 +134,53 @@ export function ToolBox() {
       <Separator className="my-10 w-full" />
 
       <div className="flex flex-col sm:flex-row items-center gap-4 mt-8">
-        <input
-          type="text"
-          placeholder="Enter Session ID"
-          value={sessionId}
-          onChange={(e) => setSessionId(e.target.value)}
-          className="border rounded-md px-4 py-2 w-64"
-        />
+        <div className="relative w-64" ref={dropdownRef}>
+          <input
+            type="text"
+            placeholder="Search or select a session..."
+            value={dropdownOpen ? searchQuery : sessionId ? `${sessionId}` : ""}
+            onChange={(e) => {
+              filter_dropdown(e.target.value);
+              setSearchQuery(e.target.value);
+              setDropdownOpen(true);
+            }}
+            onFocus={() => {
+              setSearchQuery("");
+              setDropdownOpen(true);
+            }}
+            className="border rounded-md px-4 py-2 w-full cursor-pointer"
+          />
+          {dropdownOpen && (
+            <div className="absolute z-10 mt-1 w-full bg-background border rounded-md shadow-lg max-h-48 overflow-y-auto">
+              {filteredSessions.length > 0 ? (
+                filteredSessions.map((id) => (
+                  <div
+                    key={id}
+                    className="px-4 py-2 cursor-pointer hover:bg-muted text-sm"
+                    onMouseDown={() => {
+                      setSessionId(String(id));
+                      setSearchQuery("");
+                      setDropdownOpen(false);
+                    }}
+                  >
+                    {id}
+                  </div>
+                ))
+              ) : (
+                <div className="px-4 py-2 text-sm text-muted-foreground">No sessions found</div>
+              )}
+            </div>
+          )}
+        </div>
 
         <Button
           onClick={() => select_analysis(sessionId)}
-          disabled={!sessionId.trim()}
+          disabled={!sessionId.trim() || ButtonDisabled}
         >
           Load Session
         </Button>
+
+        {ButtonDisabled &&(<p className="text-muted-foreground text-sm animate-pulse">Loading . . .</p>)}
       </div>
 
       {datapoints != null && PlotData != null && ResStatus && (
