@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException,BackgroundTasks
 from fastapi.responses import StreamingResponse
 from core.database import get_db
 from services.nlp_service import execute_nlp_query
-from services.download_service import NLP_FileDownload, FILTERS_FileDownload, single_smoothed_download
+from services.download_service import NLP_FileDownload, FILTERS_FileDownload, single_smoothed_download, generate_distance
 from services.summary_service import get_relevant_sessions
 import zipfile
 from io import BytesIO
@@ -36,6 +36,17 @@ async def get_session(
     res = get_relevant_sessions(db,input)
 
     return ({"data": res})
+
+@router.get("/distance/")
+async def get_session(
+    input: str,
+    db=Depends(get_db)
+
+):
+
+    res = generate_distance(db,input,input)
+
+    return ({"total_distance": res})
 
 
 

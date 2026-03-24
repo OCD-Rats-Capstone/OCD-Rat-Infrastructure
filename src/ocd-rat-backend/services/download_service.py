@@ -112,6 +112,7 @@ def single_smoothed_download(db_connection,session_id,job_id):
     print(data)
     filtered_data = []
     filtered_jpg = []
+    filtered_smooth = []
 
     for item in data:
         if "https" not in str(item[0]):
@@ -126,9 +127,14 @@ def single_smoothed_download(db_connection,session_id,job_id):
         elif item[0] not in filtered_data and "gif" in item[0]:
             filtered_jpg.append(item[0])
             break
+    
+    for item in data:
+        if "https" not in str(item[0]):
+            pass
+        elif item[0] not in filtered_data and "smoothed.csv" in item[0]:
+            filtered_smooth.append(item[0])
+            break
 
-
-    print(filtered_data)
 
     if os.path.isdir(temp_dir):
          shutil.rmtree(temp_dir)
@@ -142,6 +148,9 @@ def single_smoothed_download(db_connection,session_id,job_id):
 
             temp_file_name_jpg = filtered_jpg[0].split('/')[-1]
             urlretrieve(filtered_jpg[0],os.path.join(temp_dir, temp_file_name_jpg))
+
+            temp_file_name_smoothed = filtered_smooth[0].split('/')[-1]
+            urlretrieve(filtered_smooth[0],os.path.join(temp_dir, temp_file_name_smoothed))
 
             image_url = os.path.join(temp_dir, temp_file_name_jpg)[2:]
 
@@ -161,35 +170,16 @@ def single_smoothed_download(db_connection,session_id,job_id):
                     
             
             df = pd.read_csv(os.path.join(temp_dir,temp_file_name),skiprows=skip)
+            df_smooth = pd.read_csv(os.path.join(temp_dir,temp_file_name_smoothed))
+
             print(df)
 
-            # #Calculate Distance travelled
-            # X_values = df["X"].to_list()
-            # Y_values = df["Y"].to_list()
-            # print(df["X"])
-            # print(df["Y"])
-            # euclidian_dist = 0
 
-            # for i in range (len(X_values)-1):
-            #     try:
+            points = df_smooth.iloc[:,[1,2]].astype(float).to_numpy()
 
-            #         #If next is invalid, don't update current value
-            #         if (X_travel == -1 and Y_travel == -1):
-            #             pass
-            #         else:
-            #             X_travel = abs(round(float(X_values[i]),2))
-            #             Y_travel = abs(round(float(Y_values[i]),2))
-
-
-            #         #Try to get next value
-            #         X_travel = abs(round(float(X_values[i+1]),2))
-            #         Y_travel = abs(round(float(Y_values[i+1]),2))
-
-            #         dist = math.sqrt(X_travel**2 + Y_travel**2)
-            #         euclidian_dist+=dist
-            #     except Exception as e:
-            #         X_travel = -1
-            #         Y_travel = -1
+            distances = np.sqrt(np.sum(np.diff(points,axis=0)**2, axis=1))
+            distances = np.round(distances,8)
+            total_distance = distances.sum()/100
                 
 
             try:
@@ -208,7 +198,15 @@ def single_smoothed_download(db_connection,session_id,job_id):
             except Exception as e:
                 check_duration = "N/A"
 
-            df_show = df.iloc[::4]
+            df_show = df.iloc[::4].copy()  # take every 4th row
+
+            # Convert columns to numeric, non-numeric become NaN
+            df_show['X'] = pd.to_numeric(df_show['X'], errors='coerce')
+            df_show['Y'] = pd.to_numeric(df_show['Y'], errors='coerce')
+
+            # Optional: drop rows where X or Y are NaN
+            df_show = df_show.dropna(subset=['X', 'Y'])
+
             df_show = df_show.to_dict(orient="records")
 
             index = 0
@@ -225,6 +223,7 @@ def single_smoothed_download(db_connection,session_id,job_id):
                     "distance": distance,
                     "totalChecks": total_checks,
                     "checkDuration": check_duration,
+                    "total_distance": total_distance,
                     "imageData": img_base64,
                     "imageType": "image/gif"}
             
@@ -235,6 +234,7 @@ def single_smoothed_download(db_connection,session_id,job_id):
                 "distance": None,
                 "totalChecks": None,
                 "checkDuration": None,
+                "total_distance":None,
                 "imageData": None,
                 "imageType": None}
     else:
@@ -243,5 +243,38 @@ def single_smoothed_download(db_connection,session_id,job_id):
                 "distance": None,
                 "totalChecks": None,
                 "checkDuration": None,
+                "total_distance":None,
                 "imageData": None,
                 "imageType": None}
+    
+def generate_distance(db_connection,session_id,job_id):
+
+    cnxn = db_connection
+    cursor = db_connection.cursor()
+    
+    temp_dir = "../media/Session_analysis" + job_id
+    url_query = "SELECT repo_file_url FROM data_file_locations " \
+    "LEFT OUTER JOIN session_data_files AS S1 ON S1.data_file_id = data_file_locations.data_file_id " \
+    "WHERE S1.session_id = " + session_id + " AND repo_file_url LIKE 'https%moothed.csv';"
+    cursor.execute(url_query)
+    data = cursor.fetchall()
+    filtered_smooth = [data[0][0]]
+
+ 
+    temp_file_name_smoothed = filtered_smooth[0].split('/')[-1]
+    urlretrieve(filtered_smooth[0],os.path.join(temp_dir, temp_file_name_smoothed))
+
+
+                    
+
+    df_smooth = pd.read_csv(os.path.join(temp_dir,temp_file_name_smoothed))
+
+
+    points = df_smooth.iloc[:,[1,2]].astype(float).to_numpy()
+
+    distances = np.sqrt(np.sum(np.diff(points,axis=0)**2, axis=1))
+    distances = np.round(distances,8)
+    total_distance = np.round(distances.sum()/100,8)
+                
+
+    return total_distance

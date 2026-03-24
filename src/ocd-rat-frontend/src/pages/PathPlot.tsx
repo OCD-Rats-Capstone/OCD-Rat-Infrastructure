@@ -28,12 +28,18 @@ const PLOT_H = H - PAD * 2;
 
 const xVals = points.map((p) => p.x);
 const yVals = points.map((p) => p.y);
-const MIN_X = Math.min(...xVals);
-const MAX_X = Math.max(...xVals);
-const MIN_Y = Math.min(...yVals);
-const MAX_Y = Math.max(...yVals);
+console.log(points);
+console.log(xVals);
+const MIN_X = xVals.reduce((a, b) => Math.min(a, b), Infinity);
+const MAX_X = xVals.reduce((a, b) => Math.max(a, b), -Infinity);
+const MIN_Y = yVals.reduce((a, b) => Math.min(a, b), Infinity);
+const MAX_Y = yVals.reduce((a, b) => Math.max(a, b), -Infinity);
+
+console.log(MIN_X);
+console.log(MAX_X);
 
 function toSvg(px: number, py: number): SvgPoint {
+
   return {
     sx: PAD + ((px - MIN_X) / (MAX_X - MIN_X)) * PLOT_W,
     sy: PAD + (1 - (py - MIN_Y) / (MAX_Y - MIN_Y)) * PLOT_H,

@@ -32,6 +32,7 @@ export function ToolBox() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [SessionOptions, setSessionOptions] = useState<number[]>([]);
   const [ButtonDisabled, setButtonDisabled] = useState(false);
+  const [isGenDistance, setIsGenDistance] = useState(false);
 
 
   const filteredSessions = SessionOptions.filter((id) =>
@@ -65,6 +66,7 @@ export function ToolBox() {
       const response = await fetch(url);
       const resData = await response.json();
       console.log(resData);
+      console.log(resData["distance_attempt"])
       setDataPoints(resData["data"]);
       setDistance(resData["distance"]);
       settotalChecks(resData["totalChecks"]);
@@ -88,10 +90,10 @@ export function ToolBox() {
 
     } catch (error) {
       console.error("Error fetching data:", error);
-      throw error;
-    }
+    }finally{
+      setButtonDisabled(false);
 
-    setButtonDisabled(false);
+    }
   }
 
   const filter_dropdown = async (input: string) => {
@@ -111,7 +113,6 @@ export function ToolBox() {
       const resData = await response.json();
       setSessionOptions(resData["data"]);
 
-      console.log(resData["data"])
 
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -120,11 +121,41 @@ export function ToolBox() {
 
   }
 
+  const create_distance = async () => {
+
+    setIsGenDistance(true);
+
+    try {
+
+      const params = {
+        input: String(session)
+      };
+
+      const baseUrl = (API_BASE_URL.replace(/\/$/, ''));
+      const searchParams = new URLSearchParams(params).toString();
+      const url = `${baseUrl}/toolbox/distance/?${searchParams}`;
+
+      const response = await fetch(url);
+      const resData = await response.json();
+
+      console.log(resData["total_distance"]);
+      setDistance(resData["total_distance"]);
+
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      throw error;
+    }finally{
+      setIsGenDistance(false);
+    }
+    
+
+  }
+
   return (
     <div className="flex flex-col justify-center items-center py-20 px-6 lg:px-40">
 
       <h1 className="scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance">
-        Analysis ToolBox
+        Analysis Toolbox
       </h1>
 
       <p className="text-muted-foreground text-xl mt-6 text-center max-w-2xl">
@@ -234,7 +265,7 @@ export function ToolBox() {
       )}
 
       {distance != null && ResStatus && (
-        <div className="flex justify-center mt-8 w-full">
+        <div className="flex justify-center flex-wrap gap-6 mt-8 w-full">
           <Card className="p-6 w-80 text-center shadow-md">
             <h3 className="text-sm uppercase tracking-wide text-muted-foreground">
               Distance Travelled
@@ -245,6 +276,12 @@ export function ToolBox() {
             <p className="text-sm text-muted-foreground mt-1">
               Meters
             </p>
+          {distance == "N/A" && <Button
+          className="mt-4 w-full"
+          onClick={() => create_distance()}
+          disabled={isGenDistance}>
+          Generate Distance?
+        </Button>}
           </Card>
           <Card className="p-6 w-80 text-center shadow-md">
             <h3 className="text-sm uppercase tracking-wide text-muted-foreground">
