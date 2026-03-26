@@ -230,7 +230,7 @@ export function ToolBox() {
       <thead>
         <tr className="bg-muted">
           {sessionInfo.length > 0 && Object.keys(sessionInfo[0]).map((k) => (
-            <th key={k} className="text-left py-1.5 px-3 font-medium">{k}</th>
+            <th key={k} className="text-left py-1.5 px-3 font-medium whitespace-nowrap">{k}</th>
           ))}
         </tr>
       </thead>

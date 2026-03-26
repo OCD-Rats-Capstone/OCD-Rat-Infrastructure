@@ -102,6 +102,25 @@ def single_smoothed_download(db_connection,session_id,job_id):
 
     try:
 
+        aliased_columns = {
+            "session_id": "Session ID",
+    "legacy_session_id": "Legacy Session ID",
+    "type_name": "Session Type",
+    "strain": "Rat Strainn",
+    "body_weight_grams": "Body Weight (Grams)",
+    "rx_label": "Drug Regiment Label",
+    "first_last_name": "Tester Name",
+    "surgery_type": "Surgery Type",
+    "apparatus_name": "Apparatus",
+    "pattern_description": "Apparatus Pattern",
+    "locale_in_room": "Locale In Room" ,
+    "room_name": "Room Name",
+    "testing_lights_on": "Lights On?",
+    "session_timestamp": "Time Stamp",
+    "data_trial_id": "Trial ID",
+    "cumulative_drug_injection_number": "Cumulative Drug Injection Number"
+        }
+
         cursor = db_connection.cursor()
         
         temp_dir = "../media/Session_analysis" + job_id
@@ -109,7 +128,21 @@ def single_smoothed_download(db_connection,session_id,job_id):
         "LEFT OUTER JOIN session_data_files AS S1 ON S1.data_file_id = data_file_locations.data_file_id " \
         "WHERE S1.session_id = %s;"
 
-        info_query = "SELECT * FROM experimental_sessions " \
+        info_query = "SELECT " \
+        "E.session_id, E.legacy_session_id, ST.type_name, " \
+        "R.strain, E.body_weight_grams, DX.rx_label, T.first_last_name, BM.surgery_type, " \
+        "A.apparatus_name, AP.pattern_description, E.locale_in_room, " \
+        "TR.room_name, E.testing_lights_on, " \
+        "E.session_timestamp, E.data_trial_id, " \
+        "E.cumulative_drug_injection_number  FROM experimental_sessions AS E " \
+        "LEFT JOIN session_types AS ST ON ST.session_type_id = E.session_type_id " \
+        "LEFT JOIN rats AS R ON R.rat_id = E.rat_id " \
+        "LEFT JOIN drug_rx AS DX ON DX.drug_rx_id = E.drug_rx_id " \
+        "LEFT JOIN testers AS T ON T.tester_id = E.tester_id " \
+        "LEFT JOIN brain_manipulations AS BM ON BM.manipulation_id = E.effective_manipulation_id " \
+        "LEFT JOIN apparatus_patterns AS AP ON AP.pattern_id = E.pattern_id " \
+        "LEFT JOIN apparatuses AS A ON A.apparatus_id = E.apparatus_id " \
+        "LEFT JOIN testing_rooms AS TR ON TR.room_id = E.room_id " \
         "WHERE session_id = %s;"
 
         cursor.execute(url_query,(session_id,))
@@ -126,6 +159,12 @@ def single_smoothed_download(db_connection,session_id,job_id):
         rows = cursor.fetchall()
         columns = [desc[0] for desc in cursor.description]
         df_info = [dict(zip(columns, row)) for row in rows]
+
+        df_info = pd.DataFrame(df_info)
+
+        df_info.rename(columns=aliased_columns,inplace=True)
+
+        df_info = json.loads(df_info.to_json(orient='records'))
         print(df_info)
 
         for item in data:
@@ -242,6 +281,8 @@ def single_smoothed_download(db_connection,session_id,job_id):
             
             df = df.iloc[index:]
 
+
+
             return {"status": "success",
                     "data": df_show,
                     "session_info": df_info,
@@ -273,26 +314,6 @@ def single_smoothed_download(db_connection,session_id,job_id):
                 "total_distance":None,
                 "imageData": None,
                 "imageType": None}
-    
-
-# CREATE TABLE public.session_sm_locomotion (
-#     sm_id integer NOT NULL,
-#     session_id integer NOT NULL,
-#     legacy_session_id character varying(7) NOT NULL,
-#     data_trial_id character varying(28),
-#     data_file_id integer,
-#     interval_start_min smallint DEFAULT 0 NOT NULL,
-#     interval_end_min smallint DEFAULT 55 NOT NULL,
-#     checking_component character varying(100),
-#     component_measure character varying(100),
-#     measure_variable character varying(255),
-#     variable_name character varying(100),
-#     measure_value double precision,
-#     source_file character varying(255),
-#     notes text
-# );
-
-#1	81070	0019932	Q18Hypx003_01_5_0003_0019932	118358	0	55	Routes of travel	Amount of locomotion	Total distance (m)	DST_m	232.1329512	Q18Hypx003_01_5_0003_0019932_SM_15locomotion.csv	\N
     
 def generate_distance(db_connection,session_id,job_id,legacySession,dataTrial):
 
