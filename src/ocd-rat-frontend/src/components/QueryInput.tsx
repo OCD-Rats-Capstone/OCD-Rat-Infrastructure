@@ -27,7 +27,7 @@ export function QueryInput({ onSendMessage }: QueryInputProps) {
         if (isDisabled) return;
         onSendMessage(message);
         setMessage("");
-        setTokenUsage(tokenUsage+1);
+        setTokenUsage(tokenUsage + 1);
     }
 
     const handleKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -53,8 +53,8 @@ export function QueryInput({ onSendMessage }: QueryInputProps) {
                     <IconPlus />
                 </InputGroupButton>
 
-                <InputGroupText className="ml-auto">Dummy Token Usage: {tokenUsage/100*100}%</InputGroupText>
-                <Separator orientation="vertical" className="!h-4" />
+                <InputGroupText className="ml-auto"></InputGroupText>
+
                 <InputGroupButton
                     variant="default"
                     className="rounded-full"
