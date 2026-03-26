@@ -35,6 +35,8 @@ const MAX_X = xVals.reduce((a, b) => Math.max(a, b), -Infinity);
 const MIN_Y = yVals.reduce((a, b) => Math.min(a, b), Infinity);
 const MAX_Y = yVals.reduce((a, b) => Math.max(a, b), -Infinity);
 
+const barRef = useRef<HTMLDivElement>(null);
+
 console.log(MIN_X);
 console.log(MAX_X);
 
@@ -87,9 +89,13 @@ const startDot = toSvg(points[0].x, points[0].y);
           setPlaying(false);
           return points.length;
         }
+        if (barRef.current) {
+          barRef.current.style.width = `${Math.min(next / points.length * 100, 100)}%`;
+        }
         return next;
       });
       rafRef.current = requestAnimationFrame(tick);
+      
     };
 
     rafRef.current = requestAnimationFrame(tick);
@@ -161,6 +167,24 @@ const startDot = toSvg(points[0].x, points[0].y);
           )}
         </svg>
       </div>
+
+<div style={{ width: "100%", margin: "20px 0 0" }}>
+  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 6, color: "#000000" }}>
+    <span>Trajectory Complete</span>
+    <span>{Math.round(visibleCount / points.length * 100)}%</span>
+  </div>
+  <div style={{ width: "100%", outline: "#000000", background: "#ffffff", borderRadius: 8, height: 10, overflow: "hidden" }}>
+    <div
+      ref={barRef}
+      style={{
+        height: "100%",
+        width: `${visibleCount / points.length * 100}%`,
+        background: "linear-gradient(90deg, #00c8ff, #00ff99)",
+        borderRadius: 8,
+      }}
+    />
+  </div>
+</div>
 
       <div style={{ display: "flex", gap: 12, marginTop: 18, alignItems: "center" }}>
         <button

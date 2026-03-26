@@ -100,46 +100,72 @@ def FRDR_download(cnxn,cursor,file_ids,file_exts,job_id):
 
 def single_smoothed_download(db_connection,session_id,job_id):
 
-    cnxn = db_connection
-    cursor = db_connection.cursor()
+    try:
+
+        cursor = db_connection.cursor()
+        
+        temp_dir = "../media/Session_analysis" + job_id
+        url_query = "SELECT repo_file_url FROM data_file_locations " \
+        "LEFT OUTER JOIN session_data_files AS S1 ON S1.data_file_id = data_file_locations.data_file_id " \
+        "WHERE S1.session_id = %s;"
+
+        info_query = "SELECT * FROM experimental_sessions " \
+        "WHERE session_id = %s;"
+
+        cursor.execute(url_query,(session_id,))
+        data = cursor.fetchall()
+
+        
+
+        print(data)
+        filtered_data = []
+        filtered_jpg = []
+        filtered_smooth = []
+
+        cursor.execute(info_query,(session_id,))
+        rows = cursor.fetchall()
+        columns = [desc[0] for desc in cursor.description]
+        df_info = [dict(zip(columns, row)) for row in rows]
+        print(df_info)
+
+        for item in data:
+            if "https" not in str(item[0]):
+                pass
+            elif item[0] not in filtered_data and "TrackFile.csv" in item[0]:
+                filtered_data.append(item[0])
+                break
+        
+        for item in data:
+            if "https" not in str(item[0]):
+                pass
+            elif item[0] not in filtered_data and "gif" in item[0]:
+                filtered_jpg.append(item[0])
+                break
+        
+        for item in data:
+            if "https" not in str(item[0]):
+                pass
+            elif item[0] not in filtered_data and "smoothed.csv" in item[0]:
+                filtered_smooth.append(item[0])
+                break
+
+
+        if os.path.isdir(temp_dir):
+            shutil.rmtree(temp_dir)
+
+        os.makedirs(temp_dir,exist_ok=True)
     
-    temp_dir = "../media/Session_analysis" + job_id
-    url_query = "SELECT repo_file_url FROM data_file_locations " \
-    "LEFT OUTER JOIN session_data_files AS S1 ON S1.data_file_id = data_file_locations.data_file_id " \
-    "WHERE S1.session_id = " + session_id + ";"
-    cursor.execute(url_query)
-    data = cursor.fetchall()
-    print(data)
-    filtered_data = []
-    filtered_jpg = []
-    filtered_smooth = []
-
-    for item in data:
-        if "https" not in str(item[0]):
-            pass
-        elif item[0] not in filtered_data and "TrackFile.csv" in item[0]:
-            filtered_data.append(item[0])
-            break
-    
-    for item in data:
-        if "https" not in str(item[0]):
-            pass
-        elif item[0] not in filtered_data and "gif" in item[0]:
-            filtered_jpg.append(item[0])
-            break
-    
-    for item in data:
-        if "https" not in str(item[0]):
-            pass
-        elif item[0] not in filtered_data and "smoothed.csv" in item[0]:
-            filtered_smooth.append(item[0])
-            break
-
-
-    if os.path.isdir(temp_dir):
-         shutil.rmtree(temp_dir)
-
-    os.makedirs(temp_dir,exist_ok=True)
+    except Exception as e:
+        print(f"Error Fetching data: {e}")
+        return {"status":"Error",
+                "data": None,
+                "session_info": None,
+                "distance": None,
+                "totalChecks": None,
+                "checkDuration": None,
+                "total_distance":None,
+                "imageData": None,
+                "imageType": None}
 
     if (len(filtered_data) > 0):
         try:
@@ -171,8 +197,6 @@ def single_smoothed_download(db_connection,session_id,job_id):
             
             df = pd.read_csv(os.path.join(temp_dir,temp_file_name),skiprows=skip)
             df_smooth = pd.read_csv(os.path.join(temp_dir,temp_file_name_smoothed))
-
-            print(df)
 
 
             points = df_smooth.iloc[:,[1,2]].astype(float).to_numpy()
@@ -220,6 +244,7 @@ def single_smoothed_download(db_connection,session_id,job_id):
 
             return {"status": "success",
                     "data": df_show,
+                    "session_info": df_info,
                     "distance": distance,
                     "totalChecks": total_checks,
                     "checkDuration": check_duration,
@@ -231,6 +256,7 @@ def single_smoothed_download(db_connection,session_id,job_id):
             print(f"Error Downloading File: {e}")
             return {"status":"Error",
                 "data": None,
+                "session_info": None,
                 "distance": None,
                 "totalChecks": None,
                 "checkDuration": None,
@@ -240,6 +266,7 @@ def single_smoothed_download(db_connection,session_id,job_id):
     else:
         return {"status":"No smoothed track file exists",
                 "data": None,
+                "session_info": None,
                 "distance": None,
                 "totalChecks": None,
                 "checkDuration": None,
@@ -247,34 +274,81 @@ def single_smoothed_download(db_connection,session_id,job_id):
                 "imageData": None,
                 "imageType": None}
     
-def generate_distance(db_connection,session_id,job_id):
 
-    cnxn = db_connection
-    cursor = db_connection.cursor()
+# CREATE TABLE public.session_sm_locomotion (
+#     sm_id integer NOT NULL,
+#     session_id integer NOT NULL,
+#     legacy_session_id character varying(7) NOT NULL,
+#     data_trial_id character varying(28),
+#     data_file_id integer,
+#     interval_start_min smallint DEFAULT 0 NOT NULL,
+#     interval_end_min smallint DEFAULT 55 NOT NULL,
+#     checking_component character varying(100),
+#     component_measure character varying(100),
+#     measure_variable character varying(255),
+#     variable_name character varying(100),
+#     measure_value double precision,
+#     source_file character varying(255),
+#     notes text
+# );
+
+#1	81070	0019932	Q18Hypx003_01_5_0003_0019932	118358	0	55	Routes of travel	Amount of locomotion	Total distance (m)	DST_m	232.1329512	Q18Hypx003_01_5_0003_0019932_SM_15locomotion.csv	\N
     
-    temp_dir = "../media/Session_analysis" + job_id
-    url_query = "SELECT repo_file_url FROM data_file_locations " \
-    "LEFT OUTER JOIN session_data_files AS S1 ON S1.data_file_id = data_file_locations.data_file_id " \
-    "WHERE S1.session_id = " + session_id + " AND repo_file_url LIKE 'https%moothed.csv';"
-    cursor.execute(url_query)
-    data = cursor.fetchall()
-    filtered_smooth = [data[0][0]]
+def generate_distance(db_connection,session_id,job_id,legacySession,dataTrial):
 
- 
-    temp_file_name_smoothed = filtered_smooth[0].split('/')[-1]
-    urlretrieve(filtered_smooth[0],os.path.join(temp_dir, temp_file_name_smoothed))
+    try:
+
+        cnxn = db_connection
+        cursor = db_connection.cursor()
+        
+        temp_dir = "../media/Session_analysis" + job_id
+        url_query = "SELECT repo_file_url, S1.data_file_id FROM data_file_locations " \
+        "LEFT OUTER JOIN session_data_files AS S1 ON S1.data_file_id = data_file_locations.data_file_id " \
+        "WHERE S1.session_id = " + session_id + " AND repo_file_url LIKE 'https%moothed.csv';"
+        cursor.execute(url_query)
+        data = cursor.fetchall()
+        print(data)
+        filtered_smooth = [data[0][0]]
+        file_id = data[0][1]
 
 
-                    
+    
+        temp_file_name_smoothed = filtered_smooth[0].split('/')[-1]
+        urlretrieve(filtered_smooth[0],os.path.join(temp_dir, temp_file_name_smoothed))
 
-    df_smooth = pd.read_csv(os.path.join(temp_dir,temp_file_name_smoothed))
+
+                        
+
+        df_smooth = pd.read_csv(os.path.join(temp_dir,temp_file_name_smoothed))
 
 
-    points = df_smooth.iloc[:,[1,2]].astype(float).to_numpy()
+        points = df_smooth.iloc[:,[1,2]].astype(float).to_numpy()
 
-    distances = np.sqrt(np.sum(np.diff(points,axis=0)**2, axis=1))
-    distances = np.round(distances,8)
-    total_distance = np.round(distances.sum()/100,8)
-                
+        distances = np.sqrt(np.sum(np.diff(points,axis=0)**2, axis=1))
+        distances = np.round(distances,8)
+        total_distance = np.round(distances.sum()/100,8)
 
-    return total_distance
+        sm_id_query = "SELECT COALESCE(MAX(sm_id), 0) + 1 FROM session_sm_locomotion;"
+        cursor.execute(sm_id_query)
+        sm_id = cursor.fetchone()[0]
+
+        insert_query = f"INSERT INTO session_sm_locomotion (sm_id, session_id, legacy_session_id, data_trial_id, data_file_id, checking_component," \
+        f"component_measure, measure_variable, variable_name, measure_value, source_file)"\
+        f"VALUES ({sm_id}, {session_id}, {legacySession}, '{dataTrial}', {file_id}, "\
+        f"'Routes of travel', 'Amount of locomotion', 'Total distance (m)', 'DST_m', 232.1329512, '{temp_file_name_smoothed}')"
+
+        cursor.execute(insert_query)
+
+        db_connection.commit()
+
+        print("Success: Data uploaded")
+
+        return total_distance
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return "N/A"
+
+
+
+            

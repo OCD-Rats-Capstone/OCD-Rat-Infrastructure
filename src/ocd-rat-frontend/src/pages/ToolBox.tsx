@@ -29,6 +29,7 @@ export function ToolBox() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageData, setImageData] = useState<string | null>(null);
   const [ResStatus, setResStatus] = useState(false);
+  const [sessionInfo, setSessionInfo] = useState<Record<string, unknown>[] | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [SessionOptions, setSessionOptions] = useState<number[]>([]);
   const [ButtonDisabled, setButtonDisabled] = useState(false);
@@ -72,6 +73,7 @@ export function ToolBox() {
       settotalChecks(resData["totalChecks"]);
       setCheckDuration(resData["checkDuration"]);
       setImageData(`data:${resData["imageType"]};base64,${resData["imageData"]}`);
+      setSessionInfo(resData["session_info"]);
 
       if (resData["status"] == "success") {
         setResStatus(true);
@@ -128,7 +130,9 @@ export function ToolBox() {
     try {
 
       const params = {
-        input: String(session)
+        input: String(session),
+        legacySession: String(sessionInfo?.[0]?.["legacy_session_id"]),
+        dataTrial: String(sessionInfo?.[0]?.["data_trial_id"])
       };
 
       const baseUrl = (API_BASE_URL.replace(/\/$/, ''));
@@ -214,46 +218,75 @@ export function ToolBox() {
         {ButtonDisabled &&(<p className="text-muted-foreground text-sm animate-pulse">Loading . . .</p>)}
       </div>
 
-      {datapoints != null && PlotData != null && ResStatus && (
-        <div className="flex flex-col lg:flex-row gap-6 mt-6 w-full justify-center">
+      {datapoints != null && sessionInfo!= null && PlotData != null && ResStatus && (
 
-          <Card className="p-4 mt-4">
-            <h3 className="font-semibold mb-3">Data Points ({datapoints.length})</h3>
-            <ScrollArea className="h-[500px] w-full rounded border">
-              <ScrollBar orientation='horizontal' />
-              <table className="w-max text-sm border-collapse">
-                <thead>
-                  <tr className="bg-muted sticky top-0">
-                    {datapoints.length > 0 && Object.keys(datapoints[0]).map((k) => (
-                      <th key={k} className="text-left py-2 px-3 font-medium">{k}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {datapoints.map((row, i) => (
-                    <tr key={i} className="border-b">
-                      {Object.values(row).map((v, j) => (
-                        <td key={j} className="py-1.5 px-3">{String(v ?? '')}</td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </ScrollArea>
-          </Card>
+        
+        
+        <div className="flex flex-col gap-6 mt-6 w-full">
 
-          <Card className="p-4 w-full lg:w-150 flex flex-col items-center justify-center">
-            <img
-              src={imageData || ""}
-              alt="Session Visualization"
-              className="w-full h-full rounded-md object-contain"
-            />
-          </Card>
+  <Card className="p-4 w-full overflow-x-auto">
+    <h3 className="font-semibold mb-3">Session Info ({sessionInfo.length})</h3>
+    <table className="w-full text-sm border-collapse">
+      <thead>
+        <tr className="bg-muted">
+          {sessionInfo.length > 0 && Object.keys(sessionInfo[0]).map((k) => (
+            <th key={k} className="text-left py-1.5 px-3 font-medium">{k}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {sessionInfo.map((row, i) => (
+          <tr key={i} className="border-b">
+            {Object.values(row).map((v, j) => (
+              <td key={j} className="py-1 px-3">{String(v ?? '')}</td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </Card>
 
-          <Card className="p-4">
-            <PathPlot points={PlotData} />
-          </Card>
-        </div>
+  <div className="flex flex-col lg:flex-row gap-6 w-full">
+
+    <Card className="p-4 flex-1">
+      <h3 className="font-semibold mb-3">Data Points ({datapoints.length})</h3>
+      <ScrollArea className="h-[500px] w-full rounded border">
+        <ScrollBar orientation="horizontal" />
+        <table className="w-max text-sm border-collapse">
+          <thead>
+            <tr className="bg-muted sticky top-0">
+              {datapoints.length > 0 && Object.keys(datapoints[0]).map((k) => (
+                <th key={k} className="text-left py-2 px-3 font-medium">{k}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {datapoints.map((row, i) => (
+              <tr key={i} className="border-b">
+                {Object.values(row).map((v, j) => (
+                  <td key={j} className="py-1.5 px-3">{String(v ?? '')}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </ScrollArea>
+    </Card>
+
+    <Card className="p-4 flex-1 flex items-center justify-center">
+      <img
+        src={imageData || ""}
+        alt="Session Visualization"
+        className="w-full h-full rounded-md object-contain"
+      />
+    </Card>
+
+    <Card className="p-4 flex-1">
+      <PathPlot points={PlotData} />
+    </Card>
+
+  </div>
+</div>
       )}
 
       {!ResStatus && session != 0 && (

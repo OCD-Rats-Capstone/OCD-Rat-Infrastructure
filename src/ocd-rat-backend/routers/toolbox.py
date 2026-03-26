@@ -40,11 +40,13 @@ async def get_session(
 @router.get("/distance/")
 async def get_session(
     input: str,
+    legacySession: str,
+    dataTrial: str,
     db=Depends(get_db)
 
 ):
 
-    res = generate_distance(db,input,input)
+    res = generate_distance(db,input,input,legacySession,dataTrial)
 
     return ({"total_distance": res})
 
