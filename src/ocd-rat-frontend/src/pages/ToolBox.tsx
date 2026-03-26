@@ -15,6 +15,7 @@ export function ToolBox() {
   interface Point {
     x: number;
     y: number;
+    t: number;
   }
 
   const [sessionId, setSessionId] = useState("");
@@ -86,6 +87,7 @@ export function ToolBox() {
       const pointsArray: Point[] = resData["data"].map((row: any) => ({
         x: row.X,
         y: row.Y,
+        t: Number(row.Time),
       }));
 
       setPlotData(pointsArray);

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import ChartImg from "@/assets/barchart.png";
 import LineChartImg from "@/assets/linechart.png";
+import MultiGraphImg from "@/assets/multigraph.png";
 import { Link } from 'react-router-dom';
 
 // Simple SVG heatmap icon
@@ -51,6 +52,12 @@ export function Visualizations() {
       desc: '2D categorical patterns revealing relationships between two dimensions.',
       href: '/visualizations/heatmap',
       svgIcon: true
+    },
+    {
+      img: MultiGraphImg,
+      title: 'Behavior Graph Dashboard',
+      desc: 'Loads 5 fixed toolbox queries and renders all five bar-graph panels on one page.',
+      href: '/visualizations/graph-query-dashboard'
     },
   ];
 

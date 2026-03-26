@@ -38,7 +38,7 @@ export function About() {
                     <ProfileSection
                         fullname="Henry Szechtman"
                         img={Henry}
-                        desc="A description of Dr. Szectchtman's work can go here. For now, dummy text is placed instead. Any relevant links or resources can also be placed here." />
+                        desc="Dr. Szechtman is a Professor Emeritus in the Department of Psychiatry and Behavioural Neurosciences at McMaster University. He is internationally recognized for his pioneering research into the neurobiology of Obsessive-Compulsive Disorder (OCD)." />
 
 
 
@@ -47,7 +47,7 @@ export function About() {
                     <ProfileSection
                         fullname="Anna Dvorkin-Gheva"
                         img={Anna}
-                        desc="A description of Dr. Dvorkin-Gheva's work can go here. For now, dummy text is placed instead. Any relevant links or resources can also be placed here."
+                        desc="Dr. Dvorkin-Gheva is an Assistant Professor (Adjunct) in the Department of Psychiatry and Behavioural Neurosciences at McMaster University and serves as the Director of the Bioinformatics Core."
 
                     />
 
@@ -72,7 +72,7 @@ export function About() {
 
 
                 <p className="text-muted-foreground text-sm text-center font-thin mt-12 ">
-                    RatBat 2 builds upon foundational work established by Capstone 2024/2025 team:
+                    InfraRAT builds upon foundational work established by Capstone 2024/2025 team:
                     Brandon Carrasco, Daniel Locke, Jamie Wong, Inoday Yadav.
 
                 </p>
