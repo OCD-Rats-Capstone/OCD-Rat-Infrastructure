@@ -403,11 +403,15 @@ export function SpatialHeatmap() {
 
   }, [heatmapData, binSize, homeBase, markedObjects, metric, maxValue, customMax, effectiveMax]);
 
+
+  
   return (
-    <div className="flex flex-col justify-center items-center py-20 px-6 lg:px-40">
-      <h1 className="scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance mb-8">
-        Spatial Heatmap
-      </h1>
+    <div className="flex flex-col justify-center items-center py-10 px-6 lg:px-40">
+      <h1 className="text-4xl font-bold text-gray-900 mb-2 self-start">Spatial Heatmap</h1>
+          <p className="text-lg text-gray-600 pt-1 pb-7 self-start">
+            Rat trajectory heatmaps showing spatial patterns in movement data.
+          </p>
+      
 
       <div className="flex flex-col lg:flex-row gap-6 w-full max-w-7xl">
 
