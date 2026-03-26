@@ -116,7 +116,7 @@ export function Filter() {
               <div className="flex-1">
                 <label className="text-sm font-medium">Field</label>
                 <Input
-                  placeholder="e.g., id, age, trial_type"
+                  placeholder="e.g., id, age, distance_travelled, total_checking"
                   value={filter.field}
                   onChange={(e) => updateFilter(filter.id, 'field', e.target.value)}
                   className="mt-1"
@@ -194,6 +194,7 @@ export function Filter() {
         <p className="font-semibold mb-2">Tips:</p>
         <ul className="list-disc list-inside space-y-1">
           <li>Enter field names to filter by (e.g., id, age, temperature)</li>
+          <li><strong>New Summary Measures:</strong> You can now use <code>distance_travelled</code>, <code>total_checking</code>, and <code>length_of_check</code> as fields.</li>
           <li>Choose an operator: equals (=), greater than (&gt;), less than (&lt;), greater or equal (&gt;=), or less or equal (&lt;=)</li>
           <li>Add multiple filters to refine your search</li>
           <li>Click Apply Filters to execute the query</li>

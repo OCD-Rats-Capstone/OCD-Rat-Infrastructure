@@ -47,10 +47,30 @@ class AskRequest(BaseModel):
 # --- Inventory API ---
 
 
+class SummaryMeasureFilter(BaseModel):
+    """
+    A single summary-measure threshold filter for inventory queries.
+    field must be one of the recognised summary-measure pseudo-fields
+    (e.g. distance_travelled, total_checking, length_of_check).
+    """
+    id: str
+    field: str
+    operator: Literal["equal", "gte", "lte", "gt", "lt"]
+    value: str
+
+    @field_validator("field")
+    @classmethod
+    def validate_field(cls, v: str) -> str:
+        if not v.replace("_", "").isalnum():
+            raise ValueError("Field name must be alphanumeric (underscores allowed)")
+        return v
+
+
 class InventoryCountsRequest(BaseModel):
     """
     Filter set for inventory counts. All provided filters are ANDed.
     drug_ids: regimens that contain ALL of these drugs (combination).
+    summary_measure_filters: optional list of threshold filters on session_sm_* tables.
     """
     drug_ids: list[int] | None = None
     file_type_ids: list[int] | None = None
@@ -62,6 +82,7 @@ class InventoryCountsRequest(BaseModel):
     surgery_type: str | None = None  # e.g. Lesion, Sham, Unoperated
     target_region_id: int | None = None
     room_id: int | None = None
+    summary_measure_filters: list[SummaryMeasureFilter] | None = None
 
 
 class DataTypeCount(BaseModel):

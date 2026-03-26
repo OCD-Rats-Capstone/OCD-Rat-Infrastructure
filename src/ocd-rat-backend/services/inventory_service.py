@@ -17,11 +17,48 @@ from schemas.query import (
 )
 
 
+def _require_summary_tables_for_filters(req: InventoryCountsRequest, db_connection) -> None:
+    """If summary measure filters are present, validate required tables exist."""
+    required_tables = []
+    if req.summary_measure_filters:
+        # 'distance_travelled' uses session_sm_locomotion, others use session_sm_checking
+        for sm_filter in req.summary_measure_filters:
+            if sm_filter.field == 'distance_travelled':
+                required_tables.append('session_sm_locomotion')
+            elif sm_filter.field in ('total_checking', 'length_of_check'):
+                required_tables.append('session_sm_checking')
+            else:
+                # Let SQL or validation handle unknown fields
+                continue
+
+    required_tables = sorted(set(required_tables))
+    if not required_tables:
+        return
+
+    cursor = db_connection.cursor()
+    try:
+        placeholders = ','.join(['%s'] * len(required_tables))
+        cursor.execute(
+            f"SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ({placeholders})",
+            required_tables,
+        )
+        existing = {row[0] for row in cursor.fetchall()}
+        missing = [t for t in required_tables if t not in existing]
+        if missing:
+            raise RuntimeError(
+                f"Summary measure filter requires missing table(s): {', '.join(missing)}. "
+                "Please create these tables before using summary_measure_filters."
+            )
+    finally:
+        cursor.close()
+
+
 def get_inventory_counts(req: InventoryCountsRequest, db_connection) -> InventoryCountsResponse:
     """
     Return counts per data type for sessions matching the filter set.
     All provided filters are ANDed. drug_ids means regimen must contain ALL listed drugs.
     """
+    _require_summary_tables_for_filters(req, db_connection)
     sql_cte, params = _build_filtered_sessions_sql(req)
     sql_filtered = sql_cte
     sql_counts = """
@@ -64,6 +101,9 @@ def _build_filtered_sessions_sql(req: InventoryCountsRequest) -> tuple[str, list
     """Build CTE for filtered sessions. Returns (sql_cte_string, params)."""
     conditions: list[str] = ["1=1"]
     params: list[Any] = []
+
+    # Import the summary-measure mapping and SQL operators from filter_service
+    from services.filter_service import SUMMARY_MEASURE_FILTERS, OPERATORS
 
     if req.drug_ids:
         placeholders = ",".join(["%s"] * len(req.drug_ids))
@@ -120,6 +160,29 @@ def _build_filtered_sessions_sql(req: InventoryCountsRequest) -> tuple[str, list
         conditions.append("BM.target_region_id = %s")
         params.append(req.target_region_id)
 
+    # --- Summary measure threshold filters ---
+    if req.summary_measure_filters:
+        for sm_filter in req.summary_measure_filters:
+            sm_def = SUMMARY_MEASURE_FILTERS.get(sm_filter.field)
+            if not sm_def:
+                raise ValueError(
+                    f"Unknown summary measure field: {sm_filter.field}. "
+                    f"Valid fields: {', '.join(SUMMARY_MEASURE_FILTERS.keys())}"
+                )
+            sql_op = OPERATORS.get(sm_filter.operator)
+            if not sql_op:
+                raise ValueError(f"Unknown operator: {sm_filter.operator}")
+
+            table = sm_def["table"]
+            cond = sm_def["condition"]
+            subquery = (
+                f"EXISTS (SELECT 1 FROM {table} sm "
+                f"WHERE sm.session_id = E.session_id AND {cond} "
+                f"AND sm.measure_value {sql_op} %s)"
+            )
+            conditions.append(subquery)
+            params.append(sm_filter.value)
+
     where_sql = " AND ".join(conditions)
     brain_join = ""
     if req.surgery_type is not None or req.target_region_id is not None:
@@ -145,6 +208,7 @@ def get_inventory_sessions(
     Return session list (session_id, legacy_session_id, session_timestamp, rat_id, etc.)
     for sessions matching the same filter set as counts. Capped at limit for performance.
     """
+    _require_summary_tables_for_filters(req, db_connection)
     limit = min(limit, INVENTORY_SESSIONS_LIMIT)
     sql_cte, params = _build_filtered_sessions_sql(req)
     params.append(limit)

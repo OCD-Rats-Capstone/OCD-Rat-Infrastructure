@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -18,7 +19,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Info } from 'lucide-react';
+import { Info, Trash2, Plus } from 'lucide-react';
 import { API_BASE_URL } from '@/config';
 import {
   Popup,
@@ -62,7 +63,29 @@ export interface InventoryFilters {
   surgery_type: string | null;
   target_region_id: number | null;
   room_id: number | null;
+  summary_measure_filters: SummaryMeasureFilterItem[];
 }
+
+export interface SummaryMeasureFilterItem {
+  id: string;
+  field: string;
+  operator: string;
+  value: string;
+}
+
+const SUMMARY_MEASURE_OPTIONS = [
+  { value: 'distance_travelled', label: 'Distance Travelled' },
+  { value: 'total_checking', label: 'Total Checking' },
+  { value: 'length_of_check', label: 'Length of Check' },
+];
+
+const OPERATOR_OPTIONS = [
+  { value: 'gt', label: '>' },
+  { value: 'lt', label: '<' },
+  { value: 'equal', label: '=' },
+  { value: 'gte', label: '>=' },
+  { value: 'lte', label: '<=' },
+];
 
 const COLORS = ['#3b82f6', '#22c55e', '#eab308', '#ef4444', '#8b5cf6', '#06b6d4'];
 
@@ -76,6 +99,7 @@ export function Inventory() {
     surgery_type: null,
     target_region_id: null,
     room_id: null,
+    summary_measure_filters: [],
   });
   const [loading, setLoading] = useState(false);
   const [optionsLoading, setOptionsLoading] = useState(true);
@@ -97,6 +121,30 @@ export function Inventory() {
   const [open, setOpen] = useState(false);
   const [DownloadVisible, SetDownloadVisible] = useState(false);
   const togglePopup = () => setOpen((prev) => !prev);
+
+  const addSummaryFilter = () => {
+    setFilters((prev) => ({
+      ...prev,
+      summary_measure_filters: [
+        ...prev.summary_measure_filters,
+        { id: Math.random().toString(36).substr(2, 9), field: 'distance_travelled', operator: 'gt', value: '' },
+      ],
+    }));
+  };
+
+  const removeSummaryFilter = (id: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      summary_measure_filters: prev.summary_measure_filters.filter((f) => f.id !== id),
+    }));
+  };
+
+  const updateSummaryFilter = (id: string, key: keyof SummaryMeasureFilterItem, val: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      summary_measure_filters: prev.summary_measure_filters.map((f) => (f.id === id ? { ...f, [key]: val } : f)),
+    }));
+  };
 
   useEffect(() => {
     const base = API_BASE_URL.replace(/\/$/, '');
@@ -124,6 +172,7 @@ export function Inventory() {
         surgery_type: null,
         target_region_id: null,
         room_id: null,
+        summary_measure_filters: [],
       });
     } else {
       setSelectedDrugIds(new Set());
@@ -135,6 +184,7 @@ export function Inventory() {
         surgery_type: 'Unoperated',
         target_region_id: null,
         room_id: null,
+        summary_measure_filters: [],
       });
     }
     fetch(`${base}/inventory/counts`, {
@@ -163,6 +213,8 @@ export function Inventory() {
     if (filters.surgery_type != null && filters.surgery_type !== '') body.surgery_type = filters.surgery_type;
     if (filters.target_region_id != null) body.target_region_id = filters.target_region_id;
     if (filters.room_id != null) body.room_id = filters.room_id;
+    const activeSM = filters.summary_measure_filters.filter((f) => f.field && f.value);
+    if (activeSM.length > 0) body.summary_measure_filters = activeSM;
     return body;
   };
 
@@ -200,6 +252,7 @@ export function Inventory() {
       surgery_type: null,
       target_region_id: null,
       room_id: null,
+      summary_measure_filters: [],
     });
     setResult(null);
     setSessions(null);
@@ -543,6 +596,65 @@ export function Inventory() {
                             ))}
                           </SelectContent>
                         </Select>
+                      </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="summary_measures">
+                      <AccordionTrigger>Summary Measures</AccordionTrigger>
+                      <AccordionContent>
+                        <p className="text-xs text-muted-foreground mb-2">
+                          Filter sessions by summary measure thresholds (e.g. distance &gt; 10).
+                        </p>
+                        <div className="space-y-3">
+                          {filters.summary_measure_filters.map((sf) => (
+                            <div key={sf.id} className="flex flex-col gap-1.5 p-2 border rounded-md bg-muted/30">
+                              <div className="flex items-center gap-1.5">
+                                <Select value={sf.field} onValueChange={(v) => updateSummaryFilter(sf.id, 'field', v)}>
+                                  <SelectTrigger className="flex-1 h-8 text-xs">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {SUMMARY_MEASURE_OPTIONS.map((o) => (
+                                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <button
+                                  onClick={() => removeSummaryFilter(sf.id)}
+                                  className="p-1 hover:bg-red-100 rounded text-red-600 hover:text-red-700"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <Select value={sf.operator} onValueChange={(v) => updateSummaryFilter(sf.id, 'operator', v)}>
+                                  <SelectTrigger className="w-16 h-8 text-xs">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {OPERATOR_OPTIONS.map((o) => (
+                                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <Input
+                                  type="number"
+                                  placeholder="Value"
+                                  value={sf.value}
+                                  onChange={(e) => updateSummaryFilter(sf.id, 'value', e.target.value)}
+                                  className="flex-1 h-8 text-xs"
+                                />
+                              </div>
+                            </div>
+                          ))}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full flex items-center gap-1 text-xs"
+                            onClick={addSummaryFilter}
+                          >
+                            <Plus className="w-3.5 h-3.5" /> Add Measure Filter
+                          </Button>
+                        </div>
                       </AccordionContent>
                     </AccordionItem>
                   </Accordion>
