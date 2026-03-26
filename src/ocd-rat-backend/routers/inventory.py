@@ -20,9 +20,6 @@ async def inventory_counts(request: InventoryCountsRequest, db=Depends(get_db)):
     """
     try:
         return get_inventory_counts(request, db)
-    except RuntimeError as e:
-        print(f"[Inventory Router] Missing Summary Measure Tables: {e}")
-        raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
         print(f"[Inventory Router] Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -37,9 +34,6 @@ async def list_sessions(request: InventoryCountsRequest, db=Depends(get_db)):
     try:
         sessions = get_inventory_sessions(request, db)
         return sessions
-    except RuntimeError as e:
-        print(f"[Inventory Router] Missing Summary Measure Tables: {e}")
-        raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
         print(f"[Inventory Router] sessions Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
