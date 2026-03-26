@@ -4,6 +4,7 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  ErrorBar,
   Legend,
   ResponsiveContainer,
   Tooltip,
@@ -19,6 +20,8 @@ type GraphRow = {
   chronic_regimen: string;
   inj8_mean: number | string | null;
   inj10_mean: number | string | null;
+  inj8_sem?: number | string | null;
+  inj10_sem?: number | string | null;
   inj8_n?: number | string | null;
   inj10_n?: number | string | null;
 };
@@ -141,6 +144,8 @@ export function GraphQueryDashboard() {
                 group: `${row.brain_status} | ${row.chronic_regimen}`,
                 inj8Mean: toNumberOrNull(row.inj8_mean),
                 inj10Mean: toNumberOrNull(row.inj10_mean),
+                inj8Sem: toNumberOrNull(row.inj8_sem),
+                inj10Sem: toNumberOrNull(row.inj10_sem),
                 inj8N: toNumberOrNull(row.inj8_n),
                 inj10N: toNumberOrNull(row.inj10_n),
               }));
@@ -162,10 +167,14 @@ export function GraphQueryDashboard() {
                         <Tooltip
                           formatter={(value, name, item) => {
                             const label = name === 'inj8Mean' ? 'Inj 8 Mean' : 'Inj 10 Mean';
+                            const semKey = name === 'inj8Mean' ? 'inj8Sem' : 'inj10Sem';
                             const nKey = name === 'inj8Mean' ? 'inj8N' : 'inj10N';
+                            const semValue = item?.payload?.[semKey];
                             const nValue = item?.payload?.[nKey];
                             if (typeof value === 'number') {
-                              return [`${value.toFixed(3)}${nValue ? ` (n=${nValue})` : ''}`, label];
+                              const semPart = typeof semValue === 'number' ? ` ± ${semValue.toFixed(3)} SEM` : '';
+                              const nPart = nValue ? ` (n=${nValue})` : '';
+                              return [`${value.toFixed(3)}${semPart}${nPart}`, label];
                             }
                             return [String(value), label];
                           }}
@@ -173,8 +182,12 @@ export function GraphQueryDashboard() {
                         <Legend
                           formatter={(value) => (value === 'inj8Mean' ? 'Inj 8 Mean' : 'Inj 10 Mean')}
                         />
-                        <Bar dataKey="inj8Mean" fill="#0ea5e9" radius={[4, 4, 0, 0]} />
-                        <Bar dataKey="inj10Mean" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="inj8Mean" fill="#0ea5e9" radius={[4, 4, 0, 0]}>
+                          <ErrorBar dataKey="inj8Sem" width={6} strokeWidth={2} stroke="#0369a1" />
+                        </Bar>
+                        <Bar dataKey="inj10Mean" fill="#f59e0b" radius={[4, 4, 0, 0]}>
+                          <ErrorBar dataKey="inj10Sem" width={6} strokeWidth={2} stroke="#b45309" />
+                        </Bar>
                       </BarChart>
                     </ResponsiveContainer>
                   </CardContent>
