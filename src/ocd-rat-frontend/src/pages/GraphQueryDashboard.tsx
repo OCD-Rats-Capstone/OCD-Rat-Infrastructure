@@ -78,6 +78,79 @@ const toNumberOrNull = (value: number | string | null | undefined) => {
   return Number.isFinite(parsed) ? parsed : null;
 };
 
+const roundUpNice = (value: number) => {
+  if (value <= 0) {
+    return 1;
+  }
+
+  const magnitude = 10 ** Math.floor(Math.log10(value));
+  const normalized = value / magnitude;
+
+  if (normalized <= 1) {
+    return magnitude;
+  }
+  if (normalized <= 2) {
+    return 2 * magnitude;
+  }
+  if (normalized <= 5) {
+    return 5 * magnitude;
+  }
+
+  return 10 * magnitude;
+};
+
+const roundDownNice = (value: number) => {
+  if (value <= 0) {
+    return 0;
+  }
+
+  const magnitude = 10 ** Math.floor(Math.log10(value));
+  const normalized = value / magnitude;
+
+  if (normalized >= 5) {
+    return 5 * magnitude;
+  }
+  if (normalized >= 2) {
+    return 2 * magnitude;
+  }
+  if (normalized >= 1) {
+    return magnitude;
+  }
+
+  return 0;
+};
+
+const getYAxisDomain = (data: ChartPoint[], series: SeriesMeta[]): [number, number] => {
+  const values = data.flatMap((point) =>
+    series.flatMap((entry) => {
+      const mean = point[entry.meanKey];
+      const sem = point[entry.semKey];
+
+      if (typeof mean !== 'number') {
+        return [] as number[];
+      }
+
+      const semValue = typeof sem === 'number' ? sem : 0;
+      return [Math.max(0, mean - semValue), mean + semValue];
+    })
+  );
+
+  if (values.length === 0) {
+    return [0, 1];
+  }
+
+  const minValue = Math.min(...values);
+  const maxValue = Math.max(...values);
+  const range = Math.max(maxValue - minValue, maxValue * 0.2, 0.25);
+  const topPadding = range * 0.18;
+  const bottomPadding = range * 0.08;
+
+  const lower = roundDownNice(Math.max(0, minValue - bottomPadding));
+  const upper = roundUpNice(maxValue + topPadding);
+
+  return upper > lower ? [lower, upper] : [0, roundUpNice(maxValue + 1)];
+};
+
 const buildChartModel = (rows: GraphRow[], panelId: number) => {
   const groups = Array.from(new Set(rows.map((row) => row.brain_status)));
   const regimens = Array.from(new Set(rows.map((row) => row.chronic_regimen)));
@@ -110,7 +183,11 @@ const buildChartModel = (rows: GraphRow[], panelId: number) => {
     return point;
   });
 
-  return { data, series };
+  return {
+    data,
+    series,
+    yDomain: getYAxisDomain(data, series),
+  };
 };
 
 export function GraphQueryDashboard() {
@@ -234,7 +311,7 @@ export function GraphQueryDashboard() {
               </defs>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="group" interval={0} height={40} />
-              <YAxis />
+              <YAxis domain={model.yDomain} tickCount={5} />
               <Tooltip
                 formatter={(value, name, item) => {
                   const series = model.series.find((entry) => entry.meanKey === name);
