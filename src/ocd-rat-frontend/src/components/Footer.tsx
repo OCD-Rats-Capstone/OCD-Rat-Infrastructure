@@ -7,13 +7,13 @@ const Footer = () => {
             <div className="flex justify-between text-muted-foreground text-sm">
 
                 <ol className="">
-                    <li>RatBat 2 v0.1</li>
+                    <li>InfraRAT v1.0</li>
 
                 </ol>
 
                 <p className="text-muted-foreground text-sm">SFWRENG 4G06 2025-2026</p>
                 <ol className="">
-                    <li className="flex  items-center gap-1 "> <a href="https://www.frdr-dfdr.ca/repo/collection/szechtmanlab">Szectman Lab  </a>
+                    <li className="flex  items-center gap-1 "> <a href="https://www.frdr-dfdr.ca/repo/collection/szechtmanlab">Szectman Lab Collection  </a>
                         <ExternalLink size={15} />
                     </li>
                     <li className="flex justify-end  items-center gap-1 "> <a href="https://www.frdr-dfdr.ca/repo/">FRDR</a>

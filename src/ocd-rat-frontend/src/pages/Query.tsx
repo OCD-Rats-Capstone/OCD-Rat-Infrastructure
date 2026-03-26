@@ -34,6 +34,15 @@ interface SqlMessage {
 
 type Message = TextMessage | SqlMessage;
 
+const formatMessageText = (text: string) => {
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, i) => {
+        if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
+            return <strong key={i} className="font-bold">{part.slice(2, -2)}</strong>;
+        }
+        return <React.Fragment key={i}>{part}</React.Fragment>;
+    });
+};
 
 export function Query() {
 
@@ -246,7 +255,7 @@ export function Query() {
 
     return (
 
-        <div className="flex flex-col h-full items-center px-4 lg:px-40 relative">
+        <div className="flex flex-col flex-1 w-full h-full items-center px-4 lg:px-40 relative min-h-0">
 
             {showIntroMessage &&
                 (
@@ -262,7 +271,7 @@ export function Query() {
             }
 
             <div className="flex-1 w-full overflow-hidden min-h-0 max-w-4xl">
-                <ScrollArea className="h-[calc(100vh-150px)] w-full">
+                <ScrollArea className="h-full w-full">
                     <div className="p-4 space-y-4">
                         {messages.map((message) => (
                             <div
@@ -271,13 +280,13 @@ export function Query() {
                             >
                                 {message.type === 'text' ? (
                                     <div
-                                        className={`text-sm rounded-3xl px-4 py-2 max-w-[70%] break-words
+                                        className={`text-sm rounded-3xl px-4 py-2 max-w-[70%] break-words whitespace-pre-wrap
                                             ${message.sender === "user"
                                                 ? "bg-slate-500 text-white"
                                                 : "bg-slate-200 text-black"
                                             }`}
                                     >
-                                        {message.text}
+                                        {formatMessageText(message.text)}
                                     </div>
                                 ) : (
                                     <ChatSqlResult
