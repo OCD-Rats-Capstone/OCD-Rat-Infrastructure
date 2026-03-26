@@ -354,7 +354,7 @@ def generate_distance(db_connection,session_id,job_id,legacySession,dataTrial):
         sm_id = cursor.fetchone()[0]
 
         insert_query = f"INSERT INTO session_sm_locomotion (sm_id, session_id, legacy_session_id, data_trial_id, data_file_id, checking_component," \
-        f"component_measure, measure_variable, variable_name, measure_value, source_file)"\
+        f"component_measure, measure_variable, variable_name, measure_value, source_file) "\
         f"VALUES ({sm_id}, {session_id}, {legacySession}, '{dataTrial}', {file_id}, "\
         f"'Routes of travel', 'Amount of locomotion', 'Total distance (m)', 'DST_m', 232.1329512, '{temp_file_name_smoothed}')"
 

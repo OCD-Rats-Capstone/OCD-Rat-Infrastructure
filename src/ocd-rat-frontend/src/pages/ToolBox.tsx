@@ -133,8 +133,8 @@ export function ToolBox() {
 
       const params = {
         input: String(session),
-        legacySession: String(sessionInfo?.[0]?.["legacy_session_id"]),
-        dataTrial: String(sessionInfo?.[0]?.["data_trial_id"])
+        legacySession: String(sessionInfo?.[0]?.["Legacy Session ID"]),
+        dataTrial: String(sessionInfo?.[0]?.["Trial ID"])
       };
 
       const baseUrl = (API_BASE_URL.replace(/\/$/, ''));

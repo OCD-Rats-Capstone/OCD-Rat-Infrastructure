@@ -16,7 +16,7 @@ interface SvgPoint {
 }
 
 interface PathPlotProps {
-  points: Point[]; 
+  points: Point[];
 }
 
 export function PathPlot({ points }: PathPlotProps) {
@@ -26,27 +26,22 @@ export function PathPlot({ points }: PathPlotProps) {
   const PLOT_W = W - PAD * 2;
   const PLOT_H = H - PAD * 2;
 
-const xVals = points.map((p) => p.x);
-const yVals = points.map((p) => p.y);
-console.log(points);
-console.log(xVals);
-const MIN_X = xVals.reduce((a, b) => Math.min(a, b), Infinity);
-const MAX_X = xVals.reduce((a, b) => Math.max(a, b), -Infinity);
-const MIN_Y = yVals.reduce((a, b) => Math.min(a, b), Infinity);
-const MAX_Y = yVals.reduce((a, b) => Math.max(a, b), -Infinity);
+  const xVals = points.map((p) => p.x);
+  const yVals = points.map((p) => p.y);
+  const MIN_X = xVals.reduce((a, b) => Math.min(a, b), Infinity);
+  const MAX_X = xVals.reduce((a, b) => Math.max(a, b), -Infinity);
+  const MIN_Y = yVals.reduce((a, b) => Math.min(a, b), Infinity);
+  const MAX_Y = yVals.reduce((a, b) => Math.max(a, b), -Infinity);
 
-const barRef = useRef<HTMLDivElement>(null);
+  const barRef = useRef<HTMLDivElement>(null);
 
-console.log(MIN_X);
-console.log(MAX_X);
+  function toSvg(px: number, py: number) {
 
-function toSvg(px: number, py: number): SvgPoint {
-
-  return {
-    sx: PAD + ((px - MIN_X) / (MAX_X - MIN_X)) * PLOT_W,
-    sy: PAD + (1 - (py - MIN_Y) / (MAX_Y - MIN_Y)) * PLOT_H,
-  };
-}
+    return {
+      sx: PAD + ((px - MIN_X) / (MAX_X - MIN_X)) * PLOT_W,
+      sy: PAD + (1 - (py - MIN_Y) / (MAX_Y - MIN_Y)) * PLOT_H,
+    };
+  }
 
   // 2. Timeline State
   const minTime = points.length > 0 ? points[0].t : 0;
@@ -63,7 +58,7 @@ function toSvg(px: number, py: number): SvgPoint {
   // 3. Process Velocity and Color Mapping
   const segments = useMemo(() => {
     if (points.length < 2) return [];
-    
+
     const processed = [];
     let maxV = 0;
 
@@ -139,20 +134,17 @@ function toSvg(px: number, py: number): SvgPoint {
       accRef.current += dt * speed * 0.05;
       const steps = Math.floor(accRef.current);
       accRef.current -= steps;
-      
+
       setVisibleCount((c) => {
         const next = c + steps;
         if (next >= activeSegments.length) {
           setPlaying(false);
           return activeSegments.length;
         }
-        if (barRef.current) {
-          barRef.current.style.width = `${Math.min(next / points.length * 100, 100)}%`;
-        }
         return next;
       });
       rafRef.current = requestAnimationFrame(tick);
-      
+
     };
 
     rafRef.current = requestAnimationFrame(tick);
@@ -179,7 +171,7 @@ function toSvg(px: number, py: number): SvgPoint {
   // Grab the current point for the glowing dot
   const current: SvgPoint | null =
     visibleCount > 0 && activeSegments.length > 0
-      ? activeSegments[visibleCount - 1] 
+      ? activeSegments[visibleCount - 1]
       : null;
 
   if (points.length === 0) return null;
@@ -187,7 +179,7 @@ function toSvg(px: number, py: number): SvgPoint {
   return (
     <div>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap');`}</style>
-      
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <h2
           style={{
@@ -217,7 +209,7 @@ function toSvg(px: number, py: number): SvgPoint {
 
           {/* Render Active Velocity Segments */}
           {activeSegments.slice(0, visibleCount).map((pt, i, arr) => {
-            if (i === arr.length - 1) return null; 
+            if (i === arr.length - 1) return null;
             const nextPt = arr[i + 1];
             return (
               <line
@@ -288,15 +280,33 @@ function toSvg(px: number, py: number): SvgPoint {
         </button>
       </div>
 
-      {/* Timeline Controls */}
       <div style={{ marginTop: 20, background: "#f8fafc", padding: "16px", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontWeight: 600, color: "#1e2d40", marginBottom: 12 }}>
+        <div style={{
+          display: "flex", justifyContent: "space-between", fontSize: 12, fontWeight: 600,
+          color: "#1e2d40",
+          marginBottom: 12
+        }}>
           <span>Start: {timeRange[0].toFixed(1)}s</span>
           <span style={{ color: "#64748b", textTransform: 'uppercase', letterSpacing: '0.05em' }}>Timeline Window</span>
           <span>End: {timeRange[1].toFixed(1)}s</span>
         </div>
-        
+
+        <style>{`
+    .progress-slider [data-slot="slider-track"] {
+      background: linear-gradient(to right,
+      #ffffff ${((timeRange[0] - minTime) / (maxTime - minTime)) * 100}%, 
+      #3b82f6 ${((timeRange[0] - minTime) / (maxTime - minTime)) * 100}%, 
+      #3b82f6 ${(((timeRange[0] - minTime) / (maxTime - minTime)) * 100) + ((((timeRange[1] - minTime) / (maxTime - minTime)) * 100) - (((timeRange[0] - minTime) / (maxTime - minTime)) * 100)) * (visibleCount / activeSegments.length)}%, 
+      #ffffff${(((timeRange[0] - minTime) / (maxTime - minTime)) * 100) + ((((timeRange[1] - minTime) / (maxTime - minTime)) * 100) - (((timeRange[0] - minTime) / (maxTime - minTime)) * 100)) * (visibleCount / activeSegments.length)}%, 
+      #ffffff ${((timeRange[1] - minTime) / (maxTime - minTime)) * 100}%);
+    }
+    .progress-slider [data-slot="slider-range"] {
+      display: none;
+    }
+  `}</style>
+
         <Slider
+          className="progress-slider"
           min={minTime}
           max={maxTime}
           step={0.1}
