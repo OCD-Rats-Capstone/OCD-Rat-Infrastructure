@@ -26,20 +26,27 @@ export function PathPlot({ points }: PathPlotProps) {
   const PLOT_W = W - PAD * 2;
   const PLOT_H = H - PAD * 2;
 
-  // 1. Setup global bounds so the grid doesn't shrink when timeline scrubbing
-  const xVals = points.map((p) => p.x);
-  const yVals = points.map((p) => p.y);
-  const MIN_X = Math.min(...xVals);
-  const MAX_X = Math.max(...xVals);
-  const MIN_Y = Math.min(...yVals);
-  const MAX_Y = Math.max(...yVals);
+const xVals = points.map((p) => p.x);
+const yVals = points.map((p) => p.y);
+console.log(points);
+console.log(xVals);
+const MIN_X = xVals.reduce((a, b) => Math.min(a, b), Infinity);
+const MAX_X = xVals.reduce((a, b) => Math.max(a, b), -Infinity);
+const MIN_Y = yVals.reduce((a, b) => Math.min(a, b), Infinity);
+const MAX_Y = yVals.reduce((a, b) => Math.max(a, b), -Infinity);
 
-  function toSvg(px: number, py: number) {
-    return {
-      sx: PAD + ((px - MIN_X) / (MAX_X - MIN_X)) * PLOT_W,
-      sy: PAD + (1 - (py - MIN_Y) / (MAX_Y - MIN_Y)) * PLOT_H,
-    };
-  }
+const barRef = useRef<HTMLDivElement>(null);
+
+console.log(MIN_X);
+console.log(MAX_X);
+
+function toSvg(px: number, py: number): SvgPoint {
+
+  return {
+    sx: PAD + ((px - MIN_X) / (MAX_X - MIN_X)) * PLOT_W,
+    sy: PAD + (1 - (py - MIN_Y) / (MAX_Y - MIN_Y)) * PLOT_H,
+  };
+}
 
   // 2. Timeline State
   const minTime = points.length > 0 ? points[0].t : 0;
@@ -139,9 +146,13 @@ export function PathPlot({ points }: PathPlotProps) {
           setPlaying(false);
           return activeSegments.length;
         }
+        if (barRef.current) {
+          barRef.current.style.width = `${Math.min(next / points.length * 100, 100)}%`;
+        }
         return next;
       });
       rafRef.current = requestAnimationFrame(tick);
+      
     };
 
     rafRef.current = requestAnimationFrame(tick);
