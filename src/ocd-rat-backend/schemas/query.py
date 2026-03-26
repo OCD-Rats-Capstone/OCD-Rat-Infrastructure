@@ -29,9 +29,17 @@ class FilterItem(BaseModel):
     @classmethod
     def validate_field(cls, v: str) -> str:
         """Ensure field name doesn't contain SQL injection characters."""
-        if not v.replace("_", "").isalnum():
-            raise ValueError("Field name must be alphanumeric (underscores allowed)")
-        return v
+        clean = v.strip()
+        if not clean:
+            raise ValueError("Field name cannot be empty")
+
+        # We only allow characters that are safe to use as an identifier once we map/normalize
+        # server-side (e.g. session summary measures may include spaces like "Distance Travelled").
+        for ch in clean:
+            if not (ch.isalnum() or ch in {"_", " "}):
+                raise ValueError("Field name may only contain letters, digits, spaces, and underscores")
+
+        return clean
 
 
 class FilterRequest(BaseModel):
@@ -62,6 +70,15 @@ class InventoryCountsRequest(BaseModel):
     surgery_type: str | None = None  # e.g. Lesion, Sham, Unoperated
     target_region_id: int | None = None
     room_id: int | None = None
+
+    # --- Session summary measures (optional numeric filters) ---
+    # These correspond to measure_value in session_sm_* tables.
+    distance_travelled_min: float | None = None
+    distance_travelled_max: float | None = None
+    total_checking_min: float | None = None
+    total_checking_max: float | None = None
+    length_of_check_min: float | None = None
+    length_of_check_max: float | None = None
 
 
 class DataTypeCount(BaseModel):

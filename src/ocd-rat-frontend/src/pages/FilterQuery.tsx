@@ -23,6 +23,21 @@ export function Filter() {
   const [results, setResults] = useState<unknown[]>([]);
 
   const operators: Array<'>' | '=' | '<' | '>=' | '<='> = ['>', '=', '<', '>=', '<='];
+  const fieldSuggestions = [
+    // Base session fields (if your data includes them)
+    'id',
+    'rat',
+    'tester',
+    'apparatus',
+    'room',
+    // Summary measures
+    'distance_travelled',
+    'Distance Travelled',
+    'total_checking',
+    'Total Checking',
+    'length_of_check',
+    'Length of Check',
+  ];
 
   const addFilter = () => {
     const newId = Math.random().toString(36).substr(2, 9);
@@ -111,12 +126,18 @@ export function Filter() {
 
       <Card className="w-full max-w-2xl p-6">
         <div className="space-y-4">
+          <datalist id="field-suggestions">
+            {fieldSuggestions.map((f) => (
+              <option key={f} value={f} />
+            ))}
+          </datalist>
           {filters.map((filter) => (
             <div key={filter.id} className="flex gap-3 items-end">
               <div className="flex-1">
                 <label className="text-sm font-medium">Field</label>
                 <Input
                   placeholder="e.g., id, age, trial_type"
+                  list="field-suggestions"
                   value={filter.field}
                   onChange={(e) => updateFilter(filter.id, 'field', e.target.value)}
                   className="mt-1"
@@ -194,6 +215,7 @@ export function Filter() {
         <p className="font-semibold mb-2">Tips:</p>
         <ul className="list-disc list-inside space-y-1">
           <li>Enter field names to filter by (e.g., id, age, temperature)</li>
+          <li>You can also filter on summary measures (type/select): Distance Travelled, Total Checking, Length of Check</li>
           <li>Choose an operator: equals (=), greater than (&gt;), less than (&lt;), greater or equal (&gt;=), or less or equal (&lt;=)</li>
           <li>Add multiple filters to refine your search</li>
           <li>Click Apply Filters to execute the query</li>

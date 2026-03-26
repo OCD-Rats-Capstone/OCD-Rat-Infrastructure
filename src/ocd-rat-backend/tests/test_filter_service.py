@@ -65,6 +65,18 @@ class TestBuildWhereClause:
         clause, _ = _build_where_clause([f])
         assert "E1.rat_id" in clause
 
+    def test_summary_measure_field_subquery(self):
+        f = FilterItem(id="1", field="Distance Travelled", operator="gt", value="50")
+        clause, params = _build_where_clause([f])
+        assert "distance_travelled" in clause
+        assert params == ["50"]
+
+    def test_summary_measure_field_snake_case(self):
+        f = FilterItem(id="1", field="distance_travelled", operator="gte", value="100")
+        clause, params = _build_where_clause([f])
+        assert "distance_travelled" in clause
+        assert params == ["100"]
+
     def test_unmapped_field_defaults_to_e1(self):
         f = FilterItem(id="1", field="body_weight_grams", operator="gt", value="100")
         clause, _ = _build_where_clause([f])

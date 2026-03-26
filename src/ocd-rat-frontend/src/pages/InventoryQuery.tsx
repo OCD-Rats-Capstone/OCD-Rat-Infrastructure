@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -62,6 +63,12 @@ export interface InventoryFilters {
   surgery_type: string | null;
   target_region_id: number | null;
   room_id: number | null;
+  distance_travelled_min: string;
+  distance_travelled_max: string;
+  total_checking_min: string;
+  total_checking_max: string;
+  length_of_check_min: string;
+  length_of_check_max: string;
 }
 
 const COLORS = ['#3b82f6', '#22c55e', '#eab308', '#ef4444', '#8b5cf6', '#06b6d4'];
@@ -76,6 +83,12 @@ export function Inventory() {
     surgery_type: null,
     target_region_id: null,
     room_id: null,
+    distance_travelled_min: '',
+    distance_travelled_max: '',
+    total_checking_min: '',
+    total_checking_max: '',
+    length_of_check_min: '',
+    length_of_check_max: '',
   });
   const [loading, setLoading] = useState(false);
   const [optionsLoading, setOptionsLoading] = useState(true);
@@ -163,6 +176,27 @@ export function Inventory() {
     if (filters.surgery_type != null && filters.surgery_type !== '') body.surgery_type = filters.surgery_type;
     if (filters.target_region_id != null) body.target_region_id = filters.target_region_id;
     if (filters.room_id != null) body.room_id = filters.room_id;
+
+    const toNum = (s: string) => {
+      const t = s.trim();
+      if (!t) return null;
+      const n = Number(t);
+      return Number.isFinite(n) ? n : null;
+    };
+
+    const dMin = toNum(filters.distance_travelled_min);
+    const dMax = toNum(filters.distance_travelled_max);
+    const cMin = toNum(filters.total_checking_min);
+    const cMax = toNum(filters.total_checking_max);
+    const lMin = toNum(filters.length_of_check_min);
+    const lMax = toNum(filters.length_of_check_max);
+    if (dMin != null) body.distance_travelled_min = dMin;
+    if (dMax != null) body.distance_travelled_max = dMax;
+    if (cMin != null) body.total_checking_min = cMin;
+    if (cMax != null) body.total_checking_max = cMax;
+    if (lMin != null) body.length_of_check_min = lMin;
+    if (lMax != null) body.length_of_check_max = lMax;
+
     return body;
   };
 
@@ -200,6 +234,12 @@ export function Inventory() {
       surgery_type: null,
       target_region_id: null,
       room_id: null,
+      distance_travelled_min: '',
+      distance_travelled_max: '',
+      total_checking_min: '',
+      total_checking_max: '',
+      length_of_check_min: '',
+      length_of_check_max: '',
     });
     setResult(null);
     setSessions(null);
@@ -543,6 +583,71 @@ export function Inventory() {
                             ))}
                           </SelectContent>
                         </Select>
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem value="summary_measures">
+                      <AccordionTrigger>Summary measures</AccordionTrigger>
+                      <AccordionContent className="space-y-4">
+                        <div className="space-y-2">
+                          <p className="text-xs text-muted-foreground">
+                            Filter sessions by summary measures (min/max). Leave blank for no constraint.
+                          </p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Distance travelled (m)</label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <Input
+                              placeholder="Min"
+                              inputMode="decimal"
+                              value={filters.distance_travelled_min}
+                              onChange={(e) => setFilters((f) => ({ ...f, distance_travelled_min: e.target.value }))}
+                            />
+                            <Input
+                              placeholder="Max"
+                              inputMode="decimal"
+                              value={filters.distance_travelled_max}
+                              onChange={(e) => setFilters((f) => ({ ...f, distance_travelled_max: e.target.value }))}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Total checking (returns #)</label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <Input
+                              placeholder="Min"
+                              inputMode="decimal"
+                              value={filters.total_checking_min}
+                              onChange={(e) => setFilters((f) => ({ ...f, total_checking_min: e.target.value }))}
+                            />
+                            <Input
+                              placeholder="Max"
+                              inputMode="decimal"
+                              value={filters.total_checking_max}
+                              onChange={(e) => setFilters((f) => ({ ...f, total_checking_max: e.target.value }))}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Length of check (log s)</label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <Input
+                              placeholder="Min"
+                              inputMode="decimal"
+                              value={filters.length_of_check_min}
+                              onChange={(e) => setFilters((f) => ({ ...f, length_of_check_min: e.target.value }))}
+                            />
+                            <Input
+                              placeholder="Max"
+                              inputMode="decimal"
+                              value={filters.length_of_check_max}
+                              onChange={(e) => setFilters((f) => ({ ...f, length_of_check_max: e.target.value }))}
+                            />
+                          </div>
+                        </div>
                       </AccordionContent>
                     </AccordionItem>
                   </Accordion>

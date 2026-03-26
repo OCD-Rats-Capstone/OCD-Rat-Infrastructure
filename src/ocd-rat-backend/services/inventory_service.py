@@ -64,6 +64,7 @@ def _build_filtered_sessions_sql(req: InventoryCountsRequest) -> tuple[str, list
     """Build CTE for filtered sessions. Returns (sql_cte_string, params)."""
     conditions: list[str] = ["1=1"]
     params: list[Any] = []
+    sm_joins: list[str] = []
 
     if req.drug_ids:
         placeholders = ",".join(["%s"] * len(req.drug_ids))
@@ -120,16 +121,69 @@ def _build_filtered_sessions_sql(req: InventoryCountsRequest) -> tuple[str, list
         conditions.append("BM.target_region_id = %s")
         params.append(req.target_region_id)
 
+    # --- Summary measures ---
+    # Only join these tables if any summary-measure filter is used.
+    uses_distance = req.distance_travelled_min is not None or req.distance_travelled_max is not None
+    uses_total_checking = req.total_checking_min is not None or req.total_checking_max is not None
+    uses_length_of_check = req.length_of_check_min is not None or req.length_of_check_max is not None
+
+    if uses_distance:
+        sm_joins.append(
+            """LEFT JOIN session_sm_locomotion SML
+               ON SML.session_id = E.session_id
+              AND SML.component_measure = 'Amount of locomotion'
+              AND SML.measure_variable = 'Total distance (m)'"""
+        )
+        if req.distance_travelled_min is not None:
+            conditions.append("SML.measure_value >= %s")
+            params.append(req.distance_travelled_min)
+        if req.distance_travelled_max is not None:
+            conditions.append("SML.measure_value <= %s")
+            params.append(req.distance_travelled_max)
+
+    if uses_total_checking:
+        sm_joins.append(
+            """LEFT JOIN session_sm_checking SMC_FREQ
+               ON SMC_FREQ.session_id = E.session_id
+              AND SMC_FREQ.component_measure = 'Frequency of checking'
+              AND SMC_FREQ.measure_variable = 'Returns to key locale (#)'"""
+        )
+        if req.total_checking_min is not None:
+            conditions.append("SMC_FREQ.measure_value >= %s")
+            params.append(req.total_checking_min)
+        if req.total_checking_max is not None:
+            conditions.append("SMC_FREQ.measure_value <= %s")
+            params.append(req.total_checking_max)
+
+    if uses_length_of_check:
+        sm_joins.append(
+            """LEFT JOIN session_sm_checking SMC_LEN
+               ON SMC_LEN.session_id = E.session_id
+              AND SMC_LEN.component_measure = 'Length of check'
+              AND SMC_LEN.measure_variable = 'Duration of visit to key locale (log s)'"""
+        )
+        if req.length_of_check_min is not None:
+            conditions.append("SMC_LEN.measure_value >= %s")
+            params.append(req.length_of_check_min)
+        if req.length_of_check_max is not None:
+            conditions.append("SMC_LEN.measure_value <= %s")
+            params.append(req.length_of_check_max)
+
     where_sql = " AND ".join(conditions)
     brain_join = ""
     if req.surgery_type is not None or req.target_region_id is not None:
         brain_join = "LEFT JOIN brain_manipulations BM ON E.effective_manipulation_id = BM.manipulation_id"
+
+    sm_join_sql = ""
+    if sm_joins:
+        sm_join_sql = "\n            " + "\n            ".join(sm_joins)
 
     sql = f"""
         WITH filtered_sessions AS (
             SELECT E.session_id
             FROM experimental_sessions E
             {brain_join}
+            {sm_join_sql}
             WHERE {where_sql}
         )
     """
@@ -151,7 +205,10 @@ def get_inventory_sessions(
     sql = sql_cte + """
         SELECT E.session_id, E.legacy_session_id, E.session_timestamp, E.rat_id,
                A.apparatus_name, S.type_name, DR.rx_label, B.surgery_type, BR.region_name,
-               P.pattern_description, E.cumulative_drug_injection_number
+               P.pattern_description, E.cumulative_drug_injection_number,
+               SML.measure_value AS distance_travelled,
+               SMC_FREQ.measure_value AS total_checking,
+               SMC_LEN.measure_value AS length_of_check
 
         FROM filtered_sessions FS
         JOIN experimental_sessions E ON E.session_id = FS.session_id
@@ -161,6 +218,18 @@ def get_inventory_sessions(
         LEFT OUTER JOIN brain_regions BR ON B.target_region_id = BR.region_id
         LEFT JOIN session_types S ON S.session_type_id = E.session_type_id
         LEFT JOIN apparatus_patterns P ON P.pattern_id = E.pattern_id
+        LEFT JOIN session_sm_locomotion SML
+          ON SML.session_id = E.session_id
+         AND SML.component_measure = 'Amount of locomotion'
+         AND SML.measure_variable = 'Total distance (m)'
+        LEFT JOIN session_sm_checking SMC_FREQ
+          ON SMC_FREQ.session_id = E.session_id
+         AND SMC_FREQ.component_measure = 'Frequency of checking'
+         AND SMC_FREQ.measure_variable = 'Returns to key locale (#)'
+        LEFT JOIN session_sm_checking SMC_LEN
+          ON SMC_LEN.session_id = E.session_id
+         AND SMC_LEN.component_measure = 'Length of check'
+         AND SMC_LEN.measure_variable = 'Duration of visit to key locale (log s)'
         ORDER BY E.session_timestamp DESC NULLS LAST
         LIMIT %s
     """

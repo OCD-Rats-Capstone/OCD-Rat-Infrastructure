@@ -91,6 +91,21 @@ class TestBuildFilteredSessionsSql:
         assert "E.room_id = %s" in sql
         assert params == [1, 2, 3]
 
+    def test_summary_measure_distance_min_adds_join_and_condition(self):
+        req = InventoryCountsRequest(distance_travelled_min=10.5)
+        sql, params = _build_filtered_sessions_sql(req)
+        assert "session_sm_locomotion" in sql
+        assert "SML.measure_value >= %s" in sql
+        assert params == [10.5]
+
+    def test_summary_measure_total_checking_range_adds_join_and_conditions(self):
+        req = InventoryCountsRequest(total_checking_min=2, total_checking_max=8)
+        sql, params = _build_filtered_sessions_sql(req)
+        assert "session_sm_checking" in sql
+        assert "SMC_FREQ.measure_value >= %s" in sql
+        assert "SMC_FREQ.measure_value <= %s" in sql
+        assert params == [2, 8]
+
     def test_cte_structure(self):
         req = InventoryCountsRequest()
         sql, _ = _build_filtered_sessions_sql(req)
