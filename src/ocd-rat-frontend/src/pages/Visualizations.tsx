@@ -52,6 +52,12 @@ export function Visualizations() {
       href: '/visualizations/heatmap',
       svgIcon: true
     },
+    {
+      img: ChartImg,
+      title: 'Behavior Graph Dashboard',
+      desc: 'Loads 5 fixed toolbox queries and renders all five bar-graph panels on one page.',
+      href: '/visualizations/graph-query-dashboard'
+    },
   ];
 
   return (
