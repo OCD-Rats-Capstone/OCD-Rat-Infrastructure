@@ -30,13 +30,13 @@ export function FrequentlyAskedQuestions() {
         </AccordionContent>
       </AccordionItem>
       <AccordionItem value="item-3">
-        <AccordionTrigger>What type of data does RatBat 2 host?</AccordionTrigger>
+        <AccordionTrigger>What type of data does InfraRAT host?</AccordionTrigger>
         <AccordionContent className="flex flex-col gap-4 text-balance">
 
 
           <div className="mt-1 ">
             <p>
-              RatBat2 provides access to a dataset of nearly 20,000 trials in rat locomoation. This includes:
+              InfraRAT provides access to a dataset of nearly 20,000 trials in rat locomoation. This includes:
             </p>
 
             <ul className="list-disc ml-6 mt-1">
