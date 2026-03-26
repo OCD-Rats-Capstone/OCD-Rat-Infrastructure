@@ -13,6 +13,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type GraphRow = {
   brain_status: string;
@@ -54,19 +55,92 @@ type LegendEntry = {
   hatched: boolean;
 };
 
-const QUERY_IDS = [1, 2, 3, 4, 5] as const;
-const TOP_ROW_IDS = [1, 2, 5] as const;
-const BOTTOM_ROW_IDS = [3, 4] as const;
-
-const QUERY_TITLES: Record<number, string> = {
-  1: 'Frequency of Checking',
-  2: 'Length of Check',
-  3: 'Recurrence Time of Checking',
-  4: 'Stops Before Returning to Check',
-  5: 'Duration of Rest',
+type HeaderBlock = {
+  text: string;
+  colSpan?: number;
 };
 
+type LayoutCell =
+  | { type: 'query'; queryId: number; colSpan?: number }
+  | { type: 'legend'; colSpan?: number }
+  | { type: 'spacer'; colSpan?: number };
+
+type DashboardSetConfig = {
+  id: string;
+  label: string;
+  dashboardTitle: string;
+  dashboardDescription: string;
+  columns: 2 | 3 | 4;
+  headerBlocks?: HeaderBlock[];
+  layoutRows: LayoutCell[][];
+  queryTitles: Record<number, string>;
+};
+
+const DASHBOARD_SETS: DashboardSetConfig[] = [
+  {
+    id: 'tucci-figure-4-criteria',
+    label: 'Set 1: Tucci Figure 4 Criteria',
+    dashboardTitle: 'Compulsive Checking Criteria Dashboard',
+    dashboardDescription:
+      'Applies the M. C. Tucci et al. Figure 4 method to calculate performance on criteria measures for compulsive checking behavior. Panels are generated from five fixed toolbox graph queries using Inj 8 values and SEM whiskers.',
+    columns: 3,
+    headerBlocks: [
+      { text: 'Criteria of compulsive checking behavior', colSpan: 2 },
+      { text: 'Measure of satiety', colSpan: 1 },
+    ],
+    layoutRows: [
+      [
+        { type: 'query', queryId: 1 },
+        { type: 'query', queryId: 2 },
+        { type: 'query', queryId: 5 },
+      ],
+      [
+        { type: 'query', queryId: 3 },
+        { type: 'query', queryId: 4 },
+        { type: 'legend' },
+      ],
+    ],
+    queryTitles: {
+      1: 'Frequency of Checking',
+      2: 'Length of Check',
+      3: 'Recurrence Time of Checking',
+      4: 'Stops Before Returning to Check',
+      5: 'Duration of Rest',
+    },
+  },
+];
+
 const BAR_COLORS = ['#cbd5e1', '#94a3b8', '#64748b'];
+
+const getGridColumnsClass = (columns: 2 | 3 | 4) => {
+  if (columns === 2) {
+    return 'lg:grid-cols-2';
+  }
+  if (columns === 4) {
+    return 'lg:grid-cols-4';
+  }
+  return 'lg:grid-cols-3';
+};
+
+const getLgColSpanClass = (colSpan: number) => {
+  if (colSpan <= 1) {
+    return 'lg:col-span-1';
+  }
+  if (colSpan === 2) {
+    return 'lg:col-span-2';
+  }
+  if (colSpan === 3) {
+    return 'lg:col-span-3';
+  }
+  return 'lg:col-span-4';
+};
+
+const getSetQueryIds = (layoutRows: LayoutCell[][]) => {
+  const queryIds = layoutRows.flatMap((row) =>
+    row.flatMap((cell) => (cell.type === 'query' ? [cell.queryId] : []))
+  );
+  return Array.from(new Set(queryIds));
+};
 
 const normalizeKey = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '_');
 
@@ -191,16 +265,26 @@ const buildChartModel = (rows: GraphRow[], panelId: number) => {
 };
 
 export function GraphQueryDashboard() {
+  const [selectedSetId, setSelectedSetId] = useState(DASHBOARD_SETS[0].id);
   const [loading, setLoading] = useState(true);
   const [panels, setPanels] = useState<GraphPanel[]>([]);
+
+  const selectedSet = useMemo(
+    () => DASHBOARD_SETS.find((setConfig) => setConfig.id === selectedSetId) ?? DASHBOARD_SETS[0],
+    [selectedSetId]
+  );
+  const selectedSetQueryIds = useMemo(() => getSetQueryIds(selectedSet.layoutRows), [selectedSet]);
+
+  const queryTitle = (queryId: number) => selectedSet.queryTitles[queryId] ?? `Query ${queryId}`;
 
   useEffect(() => {
     const fetchAllPanels = async () => {
       setLoading(true);
+      setPanels([]);
       const baseUrl = API_BASE_URL.replace(/\/$/, '');
 
       const results = await Promise.all(
-        QUERY_IDS.map(async (queryId): Promise<GraphPanel> => {
+        selectedSetQueryIds.map(async (queryId): Promise<GraphPanel> => {
           try {
             const response = await fetch(`${baseUrl}/toolbox/graph-query/${queryId}/`);
             const payload = await response.json();
@@ -226,7 +310,7 @@ export function GraphQueryDashboard() {
     };
 
     fetchAllPanels();
-  }, []);
+  }, [selectedSet, selectedSetQueryIds]);
 
   const hasAnyError = useMemo(() => panels.some((panel) => panel.error), [panels]);
   const panelById = useMemo(() => new Map(panels.map((panel) => [panel.queryId, panel])), [panels]);
@@ -261,7 +345,7 @@ export function GraphQueryDashboard() {
       return (
         <Card key={queryId}>
           <CardHeader>
-            <CardTitle>{QUERY_TITLES[queryId]}</CardTitle>
+            <CardTitle>{queryTitle(queryId)}</CardTitle>
           </CardHeader>
           <CardContent>
             <Skeleton className="h-[260px] w-full" />
@@ -274,7 +358,7 @@ export function GraphQueryDashboard() {
       return (
         <Card key={queryId} className="border-red-200 bg-red-50">
           <CardHeader>
-            <CardTitle>{QUERY_TITLES[queryId]}</CardTitle>
+            <CardTitle>{queryTitle(queryId)}</CardTitle>
             <CardDescription>Unable to load this panel.</CardDescription>
           </CardHeader>
           <CardContent className="text-sm text-red-800">{panel.error}</CardContent>
@@ -287,7 +371,7 @@ export function GraphQueryDashboard() {
     return (
       <Card key={queryId} className="h-full">
         <CardHeader className="pb-2">
-          <CardTitle className="text-center text-lg italic">{QUERY_TITLES[queryId]}</CardTitle>
+          <CardTitle className="text-center text-lg italic">{queryTitle(queryId)}</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={250}>
@@ -343,40 +427,105 @@ export function GraphQueryDashboard() {
     );
   };
 
+  const renderLegendCard = (key: string) => (
+    <Card key={key} className="h-full">
+      <CardHeader>
+        <CardTitle className="text-center text-lg">Legend</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {legendEntries.map((entry) => (
+          <div key={entry.label} className="flex items-center gap-3 text-sm text-slate-700">
+            <span
+              className="inline-block h-5 w-5 border border-slate-500"
+              style={{
+                backgroundColor: entry.color,
+                backgroundImage: entry.hatched
+                  ? 'repeating-linear-gradient(45deg, transparent 0, transparent 4px, rgba(255,255,255,0.95) 4px, rgba(255,255,255,0.95) 6px)'
+                  : 'none',
+              }}
+            />
+            <span>{entry.label}</span>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+
+  const renderLayoutCell = (cell: LayoutCell, cellKey: string) => {
+    const colSpanClass = getLgColSpanClass(cell.colSpan ?? 1);
+
+    if (cell.type === 'query') {
+      return (
+        <div key={cellKey} className={colSpanClass}>
+          {renderPanel(cell.queryId)}
+        </div>
+      );
+    }
+
+    if (cell.type === 'legend') {
+      return <div key={cellKey} className={colSpanClass}>{renderLegendCard(cellKey)}</div>;
+    }
+
+    return <div key={cellKey} className={`hidden ${colSpanClass} lg:block`} />;
+  };
+
+  const renderLoadingCell = (cell: LayoutCell, cellKey: string) => {
+    const colSpanClass = getLgColSpanClass(cell.colSpan ?? 1);
+
+    if (cell.type === 'spacer') {
+      return <div key={cellKey} className={`hidden ${colSpanClass} lg:block`} />;
+    }
+
+    return (
+      <div key={cellKey} className={colSpanClass}>
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-40" />
+            <Skeleton className="mt-2 h-4 w-full" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-[260px] w-full" />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
+
   return (
     <div className="mx-auto w-full max-w-7xl px-6 py-10 md:px-10">
       <div className="mb-6">
-        <h1 className="text-4xl font-bold tracking-tight text-gray-900">Compulsive Checking Criteria Dashboard</h1>
-        <p className="mt-3 max-w-3xl text-base text-gray-600">
-          This dashboard applies the M. C. Tucci et al. Figure 4 method to calculate performance on criteria measures for
-          compulsive checking behavior. Panels are generated from five fixed toolbox graph queries using Inj 8 values and SEM
-          whiskers.
-        </p>
+        <h1 className="text-4xl font-bold tracking-tight text-gray-900">{selectedSet.dashboardTitle}</h1>
+        <p className="mt-3 max-w-3xl text-base text-gray-600">{selectedSet.dashboardDescription}</p>
+
+        <div className="mt-5 max-w-sm">
+          <p className="mb-2 text-sm font-medium text-gray-700">Graph Set</p>
+          <Select value={selectedSetId} onValueChange={setSelectedSetId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select graph set" />
+            </SelectTrigger>
+            <SelectContent>
+              {DASHBOARD_SETS.map((setConfig) => (
+                <SelectItem key={setConfig.id} value={setConfig.id}>
+                  {setConfig.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <Separator className="mb-8" />
 
       {loading ? (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {QUERY_IDS.map((id) => (
-            <Card key={id}>
-              <CardHeader>
-                <Skeleton className="h-6 w-64" />
-                <Skeleton className="mt-2 h-4 w-full" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-[260px] w-full" />
-              </CardContent>
-            </Card>
+        <div className="space-y-6">
+          {selectedSet.layoutRows.map((row, rowIndex) => (
+            <div
+              key={`loading-row-${rowIndex}`}
+              className={`grid grid-cols-1 gap-6 ${getGridColumnsClass(selectedSet.columns)}`}
+            >
+              {row.map((cell, cellIndex) => renderLoadingCell(cell, `loading-${rowIndex}-${cellIndex}`))}
+            </div>
           ))}
-          <Card>
-            <CardHeader>
-              <Skeleton className="h-6 w-32" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-[260px] w-full" />
-            </CardContent>
-          </Card>
         </div>
       ) : (
         <div className="space-y-6">
@@ -389,43 +538,27 @@ export function GraphQueryDashboard() {
           )}
 
           <div className="rounded-xl border bg-slate-50 p-6">
-            <div className="mb-6 grid grid-cols-1 gap-3 text-center lg:grid-cols-3">
-              <div className="rounded-md bg-white p-3 text-sm font-semibold uppercase tracking-wide text-slate-600 lg:col-span-2">
-                Criteria of compulsive checking behavior
+            {selectedSet.headerBlocks && selectedSet.headerBlocks.length > 0 && (
+              <div className={`mb-6 grid grid-cols-1 gap-3 text-center ${getGridColumnsClass(selectedSet.columns)}`}>
+                {selectedSet.headerBlocks.map((headerBlock, index) => (
+                  <div
+                    key={`header-block-${index}`}
+                    className={`rounded-md bg-white p-3 text-sm font-semibold uppercase tracking-wide text-slate-600 ${getLgColSpanClass(
+                      headerBlock.colSpan ?? 1
+                    )}`}
+                  >
+                    {headerBlock.text}
+                  </div>
+                ))}
               </div>
-              <div className="rounded-md bg-white p-3 text-sm font-semibold uppercase tracking-wide text-slate-600">
-                Measure of satiety
-              </div>
-            </div>
+            )}
 
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-              {TOP_ROW_IDS.map((queryId) => renderPanel(queryId))}
-            </div>
-
-            <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
-              {BOTTOM_ROW_IDS.map((queryId) => renderPanel(queryId))}
-
-              <Card className="h-full">
-                <CardHeader>
-                  <CardTitle className="text-center text-lg">Legend</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {legendEntries.map((entry) => (
-                    <div key={entry.label} className="flex items-center gap-3 text-sm text-slate-700">
-                      <span
-                        className="inline-block h-5 w-5 border border-slate-500"
-                        style={{
-                          backgroundColor: entry.color,
-                          backgroundImage: entry.hatched
-                            ? 'repeating-linear-gradient(45deg, transparent 0, transparent 4px, rgba(255,255,255,0.95) 4px, rgba(255,255,255,0.95) 6px)'
-                            : 'none',
-                        }}
-                      />
-                      <span>{entry.label}</span>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
+            <div className="space-y-6">
+              {selectedSet.layoutRows.map((row, rowIndex) => (
+                <div key={`row-${rowIndex}`} className={`grid grid-cols-1 gap-6 ${getGridColumnsClass(selectedSet.columns)}`}>
+                  {row.map((cell, cellIndex) => renderLayoutCell(cell, `row-${rowIndex}-cell-${cellIndex}`))}
+                </div>
+              ))}
             </div>
           </div>
         </div>
