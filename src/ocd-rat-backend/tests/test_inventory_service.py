@@ -131,3 +131,49 @@ class TestGetInventoryCounts:
         result = get_inventory_counts(req, MagicMock())
         assert result.total_sessions == 0
         assert result.counts_by_type == []
+
+
+# ============================================================================
+# Filter options completeness (FR3-T1, FR3-T3)
+# ============================================================================
+
+class TestFilterOptionsCompleteness:
+    """Tests for filter options meeting FR3 browsing requirements."""
+
+    @patch("services.inventory_filter_options.pd.read_sql_query")
+    def test_returns_at_least_3_categories(self, mock_read_sql):
+        """FR3-T1: filter_options must return >= 3 browsable category dimensions."""
+        mock_read_sql.return_value = pd.DataFrame({"id": [1], "label": ["test"]})
+
+        from services.inventory_filter_options import get_filter_options
+        result = get_filter_options(MagicMock())
+
+        assert isinstance(result, dict)
+        assert len(result) >= 3, f"Expected >= 3 dimensions, got {len(result)}: {list(result.keys())}"
+
+    @patch("services.inventory_filter_options.pd.read_sql_query")
+    def test_all_dimensions_non_empty(self, mock_read_sql):
+        """FR3-T3: Every dimension in the response must have >= 1 entry."""
+        mock_read_sql.return_value = pd.DataFrame({"id": [1], "label": ["sample"]})
+
+        from services.inventory_filter_options import get_filter_options
+        result = get_filter_options(MagicMock())
+
+        for key, entries in result.items():
+            assert len(entries) >= 1, f"Dimension '{key}' is empty"
+
+    @patch("services.inventory_filter_options.pd.read_sql_query")
+    def test_expected_dimension_keys_present(self, mock_read_sql):
+        """FR3-T1: All expected browsing dimensions are returned."""
+        mock_read_sql.return_value = pd.DataFrame({"id": [1], "label": ["x"]})
+
+        from services.inventory_filter_options import get_filter_options
+        result = get_filter_options(MagicMock())
+
+        expected_keys = {
+            "drugs", "apparatuses", "apparatus_patterns",
+            "session_types", "surgery_types", "brain_regions", "testing_rooms",
+        }
+        assert expected_keys.issubset(set(result.keys())), (
+            f"Missing dimensions: {expected_keys - set(result.keys())}"
+        )

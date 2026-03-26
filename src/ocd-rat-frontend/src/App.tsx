@@ -12,6 +12,8 @@ import { BarChart } from "./pages/BarChart";
 import { LineChart } from "./pages/LineChart";
 import { Heatmap } from "./pages/Heatmap";
 import { Inventory } from "./pages/InventoryQuery";
+import { ToolBox } from "./pages/ToolBox"
+import { GraphQueryDashboard } from "./pages/GraphQueryDashboard";
 
 <Route path="*" element={<NotFound />} />
 
@@ -28,10 +30,12 @@ function App() {
           <Route path="/query" element={<Query />} />
           <Route path="/visualizations" element={<Visualizations />} />
           <Route path="/visualizations/bar-chart" element={<BarChart />} />
+          <Route path="/visualizations/graph-query-dashboard" element={<GraphQueryDashboard />} />
           <Route path="/visualizations/line-chart" element={<LineChart />} />
           <Route path="/visualizations/heatmap" element={<Heatmap />} />
           <Route path="/about" element={<About />} />
           <Route path="/inventory" element={<Inventory />}/>
+          <Route path = "/ToolBox" element={<ToolBox />}/>
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

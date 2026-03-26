@@ -238,3 +238,64 @@ class TestInventoryRouter:
         assert resp.status_code == 200
         data = resp.json()
         assert "drugs" in data or "apparatuses" in data
+
+
+# ============================================================================
+# Toolbox router
+# ============================================================================
+
+class TestToolboxRouter:
+    @patch("routers.toolbox.execute_graph_query")
+    def test_graph_query_returns_200(self, mock_execute_graph_query, test_client):
+        mock_execute_graph_query.return_value = {
+            "query_id": 1,
+            "slug": "checking-frequency",
+            "title": "Panel 1 - Frequency of checking performance",
+            "description": "Returns to key locale (#), variable KPcumReturnfreq01.",
+            "used_q21_exclusion": True,
+            "data": [
+                {
+                    "brain_status": "Unoperated",
+                    "chronic_regimen": "SAL 1",
+                    "inj8_mean": 1.23,
+                }
+            ],
+        }
+
+        resp = test_client.get("/toolbox/graph-query/1/")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["query_id"] == 1
+        assert "data" in data
+        assert isinstance(data["data"], list)
+        assert len(data["data"]) == 1
+
+    @patch("routers.toolbox.execute_graph_query")
+    def test_graph_query_placeholder_returns_400(self, mock_execute_graph_query, test_client):
+        mock_execute_graph_query.side_effect = NotImplementedError("Graph query 3 is a placeholder")
+
+        resp = test_client.get("/toolbox/graph-query/3/")
+        assert resp.status_code == 400
+
+    @patch("routers.toolbox.execute_graph_query")
+    def test_graph_query_invalid_id_returns_400(self, mock_execute_graph_query, test_client):
+        mock_execute_graph_query.side_effect = ValueError("Unsupported graph query id")
+
+        resp = test_client.get("/toolbox/graph-query/99/")
+        assert resp.status_code == 400
+
+    @patch("routers.toolbox.list_graph_queries")
+    def test_graph_queries_catalog_returns_200(self, mock_list_graph_queries, test_client):
+        mock_list_graph_queries.return_value = [
+            {"query_id": 1, "slug": "checking-frequency", "title": "Panel 1", "description": "...", "implemented": True},
+            {"query_id": 2, "slug": "checking-length", "title": "Panel 2", "description": "...", "implemented": True},
+            {"query_id": 3, "slug": "panel-3-placeholder", "title": "Panel 3", "description": "...", "implemented": False},
+            {"query_id": 4, "slug": "panel-4-placeholder", "title": "Panel 4", "description": "...", "implemented": False},
+            {"query_id": 5, "slug": "panel-5-placeholder", "title": "Panel 5", "description": "...", "implemented": False},
+        ]
+
+        resp = test_client.get("/toolbox/graph-queries/")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "queries" in data
+        assert len(data["queries"]) == 5

@@ -246,3 +246,72 @@ class TestHeatmapValidation:
     def test_same_x_y_raises(self):
         with pytest.raises(ValueError, match="different dimensions"):
             generate_heatmap_data(MagicMock(), x_axis="rat_strain", y_axis="rat_strain", metric="session_count")
+
+
+# ============================================================================
+# Behavioral observation filtering (FR4-T2, FR4-T3)
+# ============================================================================
+
+class TestObservationCodeFiltering:
+    """Tests for observation code WHERE clause logic."""
+
+    def test_observation_code_included_in_clause(self):
+        """FR4-T2: Observation code filter appears in WHERE clause."""
+        clause = _build_where_clause(set(), observation_code="rearing")
+        assert "observation_code" in clause.lower()
+        assert "rearing" in clause.lower()
+
+    def test_no_observation_code_omits_filter(self):
+        """FR4-T3: Without observation code, clause omits that filter."""
+        clause = _build_where_clause(set(), observation_code=None)
+        assert "observation_code" not in clause.lower()
+
+
+# ============================================================================
+# Empty-set visualization (FR5-T4)
+# ============================================================================
+
+class TestVisualizationEmptySet:
+    """Tests that visualization functions handle empty result sets gracefully."""
+
+    def test_barchart_empty_result_returns_empty_structure(self):
+        """FR5-T4: generate_barchart_data returns empty labels/values for zero rows."""
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+        mock_cursor.fetchall.return_value = []
+        mock_cursor.description = [("label", None), ("value", None)]
+        mock_conn.cursor.return_value = mock_cursor
+
+        result = generate_barchart_data(mock_conn, "rat_strain", "session_count")
+
+        assert result["labels"] == []
+        assert result["values"] == []
+        assert result["raw_data"] == []
+        assert "title" in result
+
+    def test_linechart_empty_result_returns_empty_structure(self):
+        """FR5-T4 (linechart): Empty result handled gracefully."""
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+        mock_cursor.fetchall.return_value = []
+        mock_cursor.description = [("period", None), ("value", None)]
+        mock_conn.cursor.return_value = mock_cursor
+
+        result = generate_linechart_data(mock_conn, "date_by_month", "session_count")
+
+        assert result["labels"] == []
+        assert result["values"] == []
+
+    def test_heatmap_empty_result_returns_empty_structure(self):
+        """FR5-T4 (heatmap): Empty result handled gracefully."""
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+        mock_cursor.fetchall.return_value = []
+        mock_cursor.description = [("x", None), ("y", None), ("val", None)]
+        mock_conn.cursor.return_value = mock_cursor
+
+        result = generate_heatmap_data(mock_conn, "rat_strain", "apparatus", "session_count")
+
+        assert result["x_categories"] == []
+        assert result["y_categories"] == []
+        assert result["data"] == []

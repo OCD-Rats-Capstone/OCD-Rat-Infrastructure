@@ -34,6 +34,23 @@ This database is **session-centric**, not study-centric. The `experimental_sessi
         no brain lesion OR brain-intact: BrainManipulations.SurgeryType = 'Unoperated'
         metadata: do not change logic of the query, simply select all available columns with the columns specifically related to the query appearing at the very left
         sensitized rat: if it received >= 8 injections of a PURE inducer drug (valid abbreviations are: QNP, DPAT, or U69593)
+    
+    3. The following session type names should map to the following session_type_id:
+        Standard OF trial: 1,
+        Test for conditioned effects: 2,
+        Test for sensitization: 3,
+        Object rotation test: 4,
+        Light/dark test: 5,
+        Test with 0.1mg/kg QNP: 6,
+        Filmed in activity cages: 7,
+        EPM: 8,
+        10min OF test before sacrifice: 9,
+        Test with 2 drugs injected: 10,
+        Drug substitution test: 11,
+        SAL instead 2nd drug: 12,
+        Test with 0.1mg/kg DPAT: 13,
+        Test without objects in OF: 14,
+        Test with 3 drugs injected (Ritanserin reversal trials): 15
 """
 
 BASE_SYSTEM_PROMPT = """
