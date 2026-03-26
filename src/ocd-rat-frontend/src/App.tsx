@@ -15,6 +15,7 @@ import { LineChart } from "./pages/LineChart";
 import { Heatmap } from "./pages/Heatmap";
 import { Inventory } from "./pages/InventoryQuery";
 import { ToolBox } from "./pages/ToolBox"
+import { SpatialHeatmap } from "./pages/SpatialHeatmap"
 
 <Route path="*" element={<NotFound />} />
 
@@ -34,6 +35,7 @@ function App() {
           <Route path="/visualizations/bar-chart" element={<BarChart />} />
           <Route path="/visualizations/line-chart" element={<LineChart />} />
           <Route path="/visualizations/heatmap" element={<Heatmap />} />
+          <Route path="/visualizations/spatial-heatmap" element={<SpatialHeatmap />} />
           <Route path="/about" element={<About />} />
           <Route path="/filter" element={<Filter />} />
           <Route path="/inventory" element={<Inventory />}/>

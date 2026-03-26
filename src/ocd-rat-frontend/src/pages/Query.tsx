@@ -267,7 +267,7 @@ export function Query() {
                 </span>
                 <Switch
                     checked={mode === 'select'}
-                    onCheckedChange={(val) => setMode(val ? 'select' : 'ask')}
+                    onCheckedChange={(val: boolean) => setMode(val ? 'select' : 'ask')}
                 />
                 <span className={`text-sm font-medium ${mode === 'select' ? 'text-foreground' : 'text-muted-foreground'}`}>
                     Select
