@@ -35,6 +35,47 @@ interface RegionMarker {
 
 const VALID_BIN_SIZES = [1, 2, 4, 5, 8, 10, 16, 20, 32, 40, 80, 160];
 
+// CORRECTED MAPPING: CanvasX = DataX + 80, CanvasY = 80 - DataY
+// This accurately maps standard Cartesian (-80 to 80) to Canvas (0 to 160)
+const PERMANENT_OBJECTS: RegionMarker[] = [
+  {
+    label: 'Object 1',
+    points: [
+      { x: 36, y: 36 }, // xmin: -44+80=36, ymax: 80-44=36
+      { x: 44, y: 36 }, // xmax: -36+80=44, ymax: 80-44=36
+      { x: 44, y: 44 }, // xmax: -36+80=44, ymin: 80-36=44
+      { x: 36, y: 44 }  // xmin: -44+80=36, ymin: 80-36=44
+    ]
+  },
+  {
+    label: 'Object 2',
+    points: [
+      { x: 152, y: 0 }, 
+      { x: 160, y: 0 },
+      { x: 160, y: 8 },
+      { x: 152, y: 8 }
+    ]
+  },
+  {
+    label: 'Object 3',
+    points: [
+      { x: 74.75, y: 115.75 }, 
+      { x: 85.25, y: 115.75 },
+      { x: 85.25, y: 124.25 },
+      { x: 74.75, y: 124.25 }
+    ]
+  },
+  {
+    label: 'Object 4',
+    points: [
+      { x: 154.3431, y: 160 },
+      { x: 160, y: 154.3431 },
+      { x: 154.3431, y: 148.6863 },
+      { x: 148.6863, y: 154.3431 }
+    ]
+  }
+];
+
 export function SpatialHeatmap() {
   const [sessions, setSessions] = useState<string[]>([]);
   const [selectedSessions, setSelectedSessions] = useState<string[]>([]);
@@ -43,7 +84,6 @@ export function SpatialHeatmap() {
   const [binSize, setBinSize] = useState<number>(10);
   
   const [homeBase, setHomeBase] = useState<RegionMarker | null>(null);
-  const [markedObjects, setMarkedObjects] = useState<RegionMarker[]>([]);
   
   const [regionPts, setRegionPts] = useState({
     tl: { x: 0, y: 0 },
@@ -51,7 +91,6 @@ export function SpatialHeatmap() {
     bl: { x: 0, y: 0 },
     br: { x: 0, y: 0 }
   });
-  const [markerLabel, setMarkerLabel] = useState('');
 
   const [metric, setMetric] = useState<'frequency' | 'time'>('frequency');
   const [customMax, setCustomMax] = useState<number | ''>(''); 
@@ -183,7 +222,10 @@ export function SpatialHeatmap() {
         tTime += dt;
 
         if (homeBase) {
-          if (isPointInPolygon({ x: Number(p.X), y: Number(p.Y) }, homeBase.points)) {
+          // Apply same mapping transformation here to check canvas positions
+          const mappedX = Number(p.X) + 80;
+          const mappedY = 80 - Number(p.Y);
+          if (isPointInPolygon({ x: mappedX, y: mappedY }, homeBase.points)) {
             hTime += dt;
           }
         }
@@ -204,7 +246,6 @@ export function SpatialHeatmap() {
     data.forEach(session => {
       const sortedData = [...session.data].sort((a, b) => Number(a.Time) - Number(b.Time));
       
-      // Track previous bin to calculate distinct visits/entries
       let prevBinX: number | null = null;
       let prevBinY: number | null = null;
 
@@ -219,8 +260,14 @@ export function SpatialHeatmap() {
           dt = Math.max(0, Number(point.Time) - Number(sortedData[i - 1].Time));
         }
 
-        const x = Math.max(0, Math.min(arenaSize - 1, Number(point.X)));
-        const y = Math.max(0, Math.min(arenaSize - 1, Number(point.Y)));
+        // CORRECT MAPPING: Shifting and inverting coordinates to fit 0-160 array grid
+        const mappedX = Number(point.X);
+        const mappedY = Number(point.Y);
+
+        // Clamping bounds strictly inside 0 and 159 (prevents crash, causes hot edges if data exceeds 160x160cm)
+        const x = Math.max(0, Math.min(arenaSize - 1, mappedX- 56));
+        const y = Math.max(0, Math.min(arenaSize - 1, mappedY - 3));
+
         const binX = Math.floor(x / currentBinSize);
         const binY = Math.floor(y / currentBinSize);
 
@@ -232,26 +279,21 @@ export function SpatialHeatmap() {
             bins[binY][binX].sessions.push(session.sessionId);
           }
           
-          // 1. Calculate Distinct Entries (Frequency)
           if (binX !== prevBinX || binY !== prevBinY) {
             bins[binY][binX].count += 1;
           }
           
-          // 2. Calculate Cumulative Time (Seconds)
           bins[binY][binX].time += dt;
 
-          // Update tracking variable for the next point
           prevBinX = binX;
           prevBinY = binY;
         } else {
-          // If the rat leaves the arena bounds, reset so re-entry counts
           prevBinX = null;
           prevBinY = null;
         }
       }
     });
     
-    // Determine the max value across the entire board for coloring
     let maxVal = 0;
     bins.forEach(row => {
       row.forEach(bin => {
@@ -279,7 +321,6 @@ export function SpatialHeatmap() {
     const csvData = [['X_cm', 'Y_cm', 'Value', 'Sessions', 'Metric']];
     heatmapData.forEach((row, y) => {
       row.forEach((bin, x) => {
-        // Now only exports data if a rat actually visited or spent time there
         const val = metric === 'frequency' ? bin.count : bin.time;
         if (val > 0) {
           csvData.push([(x * binSize).toString(), (y * binSize).toString(), val.toString(), bin.sessions.join(';'), metric]);
@@ -343,7 +384,6 @@ export function SpatialHeatmap() {
 
     heatmapData.forEach((row, y) => {
       row.forEach((bin, x) => {
-        // Must check if it actually has time OR counts depending on metric
         const val = metric === 'frequency' ? bin.count : bin.time;
         
         if (val > 0) {
@@ -399,19 +439,16 @@ export function SpatialHeatmap() {
     };
 
     if (homeBase) drawPolygon({ ...homeBase, label: 'Home' }, '#a855f7'); 
-    markedObjects.forEach(obj => drawPolygon(obj, '#ea580c')); 
+    PERMANENT_OBJECTS.forEach(obj => drawPolygon(obj, '#ea580c')); 
 
-  }, [heatmapData, binSize, homeBase, markedObjects, metric, maxValue, customMax, effectiveMax]);
+  }, [heatmapData, binSize, homeBase, metric, maxValue, customMax, effectiveMax]);
 
-
-  
   return (
     <div className="flex flex-col justify-center items-center py-10 px-6 lg:px-40">
       <h1 className="text-4xl font-bold text-gray-900 mb-2 self-start">Spatial Heatmap</h1>
-          <p className="text-lg text-gray-600 pt-1 pb-7 self-start">
-            Rat trajectory heatmaps showing spatial patterns in movement data.
-          </p>
-      
+      <p className="text-lg text-gray-600 pt-1 pb-7 self-start">
+        Rat trajectory heatmaps showing spatial patterns in movement data.
+      </p>
 
       <div className="flex flex-col lg:flex-row gap-6 w-full max-w-7xl">
 
@@ -477,7 +514,7 @@ export function SpatialHeatmap() {
             <Separator />
 
             <div>
-              <Label className="text-sm font-medium mb-3 block">Mark Regions (Coordinates, cm)</Label>
+              <Label className="text-sm font-medium mb-3 block">Set Home Base (Coordinates, cm)</Label>
               <div className="grid grid-cols-2 gap-x-4 gap-y-3 mb-3">
                 <div>
                   <Label className="text-xs font-semibold text-slate-500">Top Left</Label>
@@ -508,33 +545,17 @@ export function SpatialHeatmap() {
                   </div>
                 </div>
               </div>
-              <Input placeholder="Object Label (optional)" className="mb-3 h-8 text-sm" value={markerLabel} onChange={e => setMarkerLabel(e.target.value)} />
               
-              <div className="grid grid-cols-2 gap-2">
-                <Button variant="outline" className="border-purple-500 text-purple-600 hover:bg-purple-50" onClick={() => setHomeBase({ points: getOrderedPolygon() })}>
-                  Set Home
+              <div className="flex gap-2">
+                <Button variant="outline" className="border-purple-500 text-purple-600 hover:bg-purple-50 w-full" onClick={() => setHomeBase({ points: getOrderedPolygon() })}>
+                  Set Home Base
                 </Button>
-                <Button variant="outline" className="border-orange-500 text-orange-600 hover:bg-orange-50" onClick={() => setMarkedObjects([...markedObjects, { points: getOrderedPolygon(), label: markerLabel || `Obj ${markedObjects.length + 1}` }])}>
-                  Add Object
-                </Button>
+                {homeBase && (
+                  <Button variant="ghost" className="text-red-500 hover:bg-red-50 px-3" onClick={() => setHomeBase(null)}>
+                    Clear
+                  </Button>
+                )}
               </div>
-            </div>
-
-            <div className="bg-slate-50 border rounded-md p-3 text-sm space-y-2">
-              <h4 className="font-semibold text-xs uppercase text-slate-500">Active Markers</h4>
-              {homeBase ? (
-                <div className="flex justify-between items-center text-purple-700">
-                  <span className="truncate pr-2">Home Base Set</span>
-                  <button onClick={() => setHomeBase(null)} className="text-red-500 text-xs hover:underline flex-shrink-0">Clear</button>
-                </div>
-              ) : <div className="text-slate-400 italic text-xs">No Home Base set</div>}
-              
-              {markedObjects.map((obj, i) => (
-                <div key={i} className="flex justify-between items-center text-orange-700">
-                  <span className="truncate pr-2">{obj.label}</span>
-                  <button onClick={() => setMarkedObjects(markedObjects.filter((_, idx) => idx !== i))} className="text-red-500 text-xs hover:underline flex-shrink-0">Remove</button>
-                </div>
-              ))}
             </div>
 
             <Separator />
