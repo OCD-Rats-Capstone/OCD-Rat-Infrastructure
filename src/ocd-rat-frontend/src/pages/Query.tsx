@@ -347,10 +347,6 @@ export function Query() {
                             style={{ width: `${Progress}%` }}
                         />
                     </div>
-
-                    <div className="text-xs text-muted-foreground text-right">
-                        {FilesComplete} / {TotalFiles} files prepared
-                    </div>
                 </div>)}
 
             <div className="flex w-1/2 min-w-80 shrink-0 my-4">

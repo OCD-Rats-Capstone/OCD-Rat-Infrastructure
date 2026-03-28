@@ -106,7 +106,7 @@ def single_smoothed_download(db_connection,session_id,job_id):
             "session_id": "Session ID",
     "legacy_session_id": "Legacy Session ID",
     "type_name": "Session Type",
-    "strain": "Rat Strainn",
+    "strain": "Rat Strain",
     "body_weight_grams": "Body Weight (Grams)",
     "rx_label": "Drug Regiment Label",
     "first_last_name": "Tester Name",

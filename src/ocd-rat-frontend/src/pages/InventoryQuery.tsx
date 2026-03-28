@@ -201,9 +201,12 @@ export function Inventory() {
       target_region_id: null,
       room_id: null,
     });
+    setSelectedFileTypeIds(new Set());
+    setSelectedRXIds(new Set());
     setResult(null);
     setSessions(null);
     setError(null);
+
   };
 
   const handleViewSessions = async () => {
@@ -574,10 +577,6 @@ export function Inventory() {
       className="h-full bg-primary transition-all duration-500 ease-in-out"
       style={{ width: `${Progress}%` }}
     />
-  </div>
-
-  <div className="text-xs text-muted-foreground text-right">
-    {FilesComplete} / {TotalFiles} files prepared
   </div>
 </div> )}
             </Card>
