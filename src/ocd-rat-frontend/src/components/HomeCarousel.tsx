@@ -41,8 +41,8 @@ const useCases = [
     },
     {
         id: 4,
-        title: 'Experiment Video Playback',
-        desc: 'View behavioural trajectories alongside their corresponding video recordings through synchronized playback.  ',
+        title: 'Experiment Playback',
+        desc: 'View behavioural trajectories through synchronized playback.  ',
         imageUrl: RatIcon
     },
     {
@@ -66,19 +66,19 @@ const useCases = [
 export function HomeCarousel() {
 
     const autoplay = useRef(
-        Autoplay({delay:3000, stopOnInteraction:false})
+        Autoplay({ delay: 3000, stopOnInteraction: false })
     )
     return (
         <Carousel
             opts={{
                 align: "start",
-                loop:true, 
+                loop: true,
             }}
-           plugins={[
-        Autoplay({
-          delay: 3000,
-        }),
-      ]}
+            plugins={[
+                Autoplay({
+                    delay: 3000,
+                }),
+            ]}
             className="w-full mx-30 py-10"
         >
             <CarouselContent className="flex items-stretch">

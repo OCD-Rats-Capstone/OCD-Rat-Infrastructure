@@ -6,12 +6,12 @@ from fastapi import APIRouter, Depends, HTTPException,BackgroundTasks
 from fastapi.responses import StreamingResponse
 from core.database import get_db
 from services.nlp_service import execute_nlp_query
-from services.download_service import NLP_FileDownload, FILTERS_FileDownload, single_smoothed_download
 from services.summary_service import (
     get_relevant_sessions,
     execute_graph_query,
     list_graph_queries,
 )
+from services.download_service import NLP_FileDownload, FILTERS_FileDownload, single_smoothed_download, generate_distance
 import zipfile
 from io import BytesIO
 import os
@@ -57,6 +57,18 @@ async def run_graph_query(query_id: int, db=Depends(get_db)):
     except Exception as e:
         print(f"[Toolbox Router] Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+@router.get("/distance/")
+async def get_session(
+    input: str,
+    legacySession: str,
+    dataTrial: str,
+    db=Depends(get_db)
+
+):
+
+    res = generate_distance(db,input,input,legacySession,dataTrial)
+
+    return ({"total_distance": res})
 
 
 

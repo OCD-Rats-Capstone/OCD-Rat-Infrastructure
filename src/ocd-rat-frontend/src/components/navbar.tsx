@@ -1,5 +1,6 @@
 'use client';
 import * as React from 'react';
+import { Github, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState, useRef } from 'react';
 import RatIcon from '@/assets/rat-icon.png';
@@ -23,8 +24,8 @@ const Logo = (props: React.SVGAttributes<SVGElement>) => {
 
     <img
       src={RatIcon}
-      width={50}
-      height={50}
+      width={60}
+      height={60}
       className="h-14 w-auto transform scale-x-[-1]"
     >
 
@@ -71,23 +72,14 @@ export interface Navbar01Props extends React.HTMLAttributes<HTMLElement> {
   logo?: React.ReactNode;
   logoHref?: string;
   navigationLinks?: Navbar01NavLink[];
-  signInText?: string;
-  signInHref?: string;
-  ctaText?: string;
-  ctaHref?: string;
-  onSignInClick?: () => void;
-  onCtaClick?: () => void;
 }
 // Default navigation links
 const defaultNavigationLinks: Navbar01NavLink[] = [
   { href: '/', label: 'Home' },
   { href: '/query', label: 'Query' },
-  //{ href: '/experiments', label: 'Experiments' },
   { href: '/visualizations', label: 'Visualizations' },
-  { href: '/toolbox',label: 'ToolBox'},
-  //{ href: '/filter', label: 'Filter Data' },
-  { href: '/inventory',label: 'Inventory'},
-  { href: '/about', label: 'About' },
+  { href: '/inventory', label: 'Inventory' },
+  { href: '/toolbox', label: 'ToolBox' },
 ];
 export const Navbar01 = React.forwardRef<HTMLElement, Navbar01Props>(
   (
@@ -96,12 +88,6 @@ export const Navbar01 = React.forwardRef<HTMLElement, Navbar01Props>(
       logo = <Logo />,
       logoHref = '/',
       navigationLinks = defaultNavigationLinks,
-      signInText = 'Sign In',
-      signInHref = '#signin',
-      ctaText = 'Get Started',
-      ctaHref = '#get-started',
-      onSignInClick,
-      onCtaClick,
       ...props
     },
     ref
@@ -192,7 +178,7 @@ export const Navbar01 = React.forwardRef<HTMLElement, Navbar01Props>(
                   {logo}
                 </div>
                 <span className="hidden font-bold text-xl sm:inline-block">
-                  RatBat 2
+                  InfraRAT
                   {window.location.port === "8080" && (
                     <span className="ml-2 rounded bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-bold text-blue-500">
                       STAGING
@@ -225,28 +211,26 @@ export const Navbar01 = React.forwardRef<HTMLElement, Navbar01Props>(
             </div>
           </div>
           {/* Right side */}
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-sm font-medium hover:bg-accent hover:text-accent-foreground"
-              onClick={(e) => {
-                e.preventDefault();
-                if (onSignInClick) onSignInClick();
-              }}
+          <div className="flex items-center gap-2">
+            <Link
+              to="/about"
+              className={cn(
+                "inline-flex h-9 w-9 items-center justify-center rounded-md transition-colors hover:bg-accent hover:text-accent-foreground",
+                currentPath === '/about' ? "bg-accent text-accent-foreground" : "text-foreground/80"
+              )}
+              title="About"
             >
-              {signInText}
-            </Button>
-            <Button
-              size="sm"
-              className="text-sm font-medium px-4 h-9 rounded-md shadow-sm"
-              onClick={(e) => {
-                e.preventDefault();
-                if (onCtaClick) onCtaClick();
-              }}
+              <Info className="h-5 w-5" />
+            </Link>
+            <a
+              href="https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/issues"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-md text-foreground/80 transition-colors hover:bg-accent hover:text-accent-foreground"
+              title="GitHub Issues"
             >
-              {ctaText}
-            </Button>
+              <Github className="h-5 w-5" />
+            </a>
           </div>
         </div>
       </header>

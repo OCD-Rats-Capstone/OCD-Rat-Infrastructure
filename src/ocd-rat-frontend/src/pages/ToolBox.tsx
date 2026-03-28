@@ -15,6 +15,7 @@ export function ToolBox() {
   interface Point {
     x: number;
     y: number;
+    t: number;
   }
 
   const [sessionId, setSessionId] = useState("");
@@ -29,9 +30,11 @@ export function ToolBox() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageData, setImageData] = useState<string | null>(null);
   const [ResStatus, setResStatus] = useState(false);
+  const [sessionInfo, setSessionInfo] = useState<Record<string, unknown>[] | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [SessionOptions, setSessionOptions] = useState<number[]>([]);
   const [ButtonDisabled, setButtonDisabled] = useState(false);
+  const [isGenDistance, setIsGenDistance] = useState(false);
 
 
   const filteredSessions = SessionOptions.filter((id) =>
@@ -65,11 +68,13 @@ export function ToolBox() {
       const response = await fetch(url);
       const resData = await response.json();
       console.log(resData);
+      console.log(resData["distance_attempt"])
       setDataPoints(resData["data"]);
       setDistance(resData["distance"]);
       settotalChecks(resData["totalChecks"]);
       setCheckDuration(resData["checkDuration"]);
       setImageData(`data:${resData["imageType"]};base64,${resData["imageData"]}`);
+      setSessionInfo(resData["session_info"]);
 
       if (resData["status"] == "success") {
         setResStatus(true);
@@ -82,16 +87,17 @@ export function ToolBox() {
       const pointsArray: Point[] = resData["data"].map((row: any) => ({
         x: row.X,
         y: row.Y,
+        t: Number(row.Time),
       }));
 
       setPlotData(pointsArray);
 
     } catch (error) {
       console.error("Error fetching data:", error);
-      throw error;
-    }
+    }finally{
+      setButtonDisabled(false);
 
-    setButtonDisabled(false);
+    }
   }
 
   const filter_dropdown = async (input: string) => {
@@ -111,7 +117,6 @@ export function ToolBox() {
       const resData = await response.json();
       setSessionOptions(resData["data"]);
 
-      console.log(resData["data"])
 
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -120,11 +125,43 @@ export function ToolBox() {
 
   }
 
+  const create_distance = async () => {
+
+    setIsGenDistance(true);
+
+    try {
+
+      const params = {
+        input: String(session),
+        legacySession: String(sessionInfo?.[0]?.["Legacy Session ID"]),
+        dataTrial: String(sessionInfo?.[0]?.["Trial ID"])
+      };
+
+      const baseUrl = (API_BASE_URL.replace(/\/$/, ''));
+      const searchParams = new URLSearchParams(params).toString();
+      const url = `${baseUrl}/toolbox/distance/?${searchParams}`;
+
+      const response = await fetch(url);
+      const resData = await response.json();
+
+      console.log(resData["total_distance"]);
+      setDistance(resData["total_distance"]);
+
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      throw error;
+    }finally{
+      setIsGenDistance(false);
+    }
+    
+
+  }
+
   return (
     <div className="flex flex-col justify-center items-center py-20 px-6 lg:px-40">
 
       <h1 className="scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance">
-        Analysis ToolBox
+        Analysis Toolbox
       </h1>
 
       <p className="text-muted-foreground text-xl mt-6 text-center max-w-2xl">
@@ -183,46 +220,75 @@ export function ToolBox() {
         {ButtonDisabled &&(<p className="text-muted-foreground text-sm animate-pulse">Loading . . .</p>)}
       </div>
 
-      {datapoints != null && PlotData != null && ResStatus && (
-        <div className="flex flex-col lg:flex-row gap-6 mt-6 w-full justify-center">
+      {datapoints != null && sessionInfo!= null && PlotData != null && ResStatus && (
 
-          <Card className="p-4 mt-4">
-            <h3 className="font-semibold mb-3">Data Points ({datapoints.length})</h3>
-            <ScrollArea className="h-[500px] w-full rounded border">
-              <ScrollBar orientation='horizontal' />
-              <table className="w-max text-sm border-collapse">
-                <thead>
-                  <tr className="bg-muted sticky top-0">
-                    {datapoints.length > 0 && Object.keys(datapoints[0]).map((k) => (
-                      <th key={k} className="text-left py-2 px-3 font-medium">{k}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {datapoints.map((row, i) => (
-                    <tr key={i} className="border-b">
-                      {Object.values(row).map((v, j) => (
-                        <td key={j} className="py-1.5 px-3">{String(v ?? '')}</td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </ScrollArea>
-          </Card>
+        
+        
+        <div className="flex flex-col gap-6 mt-6 w-full">
 
-          <Card className="p-4 w-full lg:w-150 flex flex-col items-center justify-center">
-            <img
-              src={imageData || ""}
-              alt="Session Visualization"
-              className="w-full h-full rounded-md object-contain"
-            />
-          </Card>
+  <Card className="p-4 w-full overflow-x-auto">
+    <h3 className="font-semibold mb-3">Session Info ({sessionInfo.length})</h3>
+    <table className="w-full text-sm border-collapse">
+      <thead>
+        <tr className="bg-muted">
+          {sessionInfo.length > 0 && Object.keys(sessionInfo[0]).map((k) => (
+            <th key={k} className="text-left py-1.5 px-3 font-medium whitespace-nowrap">{k}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {sessionInfo.map((row, i) => (
+          <tr key={i} className="border-b">
+            {Object.values(row).map((v, j) => (
+              <td key={j} className="py-1 px-3">{String(v ?? '')}</td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </Card>
 
-          <Card className="p-4">
-            <PathPlot points={PlotData} />
-          </Card>
-        </div>
+  <div className="flex flex-col lg:flex-row gap-6 w-full">
+
+    <Card className="p-4 flex-1">
+      <h3 className="font-semibold mb-3">Data Points ({datapoints.length})</h3>
+      <ScrollArea className="h-[500px] w-full rounded border">
+        <ScrollBar orientation="horizontal" />
+        <table className="w-max text-sm border-collapse">
+          <thead>
+            <tr className="bg-muted sticky top-0">
+              {datapoints.length > 0 && Object.keys(datapoints[0]).map((k) => (
+                <th key={k} className="text-left py-2 px-3 font-medium">{k}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {datapoints.map((row, i) => (
+              <tr key={i} className="border-b">
+                {Object.values(row).map((v, j) => (
+                  <td key={j} className="py-1.5 px-3">{String(v ?? '')}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </ScrollArea>
+    </Card>
+
+    <Card className="p-4 flex-1 flex items-center justify-center">
+      <img
+        src={imageData || ""}
+        alt="Session Visualization"
+        className="w-full h-full rounded-md object-contain"
+      />
+    </Card>
+
+    <Card className="p-4 flex-1">
+      <PathPlot points={PlotData} />
+    </Card>
+
+  </div>
+</div>
       )}
 
       {!ResStatus && session != 0 && (
@@ -234,7 +300,7 @@ export function ToolBox() {
       )}
 
       {distance != null && ResStatus && (
-        <div className="flex justify-center mt-8 w-full">
+        <div className="flex justify-center flex-wrap gap-6 mt-8 w-full">
           <Card className="p-6 w-80 text-center shadow-md">
             <h3 className="text-sm uppercase tracking-wide text-muted-foreground">
               Distance Travelled
@@ -245,6 +311,12 @@ export function ToolBox() {
             <p className="text-sm text-muted-foreground mt-1">
               Meters
             </p>
+          {distance == "N/A" && <Button
+          className="mt-4 w-full"
+          onClick={() => create_distance()}
+          disabled={isGenDistance}>
+          Generate Distance?
+        </Button>}
           </Card>
           <Card className="p-6 w-80 text-center shadow-md">
             <h3 className="text-sm uppercase tracking-wide text-muted-foreground">
