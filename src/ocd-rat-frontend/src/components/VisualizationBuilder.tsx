@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select,
   SelectContent,
@@ -62,14 +61,10 @@ export function VisualizationBuilder({
 
   if (vizError) {
     return (
-      <Card className="border-red-200 bg-red-50">
-        <CardHeader>
-          <CardTitle className="text-red-800">Error Loading Visualization Options</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-red-700">{vizError}</p>
-        </CardContent>
-      </Card>
+      <div className="p-4 border border-red-200 bg-red-50 rounded-lg">
+        <h3 className="text-lg font-semibold text-red-800 mb-2">Error Loading Visualization Options</h3>
+        <p className="text-red-700">{vizError}</p>
+      </div>
     );
   }
 
@@ -90,11 +85,9 @@ export function VisualizationBuilder({
     // When showing toggle, need all types available
     if (!isValidBarChart || !isValidLineChart || !isValidHeatmap) {
       return (
-        <Card className="border-yellow-200 bg-yellow-50">
-          <CardHeader>
-            <CardTitle className="text-yellow-800">No Visualizations Available</CardTitle>
-          </CardHeader>
-        </Card>
+        <div className="p-4 border border-yellow-200 bg-yellow-50 rounded-lg">
+          <h3 className="text-lg font-semibold text-yellow-800">No Visualizations Available</h3>
+        </div>
       );
     }
   } else {
@@ -105,11 +98,9 @@ export function VisualizationBuilder({
       isValidHeatmap;
     if (!isValidCurrent) {
       return (
-        <Card className="border-yellow-200 bg-yellow-50">
-          <CardHeader>
-            <CardTitle className="text-yellow-800">No Visualizations Available</CardTitle>
-          </CardHeader>
-        </Card>
+        <div className="p-4 border border-yellow-200 bg-yellow-50 rounded-lg">
+          <h3 className="text-lg font-semibold text-yellow-800">No Visualizations Available</h3>
+        </div>
       );
     }
   }
@@ -144,14 +135,11 @@ export function VisualizationBuilder({
     <div className="space-y-6">
       {/* Chart Type Selector - Only show if toggle is enabled */}
       {showChartTypeToggle && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Select Visualization Type</CardTitle>
-            <CardDescription>
-              Choose between bar chart (categorical), line chart (time-series), or heatmap (2D patterns)
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+        <div className="p-4 border rounded-lg">
+          <h3 className="text-lg font-semibold mb-2">Select Visualization Type</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Choose between bar chart (categorical), line chart (time-series), or heatmap (2D patterns)
+          </p>
             <div className="flex gap-4">
               <Button
                 variant={visualizationType === 'barchart' ? 'default' : 'outline'}
@@ -175,27 +163,26 @@ export function VisualizationBuilder({
                 Heatmap
               </Button>
             </div>
-          </CardContent>
-        </Card>
+        </div>
       )}
 
-      {/* Controls Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle>
+      {/* Controls */}
+      <div className="p-4 border rounded-lg">
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold mb-2">
             {visualizationType === 'barchart' ? 'Create a Bar Chart' : 
              visualizationType === 'linechart' ? 'Create a Line Chart' :
              'Create a Heatmap'}
-          </CardTitle>
-          <CardDescription>
+          </h3>
+          <p className="text-sm text-gray-600">
             {visualizationType === 'barchart'
               ? 'Select a dimension to group by and a metric to visualize'
               : visualizationType === 'linechart'
               ? 'Select a time period and a metric to visualize'
               : 'Select two different dimensions and a metric to visualize patterns'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+          </p>
+        </div>
+        <div className="space-y-4">
           {/* X-Axis Selector */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -293,8 +280,8 @@ export function VisualizationBuilder({
           >
             Clear Selection
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Visualization */}
       {selectedXAxis && selectedYAxis && visualizationType === 'barchart' && (
@@ -323,28 +310,24 @@ export function VisualizationBuilder({
 
       {/* No Selection Message */}
       {!selectedXAxis || !selectedYAxis || (visualizationType === 'heatmap' && !selectedMetric) ? (
-        <Card className="border-blue-200 bg-blue-50">
-          <CardContent className="pt-6">
-            <p className="text-blue-700">
-              Select {
-                visualizationType === 'barchart' ? 'a dimension and a metric' : 
-                visualizationType === 'linechart' ? 'a time period and a metric' :
-                'two different dimensions and a metric'
-              } above to generate a visualization
-            </p>
-          </CardContent>
-        </Card>
+        <div className="p-4 border border-blue-200 bg-blue-50 rounded-lg">
+          <p className="text-blue-700">
+            Select {
+              visualizationType === 'barchart' ? 'a dimension and a metric' : 
+              visualizationType === 'linechart' ? 'a time period and a metric' :
+              'two different dimensions and a metric'
+            } above to generate a visualization
+          </p>
+        </div>
       ) : null}
 
       {/* Validation Error for Heatmap Same Axis */}
       {visualizationType === 'heatmap' && selectedXAxis && selectedYAxis && selectedXAxis === selectedYAxis && (
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="pt-6">
-            <p className="text-red-700">
-              X-axis and Y-axis must be different dimensions for a heatmap
-            </p>
-          </CardContent>
-        </Card>
+        <div className="p-4 border border-red-200 bg-red-50 rounded-lg">
+          <p className="text-red-700">
+            X-axis and Y-axis must be different dimensions for a heatmap
+          </p>
+        </div>
       )}
     </div>
   );
