@@ -3,7 +3,6 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import ChartImg from "@/assets/barchart.png";
-import LineChartImg from "@/assets/linechart.png";
 import MultiGraphImg from "@/assets/multigraph.png";
 import { Link } from 'react-router-dom';
 
@@ -29,6 +28,32 @@ const HeatmapSvg = () => (
     <rect x="45" y="95" width="20" height="20" fill="#0c63e4" stroke="#ccc" strokeWidth="1"/>
     <rect x="70" y="95" width="20" height="20" fill="#0d47a1" stroke="#ccc" strokeWidth="1"/>
     <rect x="95" y="95" width="20" height="20" fill="#051c4d" stroke="#ccc" strokeWidth="1"/>
+  </svg>
+);
+
+// Velocity profile icon: fan of lines on left and right of a centre axis
+const VelocityProfileSvg = () => (
+  <svg width="144" height="144" viewBox="0 0 144 144" xmlns="http://www.w3.org/2000/svg" className="mx-auto">
+    {/* Background */}
+    <rect x="12" y="20" width="120" height="100" fill="#f8fafc" stroke="#e2e8f0" strokeWidth="1"/>
+    {/* Centre dashed line (frame 0) */}
+    <line x1="72" y1="22" x2="72" y2="118" stroke="#374151" strokeWidth="1.5" strokeDasharray="3,2"/>
+    {/* Entering segments (left, negative frames) — vary colour light→dark */}
+    <polyline points="72,90 62,72 52,55 42,48 30,44" fill="none" stroke="#dbeafe" strokeWidth="1.2" strokeOpacity="0.9"/>
+    <polyline points="72,85 62,68 52,52 42,47 30,46" fill="none" stroke="#93c5fd" strokeWidth="1.2" strokeOpacity="0.9"/>
+    <polyline points="72,80 62,63 52,49 42,46 30,50" fill="none" stroke="#3b82f6" strokeWidth="1.2" strokeOpacity="0.9"/>
+    <polyline points="72,75 60,58 50,48 40,50 28,56" fill="none" stroke="#1d4ed8" strokeWidth="1.2" strokeOpacity="0.9"/>
+    <polyline points="72,70 60,53 50,46 40,52 28,60" fill="none" stroke="#1e3a8a" strokeWidth="1.2" strokeOpacity="0.9"/>
+    {/* Exiting segments (right, positive frames) */}
+    <polyline points="72,90 82,72 92,55 102,48 114,44" fill="none" stroke="#dbeafe" strokeWidth="1.2" strokeOpacity="0.9"/>
+    <polyline points="72,85 82,68 92,52 102,47 114,46" fill="none" stroke="#93c5fd" strokeWidth="1.2" strokeOpacity="0.9"/>
+    <polyline points="72,80 82,63 92,49 102,46 114,50" fill="none" stroke="#3b82f6" strokeWidth="1.2" strokeOpacity="0.9"/>
+    <polyline points="72,75 84,58 94,48 104,50 116,56" fill="none" stroke="#1d4ed8" strokeWidth="1.2" strokeOpacity="0.9"/>
+    <polyline points="72,70 84,53 94,46 104,52 116,60" fill="none" stroke="#1e3a8a" strokeWidth="1.2" strokeOpacity="0.9"/>
+    {/* X axis */}
+    <line x1="12" y1="118" x2="132" y2="118" stroke="#374151" strokeWidth="1"/>
+    {/* Y axis */}
+    <line x1="12" y1="20" x2="12" y2="118" stroke="#374151" strokeWidth="1"/>
   </svg>
 );
 
@@ -74,12 +99,6 @@ export function Visualizations() {
       href: '/visualizations/bar-chart'
     },
     {
-      img: LineChartImg,
-      title: 'Line Chart',
-      desc: 'Time-series trends showing how metrics change over time.',
-      href: '/visualizations/line-chart'
-    },
-    {
       img: null,
       title: 'Heatmap',
       desc: '2D categorical patterns revealing relationships between two dimensions.',
@@ -93,6 +112,14 @@ export function Visualizations() {
       href: '/visualizations/spatial-heatmap',
       svgIcon: true,
       spatialIcon: true
+    },
+    {
+      img: null,
+      title: 'Velocity Profile',
+      desc: 'Session velocity profiles for trips entering and exiting a user-defined location.',
+      href: '/visualizations/velocity-profile',
+      svgIcon: true,
+      velocityIcon: true
     },
     {
       img: MultiGraphImg,
@@ -120,7 +147,7 @@ export function Visualizations() {
           <Card key={viz.title} className="flex flex-col items-center w-full max-w-[18rem]">
             <CardContent className="flex flex-col justify-between flex-1 p-6 pt-0 pb-0">
               {viz.svgIcon ? (
-                viz.spatialIcon ? <SpatialHeatmapSvg /> : <HeatmapSvg />
+                viz.spatialIcon ? <SpatialHeatmapSvg /> : viz.velocityIcon ? <VelocityProfileSvg /> : <HeatmapSvg />
               ) : (
                 viz.img && <img src={viz.img} className="w-36 object-contain mb-4 mx-auto" alt={viz.title} />
               )}

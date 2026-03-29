@@ -11,7 +11,7 @@ from services.summary_service import (
     execute_graph_query,
     list_graph_queries,
 )
-from services.download_service import NLP_FileDownload, FILTERS_FileDownload, single_smoothed_download, generate_distance
+from services.download_service import NLP_FileDownload, FILTERS_FileDownload, single_smoothed_download, generate_distance, generate_velocity_profile
 import zipfile
 from io import BytesIO
 import os
@@ -20,6 +20,46 @@ import shutil
 
 router = APIRouter(prefix="/toolbox", tags=["Files"])
 
+
+@router.get("/velocity-profile/")
+async def get_velocity_profile(
+    session_id: str,
+    location_x: float,
+    location_y: float,
+    radius: float,
+    max_frames: int = 150,
+    min_trip_frames: int = 5,
+    db=Depends(get_db),
+):
+    """
+    Compute velocity profiles for move segments entering/exiting a user-defined zone.
+
+    Args:
+        session_id: Session ID to analyse.
+        location_x: X coordinate of the zone centre (same coordinate system as the tracking data).
+        location_y: Y coordinate of the zone centre.
+        radius: Zone radius in tracking-data coordinate units.
+        max_frames: Maximum frames included per segment side (default 150).
+        min_trip_frames: Minimum trip length to keep; shorter trips are treated as lingering
+            and excluded (default 5).
+
+    Returns:
+        exiting_segments: List of segments where frame 0 is the zone exit.
+        entering_segments: List of segments where frame 0 is the zone entry (negative frames
+            preceding it).
+        total_trips: Total number of qualifying trips found.
+        session_frames: Total number of frames in the session trajectory.
+    """
+    result = generate_velocity_profile(
+        db_connection=db,
+        session_id=session_id,
+        location_x=location_x,
+        location_y=location_y,
+        radius=radius,
+        max_frames=max_frames,
+        min_trip_frames=min_trip_frames,
+    )
+    return result
 
 @router.get("/session/")
 async def load_session(
