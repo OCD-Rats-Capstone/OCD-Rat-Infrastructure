@@ -476,9 +476,11 @@ def generate_velocity_profile(
         }
 
     except Exception as exc:
+        # Log detailed error information on the server side only.
         print(f"[generate_velocity_profile] Error: {exc}")
+        # Return a generic error message to avoid exposing internal details.
         return {
-            "status": f"Error: {str(exc)}",
+            "status": "An internal error occurred while generating the velocity profile.",
             "exiting_segments": [],
             "entering_segments": [],
             "session_frames": 0,
