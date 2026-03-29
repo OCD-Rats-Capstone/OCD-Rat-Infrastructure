@@ -123,7 +123,7 @@ export function Visualizations() {
     {
       img: null,
       title: 'Velocity Profile',
-      desc: 'Per-session velocity profiles for trips entering and exiting a user-defined location, coloured by temporal order.',
+      desc: 'Session velocity profiles for trips entering and exiting a user-defined location.',
       href: '/visualizations/velocity-profile',
       svgIcon: true,
       velocityIcon: true

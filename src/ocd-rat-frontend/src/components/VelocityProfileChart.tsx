@@ -22,11 +22,12 @@ interface VelocityProfileChartProps {
   onSliceRangeChange: (range: [number, number]) => void;
 }
 
-const W = 860;
-const H = 420;
+const W = 1120;
+const H = 560;
 const PAD = { left: 72, right: 30, top: 44, bottom: 60 };
 const PLOT_W = W - PAD.left - PAD.right;
 const PLOT_H = H - PAD.top - PAD.bottom;
+const Y_HEADROOM_FACTOR = 1.12;
 
 // Viridis-like stops (perceptually uniform, high contrast, colorblind-friendly)
 const TEMPORAL_STOPS: Array<{ t: number; color: [number, number, number] }> = [
@@ -71,7 +72,7 @@ export function VelocityProfileChart({
   onSliceRangeChange,
 }: VelocityProfileChartProps) {
   // ── Compute axis ranges ──────────────────────────────────────────────────
-  const { minFrame, maxFrame, maxVel } = useMemo(() => {
+  const { minFrame, maxFrame, yAxisMaxVel } = useMemo(() => {
     const allFrames: number[] = [];
     const allVels: number[] = [];
 
@@ -83,20 +84,18 @@ export function VelocityProfileChart({
     }
 
     if (allFrames.length === 0) {
-      return { minFrame: -100, maxFrame: 100, maxVel: 1 };
+      return { minFrame: -100, maxFrame: 100, yAxisMaxVel: 1 };
     }
 
     const minF = Math.min(...allFrames);
     const maxF = Math.max(...allFrames);
 
-    // Cap velocity at 95th percentile to protect against outliers
-    const sorted = [...allVels].sort((a, b) => a - b);
-    const p95 = sorted[Math.floor(sorted.length * 0.95)] ?? 1;
+    const maxVelocity = Math.max(...allVels);
 
     return {
       minFrame: minF,
       maxFrame: maxF,
-      maxVel: Math.max(p95, 0.0001),
+      yAxisMaxVel: Math.max(maxVelocity * Y_HEADROOM_FACTOR, 0.0001),
     };
   }, [exitingSegments, enteringSegments]);
 
@@ -106,7 +105,7 @@ export function VelocityProfileChart({
     PAD.left + ((frame - minFrame) / frameRange) * PLOT_W;
 
   const yScale = (v: number) =>
-    PAD.top + PLOT_H - (Math.min(v, maxVel) / maxVel) * PLOT_H;
+    PAD.top + PLOT_H - (Math.min(v, yAxisMaxVel) / yAxisMaxVel) * PLOT_H;
 
   const zeroX = xScale(0);
 
@@ -179,7 +178,7 @@ export function VelocityProfileChart({
 
   const yTicks = Array.from(
     { length: 6 },
-    (_, i) => (maxVel * i) / 5
+    (_, i) => (yAxisMaxVel * i) / 5
   );
 
   // ── Empty state ──────────────────────────────────────────────────────────
