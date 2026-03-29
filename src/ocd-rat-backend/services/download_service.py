@@ -315,6 +315,177 @@ def single_smoothed_download(db_connection,session_id,job_id):
                 "imageData": None,
                 "imageType": None}
     
+def generate_velocity_profile(
+    db_connection,
+    session_id: str,
+    location_x: float,
+    location_y: float,
+    radius: float,
+    max_frames: int = 150,
+    min_trip_frames: int = 5,
+):
+    """
+    Compute velocity profiles for move segments entering/exiting a user-defined zone.
+
+    Each out-of-zone trip produces two aligned segments:
+      - Exiting: frame 0 = zone exit (first out-of-zone frame), frames increase rightward.
+      - Entering: frame 0 = zone entry (first in-zone frame), frames run negative leftward.
+
+    Trips shorter than min_trip_frames are excluded (lingering filter).
+    Each segment side is capped at max_frames data points.
+    """
+    cursor = db_connection.cursor()
+
+    url_query = (
+        "SELECT repo_file_url FROM data_file_locations "
+        "LEFT OUTER JOIN session_data_files AS S1 "
+        "  ON S1.data_file_id = data_file_locations.data_file_id "
+        "WHERE S1.session_id = %s AND repo_file_url LIKE %s;"
+    )
+    cursor.execute(url_query, (session_id, "%smoothed.csv"))
+    rows = cursor.fetchall()
+
+    url = None
+    for row in rows:
+        if row[0] and "https" in str(row[0]):
+            url = row[0]
+            break
+
+    if not url:
+        return {
+            "status": "No smoothed track file exists",
+            "exiting_segments": [],
+            "entering_segments": [],
+            "session_frames": 0,
+            "total_trips": 0,
+        }
+
+    try:
+        import tempfile as _tempfile
+
+        with _tempfile.TemporaryDirectory() as tmp_dir:
+            filename = url.split("/")[-1]
+            local_path = os.path.join(tmp_dir, filename)
+            urlretrieve(url, local_path)
+            df_raw = pd.read_csv(local_path)
+
+        # Columns: index 1 = X, index 2 = Y (consistent with existing usage)
+        x_arr = pd.to_numeric(df_raw.iloc[:, 1], errors="coerce").to_numpy(dtype=float)
+        y_arr = pd.to_numeric(df_raw.iloc[:, 2], errors="coerce").to_numpy(dtype=float)
+
+        valid = ~(np.isnan(x_arr) | np.isnan(y_arr))
+        x_arr = x_arr[valid]
+        y_arr = y_arr[valid]
+        n = len(x_arr)
+
+        if n < 2:
+            return {
+                "status": "Insufficient trajectory data",
+                "exiting_segments": [],
+                "entering_segments": [],
+                "session_frames": n,
+                "total_trips": 0,
+            }
+
+        # Per-frame velocity: coordinate units per frame interval
+        vel = np.sqrt(np.diff(x_arr) ** 2 + np.diff(y_arr) ** 2)
+        vel_full = np.concatenate([[0.0], vel])  # vel_full[i] ≈ speed leaving frame i
+
+        # Zone membership per frame
+        dist_from_loc = np.sqrt((x_arr - location_x) ** 2 + (y_arr - location_y) ** 2)
+        in_zone = dist_from_loc <= radius
+
+        # Find zone-boundary crossings
+        exits = [i + 1 for i in range(n - 1) if in_zone[i] and not in_zone[i + 1]]
+        entries = [i + 1 for i in range(n - 1) if not in_zone[i] and in_zone[i + 1]]
+
+        exiting_segments: list = []
+        entering_segments: list = []
+        trip_id = 0
+        entry_ptr = 0
+
+        for exit_frame in exits:
+            # Advance past entries that precede this exit
+            while entry_ptr < len(entries) and entries[entry_ptr] <= exit_frame:
+                entry_ptr += 1
+
+            entry_frame = entries[entry_ptr] if entry_ptr < len(entries) else n
+            trip_length = entry_frame - exit_frame
+
+            if trip_length < min_trip_frames:
+                continue  # skip lingering
+
+            # --- Exiting segment: frame 0 = zone exit ---
+            seg_len = min(trip_length, max_frames)
+            exit_data = [
+                {"frame": j, "velocity": round(float(vel_full[exit_frame + j]), 4)}
+                for j in range(seg_len)
+                if exit_frame + j < n
+            ]
+
+            # --- Entering segment: frame 0 = zone entry (entry_frame) ---
+            enter_seg_len = min(trip_length, max_frames)
+            enter_start = entry_frame - enter_seg_len
+            enter_data = [
+                {
+                    "frame": (enter_start + j) - entry_frame,
+                    "velocity": round(float(vel_full[enter_start + j]), 4),
+                }
+                for j in range(enter_seg_len)
+                if 0 <= enter_start + j < n
+            ]
+            # Append zone-entry moment as frame 0
+            if entry_frame < n:
+                enter_data.append(
+                    {"frame": 0, "velocity": round(float(vel_full[entry_frame]), 4)}
+                )
+
+            if exit_data:
+                exiting_segments.append(
+                    {
+                        "trip_id": trip_id,
+                        "temporal_order": trip_id,
+                        "total_segments": 0,
+                        "segment_data": exit_data,
+                    }
+                )
+            if enter_data:
+                entering_segments.append(
+                    {
+                        "trip_id": trip_id,
+                        "temporal_order": trip_id,
+                        "total_segments": 0,
+                        "segment_data": enter_data,
+                    }
+                )
+
+            trip_id += 1
+
+        total_trips = trip_id
+        for seg in exiting_segments:
+            seg["total_segments"] = total_trips
+        for seg in entering_segments:
+            seg["total_segments"] = total_trips
+
+        return {
+            "status": "success",
+            "exiting_segments": exiting_segments,
+            "entering_segments": entering_segments,
+            "session_frames": n,
+            "total_trips": total_trips,
+        }
+
+    except Exception as exc:
+        print(f"[generate_velocity_profile] Error: {exc}")
+        return {
+            "status": f"Error: {str(exc)}",
+            "exiting_segments": [],
+            "entering_segments": [],
+            "session_frames": 0,
+            "total_trips": 0,
+        }
+
+
 def generate_distance(db_connection,session_id,job_id,legacySession,dataTrial):
 
     try:
