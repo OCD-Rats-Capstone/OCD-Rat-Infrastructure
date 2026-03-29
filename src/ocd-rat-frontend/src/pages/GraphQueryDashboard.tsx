@@ -96,11 +96,24 @@ type DashboardSetConfig = {
 
 const DASHBOARD_SETS: DashboardSetConfig[] = [
   {
-    id: 'tucci-figure-4-criteria',
-    label: 'Set 1: Tucci Figure 4 Criteria',
-    dashboardTitle: 'Compulsive Checking Criteria Dashboard',
-    dashboardDescription:
-      'Applies the M. C. Tucci et al. Figure 4 method to calculate performance on criteria measures for compulsive checking behavior. Panels are generated from five fixed toolbox graph queries using Inj 8 values and SEM whiskers.',
+    id: 'tucci-format-2014-figure-1',
+    label: 'Query Visualization 1: Tucci et al. (2014) format',
+    dashboardTitle: 'Query Visualization 1: Tucci et al. (2014) format',
+    dashboardDescription: `Unoperated and sham lesion rats are often combined 
+    into one group because their brains are functionally intact and equivalent. 
+    However, it is worth assessing whether that is empirically correct considering 
+    the intent of combining those rats across studies in the database.
+
+    Compare whether Unoperated and Sham rats show a similar response to QNP when
+    measuring the development of compulsive checking and locomotor activity.
+    Compare Unoperated and Sham rats injected with 0.5 mg/kg of QNP (the dose with the
+    highest number of sessions) vs those injected with SAL. Examine injections of 8 only.
+    For the comparison to be valid, exclude the 4 Q21 early-life pretreatment groups
+    (group_id 129-132). Apply APPARATUS & ENVIRONMENT FILTERS and TRIPLE MATCH PURITY
+    FILTER from Query 1.
+
+    OUTPUT (this file -- 10a): Tucci et al. (2014) format -- 8 pivot panels showing
+    mean, SEM, and n at injections 8 and 10 only.`,
     chartMode: 'inj8_snapshot',
     columns: 3,
     headerBlocks: [
@@ -128,11 +141,30 @@ const DASHBOARD_SETS: DashboardSetConfig[] = [
     },
   },
   {
-    id: 'set2-vigor-frequency-injection-series',
-    label: 'Set 2: Vigor of Checking (Panels 1-5)',
-    dashboardTitle: 'Compulsive Checking Vigor Dashboard',
-    dashboardDescription:
-      'Set 2 follows the injection-series figure style. Panels 1-5 are active now (no regression lines), with SEM shown for each point.',
+    id: 'ballester-format-2015-figure-2',
+    label: 'Query Visualization 2: Ballester et al. (2015) format',
+    dashboardTitle: 'Query Visualization 2: Ballester et al. (2015) format',
+    dashboardDescription: `Unoperated and sham lesion rats are often combined into one group because their
+    brains are functionally intact and equivalent. However, it is worth assessing
+    whether that is empirically correct considering the intent of combining those rats
+    across studies in the database.
+
+    Compare whether Unoperated and Sham rats show a similar response to QNP when
+    measuring the development of compulsive checking and locomotor activity.
+    Compare Unoperated and Sham rats injected with 0.5 mg/kg of QNP (the dose with the
+    highest number of sessions) vs those injected with SAL. Examine injections 1 to 10.
+
+    For the comparison to be valid, exclude the 4 Q21 early-life pretreatment groups
+    (group_id 129-132). Apply APPARATUS & ENVIRONMENT FILTERS and TRIPLE MATCH PURITY
+    FILTER from Query 1.
+
+    OUTPUT (this file -- 10b): Ballester et al. (2015) format -- 8 tables showing the
+    development of compulsive checking and locomotion across injections 1 to 10.
+    Corresponds to Figures 1 and 3 in:
+     Ballester Gonzalez, J., Dvorkin-Gheva, A., Silva, C., Foster, J.A., & Szechtman, H.
+     (2015). Nucleus accumbens core and pathogenesis of compulsive checking.
+     Behavioural Pharmacology, 26(1-2), 200-216.
+     https://doi.org/10.1097/FBP.0000000000000112`,
     chartMode: 'injection_series_line',
     columns: 3,
     headerBlocks: [

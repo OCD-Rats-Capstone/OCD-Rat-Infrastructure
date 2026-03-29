@@ -55,8 +55,8 @@ export function Visualizations() {
     },
     {
       img: MultiGraphImg,
-      title: 'Compulsive Checking Criteria Dashboard',
-      desc: 'Applies the M. C. Tucci et al. Figure 4 method to calculate compulsive-checking criteria measures from 5 fixed toolbox queries.',
+      title: 'Query Visualizations',
+      desc: 'Sample visualizations from user NLP queries.',
       href: '/visualizations/graph-query-dashboard'
     },
   ];
