@@ -119,6 +119,115 @@ ORDER BY
 """
 
 
+def _build_checking_injection_series_query(variable_name, include_q21_exclusion=True, table_name="session_sm_checking"):
+    q21_cte = """
+,
+q21_excluded_sessions AS (
+    SELECT DISTINCT sem.session_id FROM session_experiment_membership sem
+    JOIN experiment_groups eg ON sem.group_id = eg.group_id
+    WHERE eg.group_id IN (129, 130, 131, 132)
+),
+filtered_sessions AS (
+    SELECT tms.* FROM triple_match_sessions tms
+    WHERE NOT EXISTS (SELECT 1 FROM q21_excluded_sessions qes WHERE qes.session_id = tms.session_id)
+)
+""" if include_q21_exclusion else """
+,
+filtered_sessions AS (
+    SELECT * FROM qnp_sal_sessions
+    WHERE cumulative_drug_injection_number BETWEEN 1 AND 10
+      AND cumulative_drug_injection_number = cumulative_injections_count_for_regimen
+      AND cumulative_drug_injection_number = cumulative_apparatus_exposure_number
+)
+"""
+
+    triple_match_or_filtered = """
+triple_match_sessions AS (
+    SELECT * FROM qnp_sal_sessions
+    WHERE cumulative_drug_injection_number BETWEEN 1 AND 10
+      AND cumulative_drug_injection_number = cumulative_injections_count_for_regimen
+      AND cumulative_drug_injection_number = cumulative_apparatus_exposure_number
+)""" if include_q21_exclusion else """
+filtered_sessions AS (
+    SELECT * FROM qnp_sal_sessions
+    WHERE cumulative_drug_injection_number BETWEEN 1 AND 10
+      AND cumulative_drug_injection_number = cumulative_injections_count_for_regimen
+      AND cumulative_drug_injection_number = cumulative_apparatus_exposure_number
+)"""
+
+    return f"""
+WITH
+brain_status_cte AS (
+    SELECT es.session_id, es.rat_id, bm.surgery_type, hr.intact_status_id,
+        CASE
+            WHEN bm.surgery_type = 'Unoperated' THEN 'Unoperated'
+            WHEN bm.surgery_type = 'Sham' AND hr.intact_status_id = 0 THEN 'Sham'
+            ELSE 'Excluded'
+        END AS brain_status
+    FROM experimental_sessions es
+    LEFT JOIN brain_manipulations bm ON es.effective_manipulation_id = bm.manipulation_id
+    LEFT JOIN histology_results hr ON bm.manipulation_id = hr.manipulation_id
+),
+development_sham_rats AS (
+    SELECT rat_id FROM brain_manipulations
+    GROUP BY rat_id HAVING COUNT(manipulation_id) = 1
+),
+sessions_brain_filtered AS (
+    SELECT es.*, bsc.brain_status FROM experimental_sessions es
+    JOIN brain_status_cte bsc ON es.session_id = bsc.session_id
+    WHERE
+        bsc.brain_status = 'Unoperated'
+        OR
+        (bsc.brain_status = 'Sham' AND es.rat_id IN (SELECT rat_id FROM development_sham_rats))
+),
+sessions_apparatus_filtered AS (
+    SELECT * FROM sessions_brain_filtered
+    WHERE apparatus_id IN (1,2,3,4) AND pattern_id = 1 AND testing_lights_on = TRUE
+),
+sessions_drug_info AS (
+    SELECT saf.session_id, saf.rat_id, saf.brain_status,
+        saf.cumulative_drug_injection_number, saf.drug_rx_id,
+        sdd.cumulative_injections_count_for_regimen,
+        sdd.cumulative_apparatus_exposure_number,
+        d.drug_is_active,
+        COUNT(CASE WHEN d.drug_is_active = TRUE THEN 1 END) OVER (PARTITION BY saf.session_id) AS active_drug_count,
+        COUNT(*) OVER (PARTITION BY saf.session_id) AS total_drug_count
+    FROM sessions_apparatus_filtered saf
+    JOIN session_drug_details sdd ON saf.session_id = sdd.session_id
+    JOIN drugs d ON sdd.drug_id = d.drug_id
+    WHERE d.drug_abbreviation NOT IN ('VEHa', 'VEHb')
+),
+single_drug_sessions AS (
+    SELECT DISTINCT session_id, rat_id, brain_status, cumulative_drug_injection_number,
+        drug_rx_id, cumulative_injections_count_for_regimen, cumulative_apparatus_exposure_number
+    FROM sessions_drug_info WHERE total_drug_count = 1 AND active_drug_count <= 1
+),
+qnp_sal_sessions AS (
+    SELECT sds.*, rx.rx_label AS chronic_regimen FROM single_drug_sessions sds
+    JOIN drug_rx rx ON sds.drug_rx_id = rx.drug_rx_id
+    WHERE rx.rx_label IN ('QNP 0.5', 'SAL 1')
+),
+{triple_match_or_filtered}
+{q21_cte}
+SELECT
+    fs.brain_status,
+    fs.chronic_regimen,
+    fs.cumulative_drug_injection_number AS injection_number,
+    ROUND(AVG(sm.measure_value)::NUMERIC, 3) AS mean_value,
+    ROUND((STDDEV(sm.measure_value)
+        / NULLIF(SQRT(COUNT(sm.measure_value)), 0))::NUMERIC, 3) AS sem_value,
+    COUNT(DISTINCT fs.rat_id) AS n_rats
+FROM filtered_sessions fs
+JOIN {table_name} sm ON fs.session_id = sm.session_id
+WHERE sm.variable_name = '{variable_name}'
+GROUP BY fs.brain_status, fs.chronic_regimen, fs.cumulative_drug_injection_number
+ORDER BY
+    CASE fs.brain_status WHEN 'Unoperated' THEN 1 WHEN 'Sham' THEN 2 END,
+    CASE fs.chronic_regimen WHEN 'SAL 1' THEN 1 WHEN 'QNP 0.5' THEN 2 END,
+    fs.cumulative_drug_injection_number;
+"""
+
+
 REQUIRED_TABLES_CHECKING = [
     "experimental_sessions",
     "brain_manipulations",
@@ -199,6 +308,70 @@ GRAPH_QUERY_DEFINITIONS = {
         "sql": _build_checking_qnp_sal_summary_query("DurationOfInterCheckInterval_lg10_s", table_name="session_sm_satiety"),
         "fallback_sql": _build_checking_qnp_sal_summary_query(
             "DurationOfInterCheckInterval_lg10_s", include_q21_exclusion=False, table_name="session_sm_satiety"
+        ),
+    },
+    6: {
+        "query_id": 6,
+        "slug": "set2-checking-frequency-injection-series",
+        "title": "Set 2 Panel 1 - Frequency of checking by injection",
+        "description": "Returns to key locale (#), variable KPcumReturnfreq01, reported by injection number (1-10).",
+        "implemented": True,
+        "required_tables": REQUIRED_TABLES_CHECKING,
+        "sql": _build_checking_injection_series_query("KPcumReturnfreq01"),
+        "fallback_sql": _build_checking_injection_series_query(
+            "KPcumReturnfreq01", include_q21_exclusion=False
+        ),
+    },
+    7: {
+        "query_id": 7,
+        "slug": "set2-checking-length-injection-series",
+        "title": "Set 2 Panel 2 - Length of check by injection",
+        "description": "Duration of visit to key locale (log s), variable KPmeanStayTime01_lg10_s, reported by injection number (1-10).",
+        "implemented": True,
+        "required_tables": REQUIRED_TABLES_CHECKING,
+        "sql": _build_checking_injection_series_query("KPmeanStayTime01_lg10_s"),
+        "fallback_sql": _build_checking_injection_series_query(
+            "KPmeanStayTime01_lg10_s", include_q21_exclusion=False
+        ),
+    },
+    8: {
+        "query_id": 8,
+        "slug": "set2-checking-return-time-injection-series",
+        "title": "Set 2 Panel 3 - Return time by injection",
+        "description": "Time between checks (s), variable KPreturntime01_s, reported by injection number (1-10).",
+        "implemented": True,
+        "required_tables": REQUIRED_TABLES_CHECKING,
+        "sql": _build_checking_injection_series_query("KPreturntime01_s"),
+        "fallback_sql": _build_checking_injection_series_query(
+            "KPreturntime01_s", include_q21_exclusion=False
+        ),
+    },
+    9: {
+        "query_id": 9,
+        "slug": "set2-checking-stops-to-return-injection-series",
+        "title": "Set 2 Panel 4 - Stops to return by injection",
+        "description": "Number of stops between checks, variable KPstopsToReturn01, reported by injection number (1-10).",
+        "implemented": True,
+        "required_tables": REQUIRED_TABLES_CHECKING,
+        "sql": _build_checking_injection_series_query("KPstopsToReturn01"),
+        "fallback_sql": _build_checking_injection_series_query(
+            "KPstopsToReturn01", include_q21_exclusion=False
+        ),
+    },
+    10: {
+        "query_id": 10,
+        "slug": "set2-satiety-inter-check-interval-injection-series",
+        "title": "Set 2 Panel 5 - Duration of rest by injection",
+        "description": "Time to next checking bout (log s), variable DurationOfInterCheckInterval_lg10_s, reported by injection number (1-10). Note: n may be lower (requires at least 2 checking bouts per session).",
+        "implemented": True,
+        "required_tables": REQUIRED_TABLES_SATIETY,
+        "sql": _build_checking_injection_series_query(
+            "DurationOfInterCheckInterval_lg10_s", table_name="session_sm_satiety"
+        ),
+        "fallback_sql": _build_checking_injection_series_query(
+            "DurationOfInterCheckInterval_lg10_s",
+            include_q21_exclusion=False,
+            table_name="session_sm_satiety",
         ),
     },
 }

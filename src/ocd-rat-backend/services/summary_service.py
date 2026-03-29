@@ -115,7 +115,9 @@ def list_graph_queries():
 def execute_graph_query(db_connection, query_id):
     definition = GRAPH_QUERY_DEFINITIONS.get(query_id)
     if not definition:
-        raise ValueError(f"Unsupported graph query id: {query_id}. Valid ids are 1-5.")
+        valid_ids = sorted(GRAPH_QUERY_DEFINITIONS.keys())
+        valid_ids_text = ", ".join(str(item) for item in valid_ids)
+        raise ValueError(f"Unsupported graph query id: {query_id}. Valid ids are: {valid_ids_text}.")
 
     if not definition["implemented"]:
         raise NotImplementedError(
