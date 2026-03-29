@@ -346,4 +346,32 @@ GRAPH_QUERY_DEFINITIONS = {
             "KPreturntime01_s", include_q21_exclusion=False
         ),
     },
+    9: {
+        "query_id": 9,
+        "slug": "set2-checking-stops-to-return-injection-series",
+        "title": "Set 2 Panel 4 - Stops to return by injection",
+        "description": "Number of stops between checks, variable KPstopsToReturn01, reported by injection number (1-10).",
+        "implemented": True,
+        "required_tables": REQUIRED_TABLES_CHECKING,
+        "sql": _build_checking_injection_series_query("KPstopsToReturn01"),
+        "fallback_sql": _build_checking_injection_series_query(
+            "KPstopsToReturn01", include_q21_exclusion=False
+        ),
+    },
+    10: {
+        "query_id": 10,
+        "slug": "set2-satiety-inter-check-interval-injection-series",
+        "title": "Set 2 Panel 5 - Duration of rest by injection",
+        "description": "Time to next checking bout (log s), variable DurationOfInterCheckInterval_lg10_s, reported by injection number (1-10). Note: n may be lower (requires at least 2 checking bouts per session).",
+        "implemented": True,
+        "required_tables": REQUIRED_TABLES_SATIETY,
+        "sql": _build_checking_injection_series_query(
+            "DurationOfInterCheckInterval_lg10_s", table_name="session_sm_satiety"
+        ),
+        "fallback_sql": _build_checking_injection_series_query(
+            "DurationOfInterCheckInterval_lg10_s",
+            include_q21_exclusion=False,
+            table_name="session_sm_satiety",
+        ),
+    },
 }

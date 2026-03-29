@@ -129,10 +129,10 @@ const DASHBOARD_SETS: DashboardSetConfig[] = [
   },
   {
     id: 'set2-vigor-frequency-injection-series',
-    label: 'Set 2: Vigor of Checking (Panels 1-3)',
+    label: 'Set 2: Vigor of Checking (Panels 1-5)',
     dashboardTitle: 'Compulsive Checking Vigor Dashboard',
     dashboardDescription:
-      'Set 2 follows the injection-series figure style. Panels 1-3 are active now (no regression lines), with SEM shown for each point. Panels 4-5 are scaffolded and ready for upcoming SQL queries.',
+      'Set 2 follows the injection-series figure style. Panels 1-5 are active now (no regression lines), with SEM shown for each point.',
     chartMode: 'injection_series_line',
     columns: 3,
     headerBlocks: [
@@ -143,11 +143,11 @@ const DASHBOARD_SETS: DashboardSetConfig[] = [
       [
         { type: 'query', queryId: 6 },
         { type: 'query', queryId: 7 },
-        { type: 'placeholder', title: 'Duration of Rest', subtitle: 'Panel 5 coming soon' },
+        { type: 'query', queryId: 10 },
       ],
       [
         { type: 'query', queryId: 8 },
-        { type: 'placeholder', title: 'Stops Before Returning to Check', subtitle: 'Panel 4 coming soon' },
+        { type: 'query', queryId: 9 },
         { type: 'legend' },
       ],
     ],
@@ -155,6 +155,8 @@ const DASHBOARD_SETS: DashboardSetConfig[] = [
       6: 'Returns to Key Locale (#) by Injection',
       7: 'Duration of Visit to Key Locale (log s) by Injection',
       8: 'Time Between Checks (s) by Injection',
+      9: 'Number of Stops Between Checks by Injection',
+      10: 'Time to Next Checking Bout (log s) by Injection',
     },
   },
 ];
