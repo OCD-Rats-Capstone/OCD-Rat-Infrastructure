@@ -152,11 +152,11 @@ const DASHBOARD_SETS: DashboardSetConfig[] = [
       ],
     ],
     queryTitles: {
-      6: 'Returns to Key Locale (#) by Injection',
-      7: 'Duration of Visit to Key Locale (log s) by Injection',
-      8: 'Time Between Checks (s) by Injection',
-      9: 'Number of Stops Between Checks by Injection',
-      10: 'Time to Next Checking Bout (log s) by Injection',
+      6: 'Frequency of Checking',
+      7: 'Length of Check',
+      8: 'Recurrence Time of Checking',
+      9: 'Stops Before Returning to Check',
+      10: 'Duration of Rest',
     },
   },
 ];
@@ -165,9 +165,9 @@ const BAR_COLORS = ['#cbd5e1', '#94a3b8', '#64748b'];
 
 const SERIES_STYLES = [
   { markerShape: 'circle' as const, markerFilled: false, lineDasharray: '', lineWidth: 2 },
-  { markerShape: 'circle' as const, markerFilled: true, lineDasharray: '7 6', lineWidth: 2 },
+  { markerShape: 'circle' as const, markerFilled: true, lineDasharray: '', lineWidth: 2 },
   { markerShape: 'square' as const, markerFilled: false, lineDasharray: '', lineWidth: 2.4 },
-  { markerShape: 'square' as const, markerFilled: true, lineDasharray: '7 6', lineWidth: 3 },
+  { markerShape: 'square' as const, markerFilled: true, lineDasharray: '', lineWidth: 3 },
 ];
 
 const getGridColumnsClass = (columns: 1 | 2 | 3 | 4) => {
@@ -211,6 +211,13 @@ const toNumberOrNull = (value: number | string | null | undefined) => {
   }
   const parsed = typeof value === 'number' ? value : Number(value);
   return Number.isFinite(parsed) ? parsed : null;
+};
+
+const formatTooltipNumber = (value: unknown, digits = 3) => {
+  const rawValue = Array.isArray(value) ? value[0] : value;
+  const parsed =
+    typeof rawValue === 'number' || typeof rawValue === 'string' ? toNumberOrNull(rawValue) : null;
+  return parsed === null ? 'N/A' : parsed.toFixed(digits);
 };
 
 const roundUpNice = (value: number) => {
@@ -284,6 +291,50 @@ const getYAxisDomain = (data: ChartPoint[], series: SeriesMeta[]): [number, numb
   const upper = roundUpNice(maxValue + topPadding);
 
   return upper > lower ? [lower, upper] : [0, roundUpNice(maxValue + 1)];
+};
+
+const getPanelYAxisDomain = (
+  setId: string,
+  queryId: number,
+  defaultDomain: [number, number]
+): [number, number] => {
+  if (setId === 'tucci-figure-4-criteria') {
+    if (queryId === 1) {
+      return [0, 150];
+    }
+    if (queryId === 2) {
+      return [0, 2.5];
+    }
+    if (queryId === 3) {
+      return [0, 150];
+    }
+    if (queryId === 4) {
+      return [0, 7];
+    }
+    if (queryId === 5) {
+      return [0, 4];
+    }
+  }
+
+  if (setId === 'set2-vigor-frequency-injection-series') {
+    if (queryId === 6) {
+      return [0, 150];
+    }
+    if (queryId === 7) {
+      return [0, 2.5];
+    }
+    if (queryId === 8) {
+      return [0, 150];
+    }
+    if (queryId === 9) {
+      return [0, 7];
+    }
+    if (queryId === 10) {
+      return [0, 4];
+    }
+  }
+
+  return defaultDomain;
 };
 
 const buildSnapshotChartModel = (rows: GraphRow[], panelId: number) => {
@@ -494,177 +545,186 @@ export function GraphQueryDashboard() {
       selectedSet.chartMode === 'injection_series_line'
         ? buildInjectionSeriesChartModel(panel.payload.data, queryId)
         : buildSnapshotChartModel(panel.payload.data, queryId);
+    const yAxisDomain = getPanelYAxisDomain(selectedSet.id, queryId, model.yDomain);
 
     return (
-      <Card key={queryId} className="h-full">
-        <CardHeader className="pb-2">
+      <Card key={queryId} className="flex h-full flex-col border-0 bg-transparent shadow-none">
+        <CardHeader className="flex min-h-[68px] items-center justify-center pb-1">
           <CardTitle className="text-center text-lg italic">{queryTitle(queryId)}</CardTitle>
         </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={250}>
-            {selectedSet.chartMode === 'injection_series_line' ? (
-              <LineChart data={model.data} margin={{ top: 8, right: 12, left: 8, bottom: 40 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="injectionNumber"
-                  type="number"
-                  domain={[0, 10]}
-                  ticks={[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
-                  height={40}
-                />
-                <YAxis domain={model.yDomain} tickCount={5} />
-                <Tooltip
-                  formatter={(value, name, item) => {
-                    const series = model.series.find((entry) => entry.meanKey === name);
-                    const semValue = series ? item?.payload?.[series.semKey] : null;
-                    const nValue = series ? item?.payload?.[series.nKey] : null;
-                    if (typeof value === 'number') {
-                      const semPart = typeof semValue === 'number' ? ` ± ${semValue.toFixed(3)} SEM` : '';
-                      const nPart = nValue ? ` (n=${nValue})` : '';
-                      return [`${value.toFixed(3)}${semPart}${nPart}`, series?.label ?? 'Value'];
-                    }
-                    return [String(value), series?.label ?? 'Value'];
-                  }}
-                  labelFormatter={(label) => `Injection ${label}`}
-                />
-                {model.series.map((series) => (
-                  <Line
-                    key={series.meanKey}
-                    type="linear"
-                    dataKey={series.meanKey}
-                    stroke={series.color}
-                    strokeWidth={series.lineWidth ?? 2}
-                    strokeDasharray={series.lineDasharray}
-                    dot={(dotProps: { cx?: number; cy?: number }) => {
-                      const cx = dotProps.cx ?? 0;
-                      const cy = dotProps.cy ?? 0;
-                      const markerSize = 4;
-                      const fill = series.markerFilled ? series.color : '#ffffff';
-
-                      if (series.markerShape === 'square') {
-                        return (
-                          <rect
-                            x={cx - markerSize}
-                            y={cy - markerSize}
-                            width={markerSize * 2}
-                            height={markerSize * 2}
-                            fill={fill}
-                            stroke={series.color}
-                            strokeWidth={2}
-                          />
-                        );
-                      }
-
-                      return <circle cx={cx} cy={cy} r={markerSize} fill={fill} stroke={series.color} strokeWidth={2} />;
-                    }}
-                    activeDot={(dotProps: { cx?: number; cy?: number }) => {
-                      const cx = dotProps.cx ?? 0;
-                      const cy = dotProps.cy ?? 0;
-                      const markerSize = 5;
-                      const fill = series.markerFilled ? series.color : '#ffffff';
-
-                      if (series.markerShape === 'square') {
-                        return (
-                          <rect
-                            x={cx - markerSize}
-                            y={cy - markerSize}
-                            width={markerSize * 2}
-                            height={markerSize * 2}
-                            fill={fill}
-                            stroke={series.color}
-                            strokeWidth={2}
-                          />
-                        );
-                      }
-
-                      return <circle cx={cx} cy={cy} r={markerSize} fill={fill} stroke={series.color} strokeWidth={2} />;
-                    }}
-                  >
-                    <ErrorBar dataKey={series.semKey} width={6} strokeWidth={1.6} stroke={series.color} />
-                  </Line>
-                ))}
-              </LineChart>
-            ) : (
-              <BarChart data={model.data} margin={{ top: 8, right: 12, left: 8, bottom: 40 }}>
-              <defs>
-                {model.series
-                  .filter((series) => series.hatched)
-                  .map((series) => (
-                    <pattern
-                      id={series.patternId}
-                      key={series.patternId}
-                      patternUnits="userSpaceOnUse"
-                      width="8"
-                      height="8"
-                      patternTransform="rotate(45)"
+        <CardContent className="flex flex-1 items-center justify-center pb-3 pt-1">
+          <div className="h-[270px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+                  {selectedSet.chartMode === 'injection_series_line' ? (
+                    <LineChart
+                      data={model.data}
+                      margin={{ top: 8, right: 12, left: 8, bottom: 40 }}
                     >
-                      <rect width="8" height="8" fill={series.color} />
-                      <line x1="0" y1="0" x2="0" y2="8" stroke="#ffffff" strokeWidth="2" />
-                    </pattern>
-                  ))}
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="group" interval={0} height={40} />
-              <YAxis domain={model.yDomain} tickCount={5} />
-              <Tooltip
-                formatter={(value, name, item) => {
-                  const series = model.series.find((entry) => entry.meanKey === name);
-                  const semValue = series ? item?.payload?.[series.semKey] : null;
-                  const nValue = series ? item?.payload?.[series.nKey] : null;
-                  if (typeof value === 'number') {
-                    const semPart = typeof semValue === 'number' ? ` ± ${semValue.toFixed(3)} SEM` : '';
-                    const nPart = nValue ? ` (n=${nValue})` : '';
-                    return [`${value.toFixed(3)}${semPart}${nPart}`, series?.label ?? 'Value'];
-                  }
-                  return [String(value), series?.label ?? 'Value'];
-                }}
-              />
-              {model.series.map((series) => (
-                <Bar
-                  key={series.meanKey}
-                  dataKey={series.meanKey}
-                  fill={series.hatched ? `url(#${series.patternId})` : series.color}
-                  stroke="#4b5563"
-                  radius={[3, 3, 0, 0]}
-                >
-                  <ErrorBar dataKey={series.semKey} width={7} strokeWidth={2} stroke="#1f2937" />
-                </Bar>
-              ))}
-              </BarChart>
-            )}
-          </ResponsiveContainer>
+                      <CartesianGrid />
+                      <XAxis
+                        dataKey="injectionNumber"
+                        type="number"
+                        domain={[0, 10]}
+                        ticks={[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
+                        height={40}
+                      />
+                      <YAxis domain={yAxisDomain} tickCount={5} width={52} />
+                      <Tooltip
+                        labelFormatter={(label) => `Injection ${String(label)}`}
+                        formatter={(value, _name, item) => {
+                          const series = model.series.find((entry) => entry.meanKey === String(item.dataKey ?? ''));
+                          if (!series) {
+                            return [formatTooltipNumber(value), String(_name)];
+                          }
+
+                          const payload = item.payload as ChartPoint | undefined;
+                          const sem = toNumberOrNull(payload?.[series.semKey]);
+                          const n = toNumberOrNull(payload?.[series.nKey]);
+
+                          return [
+                            `Mean ${formatTooltipNumber(value)} | SEM ${sem === null ? 'N/A' : sem.toFixed(3)} | n=${n === null ? 'N/A' : String(n)}`,
+                            series.label,
+                          ];
+                        }}
+                      />
+                      {model.series.map((series) => (
+                        <Line
+                          key={series.meanKey}
+                          type="linear"
+                          dataKey={series.meanKey}
+                          stroke={series.color}
+                          strokeOpacity={0}
+                          strokeWidth={10}
+                          dot={(dotProps: { cx?: number; cy?: number }) => {
+                            const cx = dotProps.cx ?? 0;
+                            const cy = dotProps.cy ?? 0;
+                            const markerSize = 4;
+                            const fill = series.markerFilled ? series.color : '#ffffff';
+
+                            if (series.markerShape === 'square') {
+                              return (
+                                <rect
+                                  x={cx - markerSize}
+                                  y={cy - markerSize}
+                                  width={markerSize * 2}
+                                  height={markerSize * 2}
+                                  fill={fill}
+                                  stroke={series.color}
+                                  strokeWidth={2}
+                                />
+                              );
+                            }
+
+                            return <circle cx={cx} cy={cy} r={markerSize} fill={fill} stroke={series.color} strokeWidth={2} />;
+                          }}
+                          activeDot={(dotProps: { cx?: number; cy?: number }) => {
+                            const cx = dotProps.cx ?? 0;
+                            const cy = dotProps.cy ?? 0;
+                            const markerSize = 5;
+                            const fill = series.markerFilled ? series.color : '#ffffff';
+
+                            if (series.markerShape === 'square') {
+                              return (
+                                <rect
+                                  x={cx - markerSize}
+                                  y={cy - markerSize}
+                                  width={markerSize * 2}
+                                  height={markerSize * 2}
+                                  fill={fill}
+                                  stroke={series.color}
+                                  strokeWidth={2}
+                                />
+                              );
+                            }
+
+                            return <circle cx={cx} cy={cy} r={markerSize} fill={fill} stroke={series.color} strokeWidth={2} />;
+                          }}
+                        >
+                          <ErrorBar dataKey={series.semKey} width={6} strokeWidth={1.6} stroke={series.color} />
+                        </Line>
+                      ))}
+                    </LineChart>
+                  ) : (
+                    <BarChart
+                      data={model.data}
+                      margin={{ top: 8, right: 12, left: 8, bottom: 40 }}
+                    >
+                      <defs>
+                        {model.series
+                          .filter((series) => series.hatched)
+                          .map((series) => (
+                            <pattern
+                              id={series.patternId}
+                              key={series.patternId}
+                              patternUnits="userSpaceOnUse"
+                              width="8"
+                              height="8"
+                              patternTransform="rotate(45)"
+                            >
+                              <rect width="8" height="8" fill={series.color} />
+                              <line x1="0" y1="0" x2="0" y2="8" stroke="#ffffff" strokeWidth="2" />
+                            </pattern>
+                          ))}
+                      </defs>
+                      <CartesianGrid />
+                      <XAxis dataKey="group" interval={0} height={40} />
+                      <YAxis domain={yAxisDomain} tickCount={5} width={52} />
+                      <Tooltip
+                        labelFormatter={(label) => String(label)}
+                        formatter={(value, _name, item) => {
+                          const series = model.series.find((entry) => entry.meanKey === String(item.dataKey ?? ''));
+                          if (!series) {
+                            return [formatTooltipNumber(value), String(_name)];
+                          }
+
+                          const payload = item.payload as ChartPoint | undefined;
+                          const sem = toNumberOrNull(payload?.[series.semKey]);
+                          const n = toNumberOrNull(payload?.[series.nKey]);
+
+                          return [
+                            `Mean ${formatTooltipNumber(value)} | SEM ${sem === null ? 'N/A' : sem.toFixed(3)} | n=${n === null ? 'N/A' : String(n)}`,
+                            series.label,
+                          ];
+                        }}
+                      />
+                      {model.series.map((series) => (
+                        <Bar
+                          key={series.meanKey}
+                          dataKey={series.meanKey}
+                          fill={series.hatched ? `url(#${series.patternId})` : series.color}
+                          stroke="#4b5563"
+                          radius={[3, 3, 0, 0]}
+                        >
+                          <ErrorBar dataKey={series.semKey} width={7} strokeWidth={2} stroke="#1f2937" />
+                        </Bar>
+                      ))}
+                    </BarChart>
+                  )}
+                </ResponsiveContainer>
+          </div>
         </CardContent>
       </Card>
     );
   };
 
   const renderLegendCard = (key: string) => (
-    <Card key={key} className="h-full">
+    <Card key={key} className="h-full border-0 bg-transparent shadow-none">
       <CardHeader>
         <CardTitle className="text-center text-lg">Legend</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-2">
         {legendEntries.map((entry) => (
-          <div key={entry.label} className="flex items-center gap-3 text-sm text-slate-700">
+          <div key={entry.label} className="flex items-center gap-2 text-sm text-slate-700">
             {selectedSet.chartMode === 'injection_series_line' ? (
-              <span className="inline-flex h-5 w-12 items-center">
+              <span className="inline-flex h-5 w-5 items-center justify-center">
                 <span
-                  className="relative h-0 w-12 border-t-2"
+                  className="h-2.5 w-2.5 border-2"
                   style={{
-                    borderTopColor: entry.color,
-                    borderTopStyle: entry.lineDasharray ? 'dashed' : 'solid',
-                    borderTopWidth: entry.lineWidth ?? 2,
+                    borderColor: entry.color,
+                    backgroundColor: entry.markerFilled ? entry.color : '#ffffff',
+                    borderRadius: entry.markerShape === 'circle' ? '9999px' : '2px',
                   }}
-                >
-                  <span
-                    className="absolute left-1/2 top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 border-2"
-                    style={{
-                      borderColor: entry.color,
-                      backgroundColor: entry.markerFilled ? entry.color : '#ffffff',
-                      borderRadius: entry.markerShape === 'circle' ? '9999px' : '2px',
-                    }}
-                  />
-                </span>
+                />
               </span>
             ) : (
               <span
@@ -706,7 +766,7 @@ export function GraphQueryDashboard() {
             <CardHeader>
               <CardTitle className="text-center text-lg italic text-slate-700">{cell.title}</CardTitle>
             </CardHeader>
-            <CardContent className="flex h-[250px] items-center justify-center text-sm text-slate-500">
+            <CardContent className="flex h-[270px] items-center justify-center text-sm text-slate-500">
               {cell.subtitle ?? 'Panel coming soon'}
             </CardContent>
           </Card>
@@ -732,7 +792,7 @@ export function GraphQueryDashboard() {
               <Skeleton className="h-6 w-40" />
             </CardHeader>
             <CardContent>
-              <Skeleton className="h-[260px] w-full" />
+              <Skeleton className="h-[280px] w-full" />
             </CardContent>
           </Card>
         </div>
@@ -747,7 +807,7 @@ export function GraphQueryDashboard() {
             <Skeleton className="mt-2 h-4 w-full" />
           </CardHeader>
           <CardContent>
-            <Skeleton className="h-[260px] w-full" />
+            <Skeleton className="h-[280px] w-full" />
           </CardContent>
         </Card>
       </div>
@@ -755,12 +815,12 @@ export function GraphQueryDashboard() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-6 py-10 md:px-10">
-      <div className="mb-6">
+    <div className="mx-auto w-full max-w-7xl px-4 py-6 md:px-6 md:py-7">
+      <div className="mb-4">
         <h1 className="text-4xl font-bold tracking-tight text-gray-900">{selectedSet.dashboardTitle}</h1>
-        <p className="mt-3 max-w-3xl text-base text-gray-600">{selectedSet.dashboardDescription}</p>
+        <p className="mt-2 max-w-3xl text-base text-gray-600">{selectedSet.dashboardDescription}</p>
 
-        <div className="mt-5 max-w-sm">
+        <div className="mt-3 max-w-sm">
           <p className="mb-2 text-sm font-medium text-gray-700">Graph Set</p>
           <Select value={selectedSetId} onValueChange={setSelectedSetId}>
             <SelectTrigger>
@@ -777,36 +837,36 @@ export function GraphQueryDashboard() {
         </div>
       </div>
 
-      <Separator className="mb-8" />
+      <Separator className="mb-5" />
 
       {loading ? (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {selectedSet.layoutRows.map((row, rowIndex) => (
             <div
               key={`loading-row-${rowIndex}`}
-              className={`grid grid-cols-1 gap-6 ${getGridColumnsClass(selectedSet.columns)}`}
+              className={`grid grid-cols-1 gap-4 ${getGridColumnsClass(selectedSet.columns)}`}
             >
               {row.map((cell, cellIndex) => renderLoadingCell(cell, `loading-${rowIndex}-${cellIndex}`))}
             </div>
           ))}
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {hasAnyError && (
             <Card className="border-amber-300 bg-amber-50">
-              <CardContent className="pt-6 text-sm text-amber-900">
+              <CardContent className="pt-4 text-sm text-amber-900">
                 One or more panels failed to load. Successful panels are still shown below.
               </CardContent>
             </Card>
           )}
 
-          <div className="rounded-xl border bg-slate-50 p-6">
+          <div className="rounded-xl border bg-white p-4 md:p-5">
             {selectedSet.headerBlocks && selectedSet.headerBlocks.length > 0 && (
-              <div className={`mb-6 grid grid-cols-1 gap-3 text-center ${getGridColumnsClass(selectedSet.columns)}`}>
+              <div className={`mb-4 grid grid-cols-1 gap-2 text-center ${getGridColumnsClass(selectedSet.columns)}`}>
                 {selectedSet.headerBlocks.map((headerBlock, index) => (
                   <div
                     key={`header-block-${index}`}
-                    className={`rounded-md bg-white p-3 text-sm font-semibold uppercase tracking-wide text-slate-600 ${getLgColSpanClass(
+                    className={`p-2 text-sm font-semibold uppercase tracking-wide text-slate-600 ${getLgColSpanClass(
                       headerBlock.colSpan ?? 1
                     )}`}
                   >
@@ -816,9 +876,9 @@ export function GraphQueryDashboard() {
               </div>
             )}
 
-            <div className="space-y-6">
+            <div className="space-y-4">
               {selectedSet.layoutRows.map((row, rowIndex) => (
-                <div key={`row-${rowIndex}`} className={`grid grid-cols-1 gap-6 ${getGridColumnsClass(selectedSet.columns)}`}>
+                <div key={`row-${rowIndex}`} className={`grid grid-cols-1 gap-4 ${getGridColumnsClass(selectedSet.columns)}`}>
                   {row.map((cell, cellIndex) => renderLayoutCell(cell, `row-${rowIndex}-cell-${cellIndex}`))}
                 </div>
               ))}
