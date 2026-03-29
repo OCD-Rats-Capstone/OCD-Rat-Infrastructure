@@ -5,6 +5,8 @@ import {
   BarChart,
   CartesianGrid,
   ErrorBar,
+  Line,
+  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -18,9 +20,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 type GraphRow = {
   brain_status: string;
   chronic_regimen: string;
-  inj8_mean: number | string | null;
+  inj8_mean?: number | string | null;
   inj8_sem?: number | string | null;
   inj8_n?: number | string | null;
+  injection_number?: number | string | null;
+  mean_value?: number | string | null;
+  sem_value?: number | string | null;
+  n_rats?: number | string | null;
 };
 
 type GraphQueryResponse = {
@@ -35,13 +41,19 @@ type GraphPanel = {
 };
 
 type SeriesMeta = {
-  regimen: string;
+  label: string;
+  regimen?: string;
+  brainStatus?: string;
   meanKey: string;
   semKey: string;
   nKey: string;
   color: string;
   patternId: string;
   hatched: boolean;
+  markerShape?: 'circle' | 'square';
+  markerFilled?: boolean;
+  lineDasharray?: string;
+  lineWidth?: number;
 };
 
 type ChartPoint = {
@@ -53,6 +65,10 @@ type LegendEntry = {
   label: string;
   color: string;
   hatched: boolean;
+  markerShape?: 'circle' | 'square';
+  markerFilled?: boolean;
+  lineDasharray?: string;
+  lineWidth?: number;
 };
 
 type HeaderBlock = {
@@ -63,6 +79,7 @@ type HeaderBlock = {
 type LayoutCell =
   | { type: 'query'; queryId: number; colSpan?: number }
   | { type: 'legend'; colSpan?: number }
+  | { type: 'placeholder'; title: string; subtitle?: string; colSpan?: number }
   | { type: 'spacer'; colSpan?: number };
 
 type DashboardSetConfig = {
@@ -70,7 +87,8 @@ type DashboardSetConfig = {
   label: string;
   dashboardTitle: string;
   dashboardDescription: string;
-  columns: 2 | 3 | 4;
+  chartMode: 'inj8_snapshot' | 'injection_series_line';
+  columns: 1 | 2 | 3 | 4;
   headerBlocks?: HeaderBlock[];
   layoutRows: LayoutCell[][];
   queryTitles: Record<number, string>;
@@ -83,6 +101,7 @@ const DASHBOARD_SETS: DashboardSetConfig[] = [
     dashboardTitle: 'Compulsive Checking Criteria Dashboard',
     dashboardDescription:
       'Applies the M. C. Tucci et al. Figure 4 method to calculate performance on criteria measures for compulsive checking behavior. Panels are generated from five fixed toolbox graph queries using Inj 8 values and SEM whiskers.',
+    chartMode: 'inj8_snapshot',
     columns: 3,
     headerBlocks: [
       { text: 'Criteria of compulsive checking behavior', colSpan: 2 },
@@ -108,11 +127,51 @@ const DASHBOARD_SETS: DashboardSetConfig[] = [
       5: 'Duration of Rest',
     },
   },
+  {
+    id: 'set2-vigor-frequency-injection-series',
+    label: 'Set 2: Vigor of Checking (Panels 1-3)',
+    dashboardTitle: 'Compulsive Checking Vigor Dashboard',
+    dashboardDescription:
+      'Set 2 follows the injection-series figure style. Panels 1-3 are active now (no regression lines), with SEM shown for each point. Panels 4-5 are scaffolded and ready for upcoming SQL queries.',
+    chartMode: 'injection_series_line',
+    columns: 3,
+    headerBlocks: [
+      { text: 'Criteria of compulsive checking behavior', colSpan: 2 },
+      { text: 'Measure of satiety', colSpan: 1 },
+    ],
+    layoutRows: [
+      [
+        { type: 'query', queryId: 6 },
+        { type: 'query', queryId: 7 },
+        { type: 'placeholder', title: 'Duration of Rest', subtitle: 'Panel 5 coming soon' },
+      ],
+      [
+        { type: 'query', queryId: 8 },
+        { type: 'placeholder', title: 'Stops Before Returning to Check', subtitle: 'Panel 4 coming soon' },
+        { type: 'legend' },
+      ],
+    ],
+    queryTitles: {
+      6: 'Returns to Key Locale (#) by Injection',
+      7: 'Duration of Visit to Key Locale (log s) by Injection',
+      8: 'Time Between Checks (s) by Injection',
+    },
+  },
 ];
 
 const BAR_COLORS = ['#cbd5e1', '#94a3b8', '#64748b'];
 
-const getGridColumnsClass = (columns: 2 | 3 | 4) => {
+const SERIES_STYLES = [
+  { markerShape: 'circle' as const, markerFilled: false, lineDasharray: '', lineWidth: 2 },
+  { markerShape: 'circle' as const, markerFilled: true, lineDasharray: '7 6', lineWidth: 2 },
+  { markerShape: 'square' as const, markerFilled: false, lineDasharray: '', lineWidth: 2.4 },
+  { markerShape: 'square' as const, markerFilled: true, lineDasharray: '7 6', lineWidth: 3 },
+];
+
+const getGridColumnsClass = (columns: 1 | 2 | 3 | 4) => {
+  if (columns === 1) {
+    return 'lg:grid-cols-1';
+  }
   if (columns === 2) {
     return 'lg:grid-cols-2';
   }
@@ -225,13 +284,14 @@ const getYAxisDomain = (data: ChartPoint[], series: SeriesMeta[]): [number, numb
   return upper > lower ? [lower, upper] : [0, roundUpNice(maxValue + 1)];
 };
 
-const buildChartModel = (rows: GraphRow[], panelId: number) => {
+const buildSnapshotChartModel = (rows: GraphRow[], panelId: number) => {
   const groups = Array.from(new Set(rows.map((row) => row.brain_status)));
   const regimens = Array.from(new Set(rows.map((row) => row.chronic_regimen)));
 
   const series: SeriesMeta[] = regimens.map((regimen, index) => {
     const safeRegimen = normalizeKey(regimen);
     return {
+      label: `Inj 8 Mean (${regimen})`,
       regimen,
       meanKey: `inj8Mean_${safeRegimen}`,
       semKey: `inj8Sem_${safeRegimen}`,
@@ -252,6 +312,69 @@ const buildChartModel = (rows: GraphRow[], panelId: number) => {
       point[entry.meanKey] = toNumberOrNull(row?.inj8_mean);
       point[entry.semKey] = toNumberOrNull(row?.inj8_sem);
       point[entry.nKey] = toNumberOrNull(row?.inj8_n);
+    });
+
+    return point;
+  });
+
+  return {
+    data,
+    series,
+    yDomain: getYAxisDomain(data, series),
+  };
+};
+
+const buildInjectionSeriesChartModel = (rows: GraphRow[], panelId: number) => {
+  const injectionNumbers = Array.from(
+    new Set(
+      rows
+        .map((row) => toNumberOrNull(row.injection_number))
+        .filter((value): value is number => typeof value === 'number')
+    )
+  ).sort((a, b) => a - b);
+
+  const cohorts = Array.from(
+    new Set(rows.map((row) => `${row.brain_status}__${row.chronic_regimen}`))
+  ).map((rawKey) => {
+    const [brainStatus, chronicRegimen] = rawKey.split('__');
+    return { brainStatus, chronicRegimen };
+  });
+
+  const series: SeriesMeta[] = cohorts.map((cohort, index) => {
+    const safeKey = normalizeKey(`${cohort.brainStatus}_${cohort.chronicRegimen}`);
+    const style = SERIES_STYLES[index % SERIES_STYLES.length];
+    return {
+      label: `${cohort.brainStatus} + ${cohort.chronicRegimen}`,
+      brainStatus: cohort.brainStatus,
+      regimen: cohort.chronicRegimen,
+      meanKey: `injSeriesMean_${safeKey}`,
+      semKey: `injSeriesSem_${safeKey}`,
+      nKey: `injSeriesN_${safeKey}`,
+      color: BAR_COLORS[index % BAR_COLORS.length],
+      patternId: `injSeriesPattern_${panelId}_${safeKey}`,
+      hatched: index % 2 === 1,
+      markerShape: style.markerShape,
+      markerFilled: style.markerFilled,
+      lineDasharray: style.lineDasharray,
+      lineWidth: style.lineWidth,
+    };
+  });
+
+  const data: ChartPoint[] = injectionNumbers.map((injectionNumber) => {
+    const point: ChartPoint = { group: `Inj ${injectionNumber}`, injectionNumber };
+
+    series.forEach((entry, index) => {
+      const cohort = cohorts[index];
+      const row = rows.find(
+        (candidate) =>
+          candidate.brain_status === cohort.brainStatus &&
+          candidate.chronic_regimen === cohort.chronicRegimen &&
+          toNumberOrNull(candidate.injection_number) === injectionNumber
+      );
+
+      point[entry.meanKey] = toNumberOrNull(row?.mean_value);
+      point[entry.semKey] = toNumberOrNull(row?.sem_value);
+      point[entry.nKey] = toNumberOrNull(row?.n_rats);
     });
 
     return point;
@@ -321,22 +444,21 @@ export function GraphQueryDashboard() {
       return [] as LegendEntry[];
     }
 
-    const brainStatuses = Array.from(new Set(firstPayload.data.map((row) => row.brain_status)));
-    const regimens = Array.from(new Set(firstPayload.data.map((row) => row.chronic_regimen)));
-    const entries: LegendEntry[] = [];
+    const model =
+      selectedSet.chartMode === 'injection_series_line'
+        ? buildInjectionSeriesChartModel(firstPayload.data, firstPayload.query_id)
+        : buildSnapshotChartModel(firstPayload.data, firstPayload.query_id);
 
-    brainStatuses.forEach((brainStatus, brainIndex) => {
-      regimens.forEach((regimen, regimenIndex) => {
-        entries.push({
-          label: `${brainStatus} + ${regimen}`,
-          color: BAR_COLORS[(brainIndex + regimenIndex) % BAR_COLORS.length],
-          hatched: regimenIndex % 2 === 1,
-        });
-      });
-    });
-
-    return entries;
-  }, [panels]);
+    return model.series.map((series) => ({
+      label: series.label,
+      color: series.color,
+      hatched: series.hatched,
+      markerShape: series.markerShape,
+      markerFilled: series.markerFilled,
+      lineDasharray: series.lineDasharray,
+      lineWidth: series.lineWidth,
+    }));
+  }, [panels, selectedSet]);
 
   const renderPanel = (queryId: number) => {
     const panel = panelById.get(queryId);
@@ -366,7 +488,10 @@ export function GraphQueryDashboard() {
       );
     }
 
-    const model = buildChartModel(panel.payload.data, queryId);
+    const model =
+      selectedSet.chartMode === 'injection_series_line'
+        ? buildInjectionSeriesChartModel(panel.payload.data, queryId)
+        : buildSnapshotChartModel(panel.payload.data, queryId);
 
     return (
       <Card key={queryId} className="h-full">
@@ -375,7 +500,90 @@ export function GraphQueryDashboard() {
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={model.data} margin={{ top: 8, right: 12, left: 8, bottom: 40 }}>
+            {selectedSet.chartMode === 'injection_series_line' ? (
+              <LineChart data={model.data} margin={{ top: 8, right: 12, left: 8, bottom: 40 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="injectionNumber"
+                  type="number"
+                  domain={[0, 10]}
+                  ticks={[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
+                  height={40}
+                />
+                <YAxis domain={model.yDomain} tickCount={5} />
+                <Tooltip
+                  formatter={(value, name, item) => {
+                    const series = model.series.find((entry) => entry.meanKey === name);
+                    const semValue = series ? item?.payload?.[series.semKey] : null;
+                    const nValue = series ? item?.payload?.[series.nKey] : null;
+                    if (typeof value === 'number') {
+                      const semPart = typeof semValue === 'number' ? ` ± ${semValue.toFixed(3)} SEM` : '';
+                      const nPart = nValue ? ` (n=${nValue})` : '';
+                      return [`${value.toFixed(3)}${semPart}${nPart}`, series?.label ?? 'Value'];
+                    }
+                    return [String(value), series?.label ?? 'Value'];
+                  }}
+                  labelFormatter={(label) => `Injection ${label}`}
+                />
+                {model.series.map((series) => (
+                  <Line
+                    key={series.meanKey}
+                    type="linear"
+                    dataKey={series.meanKey}
+                    stroke={series.color}
+                    strokeWidth={series.lineWidth ?? 2}
+                    strokeDasharray={series.lineDasharray}
+                    dot={(dotProps: { cx?: number; cy?: number }) => {
+                      const cx = dotProps.cx ?? 0;
+                      const cy = dotProps.cy ?? 0;
+                      const markerSize = 4;
+                      const fill = series.markerFilled ? series.color : '#ffffff';
+
+                      if (series.markerShape === 'square') {
+                        return (
+                          <rect
+                            x={cx - markerSize}
+                            y={cy - markerSize}
+                            width={markerSize * 2}
+                            height={markerSize * 2}
+                            fill={fill}
+                            stroke={series.color}
+                            strokeWidth={2}
+                          />
+                        );
+                      }
+
+                      return <circle cx={cx} cy={cy} r={markerSize} fill={fill} stroke={series.color} strokeWidth={2} />;
+                    }}
+                    activeDot={(dotProps: { cx?: number; cy?: number }) => {
+                      const cx = dotProps.cx ?? 0;
+                      const cy = dotProps.cy ?? 0;
+                      const markerSize = 5;
+                      const fill = series.markerFilled ? series.color : '#ffffff';
+
+                      if (series.markerShape === 'square') {
+                        return (
+                          <rect
+                            x={cx - markerSize}
+                            y={cy - markerSize}
+                            width={markerSize * 2}
+                            height={markerSize * 2}
+                            fill={fill}
+                            stroke={series.color}
+                            strokeWidth={2}
+                          />
+                        );
+                      }
+
+                      return <circle cx={cx} cy={cy} r={markerSize} fill={fill} stroke={series.color} strokeWidth={2} />;
+                    }}
+                  >
+                    <ErrorBar dataKey={series.semKey} width={6} strokeWidth={1.6} stroke={series.color} />
+                  </Line>
+                ))}
+              </LineChart>
+            ) : (
+              <BarChart data={model.data} margin={{ top: 8, right: 12, left: 8, bottom: 40 }}>
               <defs>
                 {model.series
                   .filter((series) => series.hatched)
@@ -404,9 +612,9 @@ export function GraphQueryDashboard() {
                   if (typeof value === 'number') {
                     const semPart = typeof semValue === 'number' ? ` ± ${semValue.toFixed(3)} SEM` : '';
                     const nPart = nValue ? ` (n=${nValue})` : '';
-                    return [`${value.toFixed(3)}${semPart}${nPart}`, `Inj 8 Mean (${series?.regimen ?? ''})`];
+                    return [`${value.toFixed(3)}${semPart}${nPart}`, series?.label ?? 'Value'];
                   }
-                  return [String(value), `Inj 8 Mean (${series?.regimen ?? ''})`];
+                  return [String(value), series?.label ?? 'Value'];
                 }}
               />
               {model.series.map((series) => (
@@ -420,7 +628,8 @@ export function GraphQueryDashboard() {
                   <ErrorBar dataKey={series.semKey} width={7} strokeWidth={2} stroke="#1f2937" />
                 </Bar>
               ))}
-            </BarChart>
+              </BarChart>
+            )}
           </ResponsiveContainer>
         </CardContent>
       </Card>
@@ -435,15 +644,37 @@ export function GraphQueryDashboard() {
       <CardContent className="space-y-3">
         {legendEntries.map((entry) => (
           <div key={entry.label} className="flex items-center gap-3 text-sm text-slate-700">
-            <span
-              className="inline-block h-5 w-5 border border-slate-500"
-              style={{
-                backgroundColor: entry.color,
-                backgroundImage: entry.hatched
-                  ? 'repeating-linear-gradient(45deg, transparent 0, transparent 4px, rgba(255,255,255,0.95) 4px, rgba(255,255,255,0.95) 6px)'
-                  : 'none',
-              }}
-            />
+            {selectedSet.chartMode === 'injection_series_line' ? (
+              <span className="inline-flex h-5 w-12 items-center">
+                <span
+                  className="relative h-0 w-12 border-t-2"
+                  style={{
+                    borderTopColor: entry.color,
+                    borderTopStyle: entry.lineDasharray ? 'dashed' : 'solid',
+                    borderTopWidth: entry.lineWidth ?? 2,
+                  }}
+                >
+                  <span
+                    className="absolute left-1/2 top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 border-2"
+                    style={{
+                      borderColor: entry.color,
+                      backgroundColor: entry.markerFilled ? entry.color : '#ffffff',
+                      borderRadius: entry.markerShape === 'circle' ? '9999px' : '2px',
+                    }}
+                  />
+                </span>
+              </span>
+            ) : (
+              <span
+                className="inline-block h-5 w-5 border border-slate-500"
+                style={{
+                  backgroundColor: entry.color,
+                  backgroundImage: entry.hatched
+                    ? 'repeating-linear-gradient(45deg, transparent 0, transparent 4px, rgba(255,255,255,0.95) 4px, rgba(255,255,255,0.95) 6px)'
+                    : 'none',
+                }}
+              />
+            )}
             <span>{entry.label}</span>
           </div>
         ))}
@@ -466,6 +697,21 @@ export function GraphQueryDashboard() {
       return <div key={cellKey} className={colSpanClass}>{renderLegendCard(cellKey)}</div>;
     }
 
+    if (cell.type === 'placeholder') {
+      return (
+        <div key={cellKey} className={colSpanClass}>
+          <Card className="h-full border-dashed border-slate-300 bg-slate-100/50">
+            <CardHeader>
+              <CardTitle className="text-center text-lg italic text-slate-700">{cell.title}</CardTitle>
+            </CardHeader>
+            <CardContent className="flex h-[250px] items-center justify-center text-sm text-slate-500">
+              {cell.subtitle ?? 'Panel coming soon'}
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
     return <div key={cellKey} className={`hidden ${colSpanClass} lg:block`} />;
   };
 
@@ -474,6 +720,21 @@ export function GraphQueryDashboard() {
 
     if (cell.type === 'spacer') {
       return <div key={cellKey} className={`hidden ${colSpanClass} lg:block`} />;
+    }
+
+    if (cell.type === 'placeholder') {
+      return (
+        <div key={cellKey} className={colSpanClass}>
+          <Card className="border-dashed border-slate-300 bg-slate-100/50">
+            <CardHeader>
+              <Skeleton className="h-6 w-40" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-[260px] w-full" />
+            </CardContent>
+          </Card>
+        </div>
+      );
     }
 
     return (
