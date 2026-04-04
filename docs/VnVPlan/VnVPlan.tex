@@ -504,13 +504,13 @@ NLP modules.
 \paragraph{Test 3: Verify Predefined Data Categories Available for Browsing}
 \begin{itemize}
     \item \textbf{Related Requirement:} FUNC.R.3
-    \item \textbf{Test ID:} FR3-Predefined-Sets
+    \item \textbf{Test ID:} FR3-Predefined-Inventory
     \item \textbf{Control:} Manual (UI check)
-    \item \textbf{Initial State:} System deployed with at least 3 predefined sets (e.g., ``Exploration Trials'', ``Compulsive Behavior'', ``Control Trials'').
-    \item \textbf{Input:} User opens the ``Browse'' interface.
-    \item \textbf{Output:} At least 3 predefined datasets appear for selection.
-    \item \textbf{Test Case Derivation:} Requirement specifies a minimum of 3 sets available for browsing.
-    \item \textbf{How test will be performed:} Manually navigate to the Browse page and confirm at least 3 datasets are displayed and accessible.
+    \item \textbf{Initial State:} System deployed with an inventory of all available rat trial sessions (e.g., `61474', `61475', and so on...).
+    \item \textbf{Input:} User opens the `ToolBox' interface. User then presses "Load Session" after selecting a session number.
+    \item \textbf{Output:} All rat trial sessions appear for selection.
+    \item \textbf{Test Case Derivation:} Requirement specifies all rat trial sessions must be available to to browse.
+    \item \textbf{How test will be performed:} Manually navigate to the `ToolBox' page and confirm all available rat trial sessions are listed and accessible.
 \end{itemize}
 
 \subsubsection{Behavioral Analysis and Visualization}
@@ -533,12 +533,12 @@ These tests ensure that behavioral categorizations and visual representations ar
 \begin{itemize}
     \item \textbf{Related Requirement:} FUNC.R.5
     \item \textbf{Test ID:} FR5-Visualization
-    \item \textbf{Control:} Automatic (UI rendering check)
+    \item \textbf{Control:} Manual (UI rendering check)
     \item \textbf{Initial State:} User has filtered dataset (non-empty result).
-    \item \textbf{Input:} User clicks ``Generate Visualization''.
-    \item \textbf{Output:} Visualization component renders trajectory or metric chart corresponding to the dataset.
-    \item \textbf{Test Case Derivation:} The fit criterion specifies at least one visual per result set; therefore, successful rendering of a chart or trajectory fulfills this requirement.
-    \item \textbf{How test will be performed:} Use UI test automation (e.g., Selenium) to trigger visualization and check that the chart container loads successfully (non-empty DOM element).
+    \item \textbf{Input:} User types and submits a natural language query to the NLP model in "Select" mode.
+    \item \textbf{Output:} Visualization component renders the converted SQL query from the user's natural language query, and displays tabulated SQL query results.
+    \item \textbf{Test Case Derivation:} The fit criterion specifies at least one visual per result set; therefore, successful rendering of both the query results and SQL query fulfills this requirement at minimum.
+    \item \textbf{How test will be performed:} Manually submit a natural language query (that is valid and applicable to the database) and confirm that the system generates a visual representation of the results and displays the corresponding SQL query.
 \end{itemize}
 
 \subsubsection{Data Downloading and Accessibility}
@@ -554,7 +554,7 @@ These tests confirm that datasets and visuals can be downloaded correctly and th
     \item \textbf{Input:} User clicks ``Download CSV'' or ``Download Visualization''.
     \item \textbf{Output:} File downloaded successfully; first 100 rows match database query results.
     \item \textbf{Test Case Derivation:} Fit criterion requires verification against the first 100 rows; thus, equality of the first 100 entries validates correctness.
-    \item \textbf{How test will be performed:} Automated script downloads dataset and compares first 100 entries with direct database query output.
+    \item \textbf{How test will be performed:} Automated PyTest unit test downloads dataset and compares first 100 entries with direct database query output.
 \end{itemize}
 
 \paragraph{Test 7: Verify Global Accessibility and Performance}
@@ -566,9 +566,8 @@ These tests confirm that datasets and visuals can be downloaded correctly and th
     \item \textbf{Input:} Users (or simulated clients) from 3+ regions (e.g., North America, Europe, Asia) access the site.
     \item \textbf{Output:} Average page load time $<$ 4 seconds across all regions; no functional degradation.
     \item \textbf{Test Case Derivation:} Requirement defines measurable metric (4 seconds); success if timing threshold not exceeded.
-    \item \textbf{How test will be performed:} Use tools such as Lighthouse, GTmetrix, or JMeter with geo-distributed endpoints to measure average response time and record metrics.
+    \item \textbf{How test will be performed:} Use Locust with geo-distributed endpoints to measure average response time and record metrics.
 \end{itemize}
-
 
 \subsection{Tests for Nonfunctional Requirements}
 
@@ -681,7 +680,7 @@ These tests verify latency, throughput, fault-tolerance, and data integrity.
     \item \textbf{Initial State:} Server and database running under normal load.
     \item \textbf{Input/Condition:} Execute 100 queries of varying sizes up to 5,000 records.
     \item \textbf{Output/Result:} Average query time $<$ 2 seconds; request latency $<$ 100 ms.
-    \item \textbf{How test will be performed:} Automated benchmark using JMeter or Locust. Generate graph of response time vs. query size.
+    \item \textbf{How test will be performed:} Automated benchmark done using JMeter. Generate graph of response time vs. query size.
 \end{itemize}
 
 \paragraph{Test 9: Fault-Tolerance and Logging Verification}
@@ -692,7 +691,7 @@ These tests verify latency, throughput, fault-tolerance, and data integrity.
     \item \textbf{Initial State:} Backend running.
     \item \textbf{Input/Condition:} Submit invalid input payloads and simulate network interruptions.
     \item \textbf{Output/Result:} Errors logged without system crash; user receives appropriate feedback message.
-    \item \textbf{How test will be performed:} Automated injection of malformed JSON; verify log entries and system stability.
+    \item \textbf{How test will be performed:} Automated injection of malformed JSON using JMeter; verify log entries and system stability.
 \end{itemize}
 
 \paragraph{Test 10: Capacity and Scalability Evaluation}
@@ -703,7 +702,7 @@ These tests verify latency, throughput, fault-tolerance, and data integrity.
     \item \textbf{Initial State:} System deployed in cloud environment.
     \item \textbf{Input/Condition:} Simulate 250 concurrent users performing queries.
     \item \textbf{Output/Result:} Throughput $\geq$ 5,000 transactions/hour; performance efficiency $\geq$ 80\%.
-    \item \textbf{How test will be performed:} Use load testing tools (Locust, K6) to simulate concurrent access and measure throughput metrics.
+    \item \textbf{How test will be performed:} Use JMeter to simulate concurrent access and measure throughput metrics.
 \end{itemize}
 
 \subsubsection{Maintainability and Support Requirements}
