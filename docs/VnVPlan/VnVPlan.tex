@@ -923,12 +923,12 @@ cases, modules will not be tested and an explanation will be given for why.
     \item \textbf{Test ID:} UT1-FR2-TestAskQuestion
     \item \textbf{Type:} Dynamic, Automatic
     \item \textbf{Initial State Base Case:} API connection to LLM model is live
-    \item \textbf{Input Base Case:} user inputs question or phrase such as 'hello'
+    \item \textbf{Input Base Case:} User selects "Ask" mode, then inputs question or phrase such as 'hello'
     \item \textbf{Output Base Case:} We expect the response to contain the token "Hello"
     \item \textbf{Initial State Edge Case 1:} API connection raises an exception and cannot complete requests.
-    \item \textbf{Input Edge Case 1:} user inputs question or phrase such as 'hello'
+    \item \textbf{Input Edge Case 1:} User selects "Ask" mode, then inputs question or phrase such as 'hello'
     \item \textbf{Output Base Case 1:} User is informed of failure to call on model response
-    \item \textbf{Test Case Derivation:} Our query module has a "query" section and an "ask" section. The ask section allows the user to interact with the model and learn more about the tool.
+    \item \textbf{Test Case Derivation:} Our query module has a "Select" section and an "Ask" section. The ask section allows the user to interact with the model and learn more about the tool.
     \item \textbf{How test will be performed:} Pytest assertions. Call the query module's \texttt{ask\_question()} function with parameter \texttt{user\_phrase}.
 \end{itemize}
 
@@ -947,13 +947,14 @@ a tool such as Selenium. The relevant tests for functional requirements are list
     \item \textbf{Initial State Base Case:} Front-End/Backend Connection/DB is live.
     \item \textbf{Input Pattern:}
       \begin{itemize}
-        \item Navigate each of available tabs in the NavBar (Home, Query, Inventory, Visualizations, About)
+        \item Navigate each of available tabs in the NavBar (Home, Query, Visualizations, Inventory, ToolBox, About)
         \item Input question into the Query tab, ensure it displays as a message in the chat box and a response is provided
         \item Input query into the Query tab, ensure a response is given as a table embedded in the chat window
         \item Select various filters in the Inventory tab, apply and ensure session counts are updated and sessions display in the table
         \item Clear filters in the Inventory tab, ensure session counts update accordingly
         \item Select Download button in both the Query and Inventory tabs, ensure they render properly and file extensions can be selected
-        \item Select each of the three available visualizations and select any combination of X and Y parameters. Ensure visualizations render in a user-friendly way
+        \item Select each of the five available visualizations and generate at least one successful visualization of each type. Ensure visualizations render in a user-friendly way
+        \item Select an available rat trial session in the ToolBox tab. Ensure the session details are displayed and the kinematic trajectory visualization renders properly
       \end{itemize}
     \item \textbf{Output Case:} 200 HTTP code
     \item \textbf{Test Case Derivation:} Verifies baseline user experience and responsiveness in the front-end
@@ -972,10 +973,12 @@ a tool such as Selenium. The relevant tests for functional requirements are list
     \item \textbf{Output Case 1:} 200 HTTP code
     \item \textbf{Input Case 2:} NLP module backend endpoint, user query in request body
     \item \textbf{Output Case 2:} 200 HTTP code, JSON response
-    \item \textbf{Input Case 3:} Inventory module backend endpoint, filter set in request body
+    \item \textbf{Input Case 3:} Visualization module backend endpoint, visualization parameters in request body
     \item \textbf{Output Case 3:} 200 HTTP code, JSON response
-    \item \textbf{Input Case 4:} Visualization module backend endpoint, visualization parameters in 
+    \item \textbf{Input Case 4:} Inventory module backend endpoint, filter set in request body
     \item \textbf{Output Case 4:} 200 HTTP code, JSON response
+    \item \textbf{Input Case 5:} ToolBox module backend endpoint, rat trial session is loaded using an ID
+    \item \textbf{Output Case 5:} 200 HTTP code, JSON response
     \item \textbf{Test Case Derivation:} The primary function of the API module is ensuring the data is routed through the system properly.
     \item \textbf{How test will be performed:} Pytest assertions. Call the various endpoints and assert the response codes are 200 and JSON format is correct
 \end{itemize}
