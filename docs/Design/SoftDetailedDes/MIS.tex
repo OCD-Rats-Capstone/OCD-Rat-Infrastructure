@@ -9,6 +9,7 @@
 \usepackage{colortbl}
 \usepackage{xr}
 \usepackage{hyperref}
+\usepackage{xurl}
 \usepackage{longtable}
 \usepackage{xfrac}
 \usepackage{tabularx}
@@ -39,6 +40,7 @@ urlcolor=cyan          % color of external links
 \input{../../Common}
 
 \begin{document}
+\sloppy
 
 \title{Module Interface Specification for \progname{}}
 
@@ -55,8 +57,8 @@ urlcolor=cyan          % color of external links
 \begin{tabularx}{\textwidth}{p{3cm}p{2cm}X}
 \toprule {\bf Date} & {\bf Version} & {\bf Notes}\\
 \midrule
-Date 1 & 1.0 & Notes\\
-Date 2 & 1.1 & Notes\\
+Nov 13, 2025 & 1.0 & Initial Module Interface Specification (Rev 0)\\
+Apr 6, 2026 & 2.0 & Final Revision: added cross-document references, M3/M4/M6 semantic corrections, mathematical formalization (M2), M9 access routine semantics\\
 \bottomrule
 \end{tabularx}
 
@@ -77,11 +79,22 @@ See SRS Documentation at \url{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infra
 \section{Introduction}
 
 The following document details the Module Interface Specifications for
-\textbf{RatBat2}, a data analysis web application designed to visualize, query, and process behavioural data from experiments involving rats with Obsessive-Compulsive Disorder (OCD). The system enables researchers to upload experimental trial data, perform natural language–based searches, and generate dynamic visualizations for behavioural comparisons and trend analysis.
+\textbf{InfraRat}, a data analysis web application designed to visualize, query, and process behavioural data from experiments involving rats with Obsessive-Compulsive Disorder (OCD). The system enables researchers to upload experimental trial data, perform natural language–based searches, and generate dynamic visualizations for behavioural comparisons and trend analysis.
 
 Complementary documents include the \textit{System Requirements Specification (SRS)} and \textit{Module Guide (MG)}.  
 The full documentation and implementation can be found at  
 \url{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure}.
+
+\subsection{Related Documents}
+
+This MIS should be read in conjunction with the following project documents:
+\begin{itemize}
+  \item \textbf{Software Requirements Specification (SRS):} \url{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/docs/SRS-Volere/SRS.pdf}
+  \item \textbf{Module Guide (MG):} \url{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/docs/Design/SoftArchitecture/MG.pdf}
+  \item \textbf{Verification and Validation Plan:} \url{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/docs/VnVPlan/VnVPlan.pdf}
+  \item \textbf{Hazard Analysis:} \url{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/docs/HazardAnalysis/HazardAnalysis.pdf}
+\end{itemize}
+
 
 
 \section{Notation}
@@ -243,13 +256,13 @@ NLPModule
 \subsubsection{Exported Access Programs}
 
 \begin{center}
-\begin{tabular}{p{4cm} p{4cm} p{4cm} p{4cm}}
-\hline
+\begin{tabularx}{\textwidth}{l l l X}
+\toprule
 \textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
-\hline
+\midrule
 NLP Processor & String & String & incoherent prompt, empty input \\
-\hline
-\end{tabular}
+\bottomrule
+\end{tabularx}
 \end{center}
 
 \subsection{Semantics}
@@ -288,7 +301,8 @@ NLP Processor & String & String & incoherent prompt, empty input \\
 \begin{itemize}
 \item output: out := if $(is\_valid\_output(natural\_language))~then~
 \\ \{LLM\_API\_Response(natural\_language)\}~else~\{raise~incoherent\_prompt\}$ 
-\item exceptions: $(natural\_language$ IS NULL $=> empty\_input), (!is\_valid\_output(natural\_language) => incoherent\_prompt)$
+\item exceptions: $(natural\_language$ IS NULL $=> empty\_input),$ \\
+$(!is\_valid\_output(natural\_language) => incoherent\_prompt)$
 \end{itemize}
 
 \subsubsection{Local Functions}
@@ -303,6 +317,109 @@ NLP Processor & String & String & incoherent prompt, empty input \\
 \item $output: LLM\_Response := (Call~LLM~API~where: \\ Prompt input = natural\_language~prepended~by~System\_Prompt)$
 \end{itemize}
 
+
+
+
+\subsection{Formal Specification of NLP Query Processing}
+
+This section provides a mathematical formalization of the NLP Query Processor Module (M2) using a finite state machine (FSM) and formal function specifications with set-theoretic notation.
+
+\subsubsection{Finite State Machine}
+
+The query processing pipeline is modeled as a deterministic finite state machine $\mathcal{M} = (S, \Sigma, \delta, s_0, F)$ where:
+
+\begin{itemize}
+  \item $S = \{\text{IDLE}, \text{VALIDATING\_INPUT}, \text{CALLING\_LLM},$ \\
+        $\text{VALIDATING\_OUTPUT}, \text{COMPLETE}, \text{ERROR}\}$
+  \item $\Sigma = \{\text{receive\_query}, \text{input\_valid}, \text{input\_invalid}, \text{llm\_success},$ \\
+        $\text{llm\_failure}, \text{output\_valid}, \text{output\_invalid}, \text{reset}\}$
+  \item $s_0 = \text{IDLE}$
+  \item $F = \{\text{COMPLETE}\}$
+\end{itemize}
+
+The transition function $\delta : S \times \Sigma \rightarrow S$ is defined by the following table:
+
+\begin{center}
+\begin{tabular}{l l l}
+\toprule
+\textbf{Current State} & \textbf{Input Symbol} & \textbf{Next State} \\
+\midrule
+IDLE & receive\_query & VALIDATING\_INPUT \\
+VALIDATING\_INPUT & input\_valid & CALLING\_LLM \\
+VALIDATING\_INPUT & input\_invalid & ERROR \\
+CALLING\_LLM & llm\_success & VALIDATING\_OUTPUT \\
+CALLING\_LLM & llm\_failure & ERROR \\
+VALIDATING\_OUTPUT & output\_valid & COMPLETE \\
+VALIDATING\_OUTPUT & output\_invalid & ERROR \\
+ERROR & reset & IDLE \\
+COMPLETE & reset & IDLE \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+All undefined transitions remain in the current state: $\forall (s, \sigma) \notin \text{dom}(\delta), \; \delta(s, \sigma) = s$.
+
+\subsubsection{Formal Function Specifications}
+
+The core transformation performed by the NLP Processor is formalized as follows.
+
+\paragraph{Domain Definitions.}
+
+Let $\mathcal{L}$ be the set of all non-empty strings (natural language inputs), and let $\mathcal{Q}$ be the set of all well-formed structured query strings. We define the output grammar as:
+
+\[
+\mathcal{Q} = \{ q \mid q = \langle a_1, o_1, v_1 \rangle ; \ldots ; \langle a_n, o_n, v_n \rangle \}
+\]
+
+where $a_i \in \textit{Schema\_Attributes}$, $o_i \in \textit{Valid\_Operators}$, and $v_i$ is a literal value compatible with the attribute type of $a_i$.
+
+\paragraph{NLP\_Processor Function.}
+
+\[
+\text{NLP\_Processor} : \mathcal{L} \rightarrow \mathcal{Q}
+\]
+
+\noindent \textbf{Precondition:}
+\[
+\text{pre}(nl) \equiv nl \neq \epsilon \land |nl| > 0
+\]
+
+\noindent \textbf{Postcondition:}
+\[
+\text{post}(nl, q) \equiv q \in \mathcal{Q} \land \text{is\_valid\_output}(q) = \text{True}
+\]
+
+\noindent \textbf{Exception:}
+\begin{align*}
+\text{exc}(nl) \equiv &(nl = \epsilon \Rightarrow \text{empty\_input}) \lor \\
+                      &(\text{is\_valid\_output}(\text{LLM\_API\_Call}(nl)) = \text{False} \Rightarrow \text{incoherent\_prompt})
+\end{align*}
+
+\paragraph{Validation Predicate.}
+
+The output validation predicate $\text{is\_valid\_output} : \text{String} \rightarrow \mathbb{B}$ is defined as:
+
+\begin{align*}
+\text{is\_valid\_output}(r) \equiv \forall \langle a_i, o_i, v_i \rangle \in \text{parse}(r) : \;&a_i \in \textit{Schema\_Attributes} \land \\
+                                                                                              &o_i \in \textit{Valid\_Operators}
+\end{align*}
+
+where $\text{parse} : \text{String} \rightarrow \mathcal{P}(\textit{Schema\_Attributes} \times \textit{Valid\_Operators} \times \text{Value})$ decomposes the LLM response into a set of attribute-operator-value triples.
+
+\paragraph{Composition.}
+
+The full pipeline composition is defined by first letting:
+\[ \text{LLM}(nl) = \text{LLM\_API\_Call}(nl, \textit{System\_Prompt}) \]
+Then:
+
+\[
+\text{NLP\_Processor}(nl) = \begin{cases}
+  \text{LLM}(nl) & \text{if } \text{is\_valid\_output}(\text{LLM}(nl)) \\
+  \bot_{\text{incoherent\_prompt}} & \text{otherwise}
+\end{cases}
+\]
+
+where $\bot_{\text{incoherent\_prompt}}$ denotes exceptional termination with the \texttt{incoherent\_prompt} error.
 
 
 \section{MIS of M3: Front-End Interface Module} \label{Module 3}
@@ -330,7 +447,7 @@ FrontEnd
 \subsubsection{Exported Access Programs}
 
 \begin{center}
-\begin{tabular}{p{4cm} p{5cm} p{3cm} p{4cm}}
+\begin{tabularx}{\textwidth}{X X l X}
 \hline
 \textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
 \hline
@@ -339,7 +456,7 @@ Apply Filter & FilterCriteria & UpdatedResults & invalid filter \\
 Render Visualization & VisualizationConfig, DataSet & RenderedChart & unsupported chart type \\
 Download Data & FormatType, DataSet & File & unsupported format, empty dataset \\
 \hline
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 
@@ -379,7 +496,35 @@ Download Data & FormatType, DataSet & File & unsupported format, empty dataset \
 \end{itemize}
 \subsubsection{Access Routine Semantics}
 
-\par{N/A}
+\noindent $Submit\_Search\_Query(QueryParameters) \rightarrow DisplayedResults$:
+\begin{itemize}
+\item transition: $DataSet := HTTP\_Send\_Request(QueryParameters).body$
+\item output: out $:= $ rendered view of $DataSet$ in the UI result panel
+\item exception: $exc := (QueryParameters~\text{IS NULL} \Rightarrow invalid\_query)$
+\end{itemize}
+
+\noindent $Apply\_Filter(FilterCriteria) \rightarrow UpdatedResults$:
+\begin{itemize}
+\item transition: $DataSet := HTTP\_Send\_Request(FilterCriteria).body$
+\item output: out $:= $ filtered subset of $DataSet$ rendered in the UI
+\item exception: $exc := (FilterCriteria~\text{contains invalid attribute} \Rightarrow invalid\_filter)$
+\end{itemize}
+
+\noindent $Render\_Visualization(VisualizationConfig, DataSet) \rightarrow RenderedChart$:
+\begin{itemize}
+\item transition: None
+\item output: out $:= $ SVG or canvas element generated by the Data Visualization Module (M6)
+\item exception: $exc := (VisualizationConfig.type \notin \{\text{VTYPE\_BAR}, \text{VTYPE\_PLOT},$ \\
+$\text{VTYPE\_PIE}, \text{VTYPE\_HEATMAP}, \text{VTYPE\_TIMESERIES}\} \Rightarrow unsupported\_chart\_type)$
+\end{itemize}
+
+\noindent $Download\_Data(FormatType, DataSet) \rightarrow File$:
+\begin{itemize}
+\item transition: None
+\item output: out $:= $ file download initiated in the specified $FormatType$ (CSV, JSON)
+\item exception: $exc := (FormatType \notin \{\text{CSV}, \text{JSON}\} \Rightarrow unsupported\_format)$ \\
+$(DataSet~\text{IS NULL} \Rightarrow empty\_dataset)$
+\end{itemize}
 
 \subsubsection{Local Functions}
 
@@ -431,17 +576,17 @@ APILayer
 \subsubsection{Exported Access Programs}
 
 \begin{center}
-\begin{tabular}{p{4cm} p{5cm} p{3cm} p{4cm}}
+\begin{tabularx}{\textwidth}{X X l X}
 \hline
 \textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
 \hline
-Process Structured Query & StructuredQuery & JSON Object & malformed query, empty result \\
-Process NLP Query &  NaturalLanguageQuery & JSON Object & unrecognized intent, NLP failure \\
-Get Dataset & QueryResultID & DataSet (JSON) & invalid ID, empty dataset \\
-Request RawFiles & DataSet\{"FileLocations"\} & File[] & bad URL, missing files \\
-Authenticate Request & AuthToken & AccessDecision & invalid token \\
+Process\_Structured\_Query & StructuredQuery & JSON Object & malformed query, empty result \\
+Process\_NLP\_Query &  NaturalLanguageQuery & JSON Object & unrecognized intent, NLP failure \\
+Get\_Dataset & QueryResultID & DataSet (JSON) & invalid ID, empty dataset \\
+Request\_RawFiles & DataSet\{"FileLocations"\} & File[] & bad URL, missing files \\
+Authenticate\_Request & AuthToken & AccessDecision & invalid token \\
 \hline
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 
@@ -493,12 +638,41 @@ Authenticate Request & AuthToken & AccessDecision & invalid token \\
 
 \end{itemize}
 
+
+\noindent $Process\_Structured\_Query(StructuredQuery) \rightarrow JSON~Object$:
+\begin{itemize}
+\item transition: $RequestedQuery := Structured\_Query(StructuredQuery)$; $DataSet := Request\_DataSet(RequestedQuery, HostedDatabaseEndPoint)$
+\item output: out $:=$ DataSet (JSON Object containing matching experimental session records)
+\item exception: $exc := (StructuredQuery~\text{IS NULL} \Rightarrow malformed\_query)$ \\
+$(DataSet~\text{IS NULL} \Rightarrow empty\_result)$
+\end{itemize}
+
+\noindent $Process\_NLP\_Query(NaturalLanguageQuery) \rightarrow JSON~Object$:
+\begin{itemize}
+\item transition: $RequestedQuery := NLP\_Query(NaturalLanguageQuery)$; $DataSet := Request\_DataSet(RequestedQuery, HostedDatabaseEndPoint)$
+\item output: out $:=$ DataSet (JSON Object containing matching experimental session records)
+\item exception: $exc := (NLP\_Query~\text{fails validation} \Rightarrow unrecognized\_intent)$ \\
+$(NLPModule~\text{unavailable} \Rightarrow NLP\_failure)$
+\end{itemize}
+
+\noindent $Authenticate\_Request(AuthToken) \rightarrow AccessDecision$:
+\begin{itemize}
+\item transition: None
+\item output: out $:=$ access decision from the Authentication and Access Control Module (M8)
+\item exception: $exc := (AuthToken~\text{IS NULL} \lor \text{expired} \Rightarrow invalid\_token)$
+\end{itemize}
+
+
+
+
 \subsubsection{Local Functions}
 
 \par{$Choose\_Query\_Process(String: QueryType) \rightarrow JSON~Object$: }
 \begin{itemize}
-  \item{transition: $ DataSet := if (QueryType == 'NaturalLanguage') \{NLP\_Query(HTTP\_Request)\} \\ elseif (QueryType == 'Structured') \{Structured\_Query(HTTP\_Request)\}$}
-  \item{exception: $exc := (\not(QueryType \in \{'NaturalLanguage','Structured'\}) => Bad\_Query\_Type$)}
+  \item transition: $DataSet := $ \\
+  if $(QueryType == \text{'NaturalLanguage'}) \{NLP\_Query(HTTP\_Request)\}$ \\
+  elseif $(QueryType == \text{'Structured'}) \{Structured\_Query(HTTP\_Request)\}$
+  \item exception: $exc := (QueryType \notin \{\text{'NaturalLanguage'}, \text{'Structured'}\} \Rightarrow Bad\_Query\_Type)$
 \end{itemize}
 
 \noindent{$NLP\_Query(HTTP~Request: HTTP\_Request): \rightarrow SQL~Query$ }
@@ -860,9 +1034,12 @@ GenerateViz & (VType, DataBlob, ChartConfig)  & Viz\_SVG & InvalidDataSchema \\
 
 \subsubsection{State Variables}
 
-The Data Visualization Model acts as a stateless data transformation stage and therefore has no associated state variables. 
-It is stateless because all visualization information (data, type, and configuration) is provided through parameters to 
-GenerateViz, so no persistent internal state is required. 
+While individual visualization render calls are functionally pure (all required data is provided via parameters), the module maintains configuration state to track the active chart settings and supported visualization types.
+
+\begin{itemize}
+  \item \textbf{ActiveChartConfig}: dict -- stores the current chart type, axis labels, color scheme, and display options for the active visualization session.
+  \item \textbf{SupportedVTypes}: set of String -- the set of currently supported visualization types, initialized from the exported constants (VTYPE\_BAR, VTYPE\_PLOT, VTYPE\_PIE, VTYPE\_HEATMAP, VTYPE\_TIMESERIES). This state allows the module to be extended with new chart types as anticipated by AC4 in the Module Guide.
+\end{itemize}
 
 \subsubsection{Environment Variables}
 
@@ -929,7 +1106,7 @@ None.
 \subsubsection{Exported Access Programs}
 
 \begin{center}
-\begin{tabular}{p{3cm} p{4cm} p{4cm} p{3cm}}
+\begin{tabularx}{\textwidth}{l X X X}
 \hline
 \textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
 \hline
@@ -937,7 +1114,7 @@ ProcessData & Dataset (CSV / JSON), Parameters (dict) & Processed DataFrame / JS
 ComputeMetrics & Processed DataFrame / JSON & Metrics (dict) & empty input, computation error \\
 GenerateSummary & Processed DataFrame / JSON & Summary Statistics (dict) & invalid input \\
 \hline
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 \subsection{Semantics}
@@ -998,7 +1175,9 @@ None. All computations are stateless and performed on data inputs provided per r
 
 \newpage
 
-\section{MIS of M8: Authentication and Access Control Module} \label{Module 8}
+\section{MIS of M8: Authentication and Access Control Module (Descoped)} \label{Module 8}
+
+\textit{*Note: This module was part of the original design but was descoped from the final implementation due to time constraints. The specification below is retained for architectural completeness.*}
 
 \subsection{Module}
 
@@ -1023,7 +1202,7 @@ encryption, and validation.}
 \subsubsection{Exported Access Programs}
 
 \begin{center}
-\begin{tabular}{p{4cm} p{4cm} p{4cm} p{4cm}}
+\begin{tabularx}{\textwidth}{l X X X}
 \hline
 \textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
 \hline
@@ -1034,7 +1213,7 @@ Authorize Role & User Object, String JWT Token & Boolean & AccessDeniedError \\
 Logout User & String JWT Token & Boolean & InvalidTokenError \\
 Refresh Token & String JWT Token & String JWT Token & InvalidTokenError, TokenExpiredError \\
 \hline
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 \subsection{Semantics}
@@ -1146,7 +1325,7 @@ None
 \subsubsection{Exported Access Programs}
 
 \begin{center}
-\begin{tabular}{p{3cm} p{4cm} p{4cm} p{2cm}}
+\begin{tabularx}{\textwidth}{l X X l}
 \hline
 \textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
 \hline
@@ -1158,7 +1337,7 @@ None
 \hline
 \texttt{raiseError} & message: type of error, severity: LOG\_LEVELS & success: boolean & IOError \\
 \hline
-\end{tabular}
+\end{tabularx}
 \end{center}
 
 \subsection{Semantics}
@@ -1181,6 +1360,35 @@ None
 \end{itemize}
 
 \subsubsection{Access Routine Semantics}
+
+\noindent \texttt{logEvent(message, level)}:
+\begin{itemize}
+\item transition: $errorBuffer := errorBuffer \cup \{(\text{message}, \text{level}, \text{timestamp})\}$
+\item output: out $:=$ confirmation string indicating successful log entry
+\item exception: $exc := (\text{level} \notin \text{LOG\_LEVELS} \Rightarrow ValidationError)$
+\end{itemize}
+
+\noindent \texttt{isTrue(a, b)}:
+\begin{itemize}
+\item transition: None
+\item output: out $:= (a = b)$
+\item exception: $exc := (\text{type}(a) \neq \text{type}(b) \Rightarrow ValidationError)$
+\end{itemize}
+
+\noindent \texttt{getFaultHistory(moduleID, timeRange)}:
+\begin{itemize}
+\item transition: None
+\item output: out $:= \{e \in \text{persistentLog} \mid e.\text{module} = \text{moduleID} \land e.\text{time} \in \text{timeRange}\}$
+\item exception: $exc := (\text{persistentLog unavailable} \Rightarrow DatabaseError)$
+\end{itemize}
+
+\noindent \texttt{raiseError(message, severity)}:
+\begin{itemize}
+\item transition: $errorBuffer := errorBuffer \cup \{(\text{message}, \text{severity}, \text{timestamp})\}$; triggers alert if $\text{severity} \geq \text{ERROR}$
+\item output: out $:= True$ if error was successfully raised and recorded
+\item exception: $exc := (\text{log write fails} \Rightarrow IOError)$
+\end{itemize}
+
 
 \noindent \texttt{purgeOldLogs()}:
 \begin{itemize}

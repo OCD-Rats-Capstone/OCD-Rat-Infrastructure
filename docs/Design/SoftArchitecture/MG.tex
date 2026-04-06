@@ -1,6 +1,6 @@
 \documentclass[12pt, titlepage]{article}
 
-\usepackage{fullpage}
+\usepackage[margin=1in]{geometry}
 \usepackage{longtable}
 \usepackage[round]{natbib}
 \usepackage{multirow}
@@ -47,8 +47,8 @@
 \begin{tabularx}{\textwidth}{p{3cm}p{2cm}X}
 \toprule {\bf Date} & {\bf Version} & {\bf Notes}\\
 \midrule
-Date 1 & 1.0 & Notes\\
-Date 2 & 1.1 & Notes\\
+Nov 13, 2025 & 1.0 & Initial Module Guide (Rev 0)\\
+Apr 6, 2026 & 2.0 & Final Revision: timeline overhaul, cross-document references, UI descriptions, margin compliance\\
 \bottomrule
 \end{tabularx}
 
@@ -158,7 +158,7 @@ hides represent likely future changes.  Design for change is valuable in SC,
 where modifications are frequent, especially during initial development as the
 solution space is explored.  
 
-Our design follows the rules layed out by \citet{ParnasEtAl1984}, as follows:
+Our design follows the rules laid out by \citet{ParnasEtAl1984}, as follows:
 \begin{itemize}
 \item System details that are likely to change independently should be the
   secrets of separate modules.
@@ -186,6 +186,19 @@ potential readers of this document are as follows:
   system in various ways, such as consistency among modules, feasibility of the
   decomposition, and flexibility of the design.
 \end{itemize}
+
+\subsection{Related Documents}
+
+This Module Guide should be read in conjunction with the following project documents:
+
+\begin{itemize}
+  \item \textbf{Software Requirements Specification (SRS):} \url{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/docs/SRS-Volere/SRS.pdf}
+  \item \textbf{Module Interface Specification (MIS):} \url{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/docs/Design/SoftDetailedDes/MIS.pdf}
+  \item \textbf{Verification and Validation Plan:} \url{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/docs/VnVPlan/VnVPlan.pdf}
+  \item \textbf{Hazard Analysis:} \url{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/docs/HazardAnalysis/HazardAnalysis.pdf}
+\end{itemize}
+
+\subsection{Document Organization}
 
 The rest of the document is organized as follows. Section
 \ref{SecChange} lists the anticipated and unlikely changes of the software
@@ -272,7 +285,7 @@ actually be implemented.
 \item [\refstepcounter{mnum} \mthemnum \label{mDSS}:] Data Schema and Storage Module
 \item [\refstepcounter{mnum} \mthemnum \label{mDV}:] Data Visualization Module
 \item [\refstepcounter{mnum} \mthemnum \label{mDPP}:] Data Processing Pipeline Module
-\item [\refstepcounter{mnum} \mthemnum \label{mAAC}:] Authentication and Access Control Module
+\item [\refstepcounter{mnum} \mthemnum \label{mAAC}:] Authentication and Access Control Module (Descoped)
 \item [\refstepcounter{mnum} \mthemnum \label{mFEM}:] Fault and Error Management Module
 \end{description}
 
@@ -306,13 +319,13 @@ actually be implemented.
 
 \section{Connection Between Requirements and Design} \label{SecReqDesign}
 
-This section summarizes how the system design satisfies the requirements defined in the SRS. The traceability matrices in \autoref{SecTM} provide the detailed mappings. We highlight the main design rationale.
+This section summarizes how the system design satisfies the requirements defined in the \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/docs/SRS-Volere/SRS.pdf}{Software Requirements Specification (SRS)}. The traceability matrices in \autoref{SecTM} provide the detailed mappings. We highlight the main design rationale.
 
-The functional requirements are met through the coordinated behaviour of the \mref{mUI}, \mref{mAPI}, \mref{mNLP}, \mref{mDSS}, and \mref{mDPP} modules, which together support querying, dataset retrieval, processing, and visualization. Non-functional requirements related to usability, appearance, and accessibility are addressed primarily by the \mref{mUI} and \mref{mNLP} modules, which enforce a simple interface and natural-language interaction.
+The functional requirements (SRS §6.1, FUNC.R.1--FUNC.R.7) are met through the coordinated behaviour of the \mref{mUI}, \mref{mAPI}, \mref{mNLP}, \mref{mDSS}, and \mref{mDPP} modules, which together support querying, dataset retrieval, processing, and visualization. Non-functional requirements related to usability, appearance, and accessibility (SRS §6.2, APP.R.1--ACC.R.1) are addressed primarily by the \mref{mUI} and \mref{mNLP} modules, which enforce a simple interface and natural-language interaction.
 
-Performance, reliability, and scalability needs are handled by backend modules such as \mref{mAPI}, \mref{mDSS}, \mref{mDPP}, and \mref{mFEM}, while security and maintainability are supported by \mref{mAAC}, and \mref{mFEM}. These design choices isolate complexity and align with information-hiding principles.
+Performance, reliability, and scalability needs (SRS §6.2, SAL.R.1--SOE.R.2) are handled by backend modules such as \mref{mAPI}, \mref{mDSS}, \mref{mDPP}, and \mref{mFEM}, while security and maintainability (SRS §6.2, INT.R.1--IMM.R.2) are supported by \mref{mFEM}. These design choices isolate complexity and align with information-hiding principles.
 
-Anticipated change requirements map to the modules identified in \autoref{TblACT}, demonstrating that the system decomposition localizes change and supports future extensibility.
+Anticipated change requirements map to the modules identified in \autoref{TblACT}, demonstrating that the system decomposition localizes change and supports future extensibility. For the complete requirements definitions, refer to the \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/docs/SRS-Volere/SRS.pdf}{SRS document}.
 
 \section{Module Decomposition} \label{SecMD}
 
@@ -356,8 +369,8 @@ The system is decomposed according to principles of information hiding \citep{Pa
 
 \begin{description}
 \item[Secrets:] User authentication and role-based access control.
-\item[Services:] Manages secure access to data and APIs.
-\item[Implemented By:] FastAPI Security Layer
+\item[Services:] Manages secure access to data and APIs. \textit{*Note: This module was descoped from the final revision due to time constraints.*}
+\item[Implemented By:] FastAPI Security Layer (Descoped)
 \end{description}
 
 \subsection{Software Decision Modules}
@@ -467,10 +480,9 @@ SUP.R.1  & \mref{mUI} \\
 SUP.R.2  & \mref{mUI} \\
 ADA.R.1  & \mref{mHH}, \mref{mAPI} \\
 ADA.R.2  & \mref{mHH}, \mref{mUI}, \mref{mAPI} \\
-ADA.R.2  & \mref{mAPI} \\
-INT.R.1  & \mref{mAAC}, \mref{mFEM} \\
-IMM.R.1  & \mref{mAAC} \\
-IMM.R.2  & \mref{mAPI}, \mref{mAAC} \\
+INT.R.1  & \mref{mFEM} \\
+IMM.R.1  & \mref{mFEM} \\
+IMM.R.2  & \mref{mAPI}, \mref{mFEM} \\
 LEG.R.1  & No Module \\
 STA.R.1  & No Module \\
 STA.R.2  & No Module \\
@@ -526,69 +538,84 @@ because they use modules from the lower levels.
 
 \section{User Interfaces}
 
-This section presents the main user interface designs for \textbf{RatBat2}, 
-it shows the structure and layout of the system’s main pages. The following 
-figures show a revised user interface design of the application, developed 
-to guide implementation and maintain a consistent user experience across the program.
+This section presents the main user interface designs for \textbf{InfraRat}, illustrating the structure and layout of the system's primary pages. The following figures show a revised user interface design of the application, developed to guide implementation and maintain a consistent user experience across the program. Each screenshot corresponds to functionality exposed by the Front-End Interface Module (\mref{mUI}) and related modules.
+
+\subsection{Homepage}
+
+The homepage serves as the primary landing page for the application and provides an overview of the system's purpose and capabilities. It introduces the platform to new users and provides navigation to the core features of the system, including the query interface and data visualization tools.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{UIScreenshots/HomepageF1.png}
-  \caption{RatBat2 Homepage – Initial Layout Frame 1}
+  \caption{InfraRat Homepage – Initial Layout Frame 1. Displays the main navigation bar, branding, and hero section introducing the platform and its purpose to researchers.}
 \end{figure}
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{UIScreenshots/HomepageF2.png}
-  \caption{RatBat 2 Homepage – Initial Layout Frame 2}
+  \caption{InfraRat Homepage – Initial Layout Frame 2. Continues the landing page content, highlighting key features of the platform such as dataset querying and visualization capabilities.}
 \end{figure}
+
+The subsequent homepage frames demonstrate the trial data overview and natural language processing information sections, which give users a preview of the data available through the system (\mref{mDSS}) and the NLP-powered search capability (\mref{mNLP}).
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{UIScreenshots/HomepageF3.png}
-  \caption{RatBat2 Homepage – Trial Data Display}
+  \caption{InfraRat Homepage – Trial Data Display. Shows a summary view of trial data records retrieved from the Data Schema and Storage Module (\mref{mDSS}), giving users a preview of the structured experimental session data.}
 \end{figure}
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{UIScreenshots/HomepageF4.png}
-  \caption{RatBat2 Homepage – NLP Information}
+  \caption{InfraRat Homepage – NLP Information. Presents information about the natural language query capability powered by the NLP Query Processor Module (\mref{mNLP}), explaining how researchers can use conversational input to search the dataset.}
 \end{figure}
+
+\subsection{Query Page}
+
+The query page is the primary interaction point for dataset retrieval. It provides both structured filter-based search and natural language input and displays results returned from the API Layer Module (\mref{mAPI}).
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{UIScreenshots/QueryPage.png}
-  \caption{Query Page – Search and Filter Interface}
+  \caption{Query Page – Search and Filter Interface. Displays the dual-mode query interface where users can either apply structured metadata filters (left panel) or enter natural language queries (central input). This page exercises the Front-End Interface Module (\mref{mUI}), API Layer Module (\mref{mAPI}), and NLP Query Processor Module (\mref{mNLP}).}
 \end{figure}
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{UIScreenshots/QueryPageTest.png}
-  \caption{Query Page – Test of Sample Prompt}
+  \caption{Query Page – Test of Sample Prompt. Demonstrates a completed query with results displayed in a tabular format returned from the Data Schema and Storage Module (\mref{mDSS}) via the API Layer (\mref{mAPI}). Users can view, sort, and download the returned dataset records.}
 \end{figure}
+
+\subsection{Experiment and About Pages}
+
+The experiment page provides an overview of experimental configurations and management, while the about pages present team information and background context for the platform.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{UIScreenshots/ExperimentPage.png}
-  \caption{Experiment Page – Experiment Management and Overview}
+  \caption{Experiment Page – Experiment Management and Overview. Allows users to browse and manage experimental groupings, linking sessions through the Data Schema and Storage Module (\mref{mDSS}).}
 \end{figure}
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{UIScreenshots/AboutPageF1.png}
-  \caption{About Page – Team Section}
+  \caption{About Page – Team Section. Presents team member information and the project's academic context.}
 \end{figure}
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{UIScreenshots/AboutPageF2.png}
-  \caption{About Page – Frequently Asked Questions (FAQ) and Background Information}
+  \caption{About Page – Frequently Asked Questions (FAQ) and Background Information. Provides users with contextual information about OCD research, the FRDR dataset, and instructions for using the platform.}
 \end{figure}
+
+\subsection{Error Handling}
+
+The error page demonstrates the user-facing error handling provided by the Fault and Error Management Module (\mref{mFEM}) in coordination with the Front-End Interface Module (\mref{mUI}).
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{UIScreenshots/ErrorPage.png}
-  \caption{Error Page – 404 Not Found Screen}
+  \caption{Error Page – 404 Not Found Screen. Displays a user-friendly error message when a requested page or resource is not found, handled by the Fault and Error Management Module (\mref{mFEM}).}
 \end{figure}
 
 
@@ -629,57 +656,61 @@ The Hardware-Hiding Module (\mref{mHH}) abstracts hosting details, allowing migr
 
 \section{Timeline}
 
-The project timeline outlines the major milestones, deliverables, and responsibilities
-for each development phase. Progress, task assignments, and discussions are tracked
-publicly through the project's GitHub repository at:
+The project timeline outlines the major milestones, deliverables, and responsibilities for each development phase at the module level. The table below provides a detailed breakdown of tasks, individual assignees, and actual completion dates. Issue tracking and supplementary progress details are maintained publicly through the project's GitHub repository at \url{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/issues}.
 
-\begin{center}
-\url{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/issues}
-\end{center}
+The Rev~0 implementation period spanned from January~14 to February~11, 2026. Subsequent revisions continued through March 2026 with additional visualization, data processing, and testing work.
 
-This repository serves as the primary project management platform, where issues correspond
-to individual tasks or features, each labeled with priority, category, and assignee.
-
-Table~\ref{tab:timeline} summarizes the high-level schedule of the project, organized
-by development phase and major deliverables.
-
-\par{This timeline assumes a four week development period between January 14 and February 11.}
-\begin{table}[h!]
-\caption{Project Timeline and Responsibilities}
-\label{tab:timeline}
-\begin{tabular}{|p{2.5cm}|p{5.5cm}|p{3.5cm}|p{2cm}|}
+\begin{longtable}{|p{1.2cm}|p{4.5cm}|p{3cm}|p{2cm}|p{2cm}|p{1.5cm}|}
+\caption{Detailed Project Timeline and Responsibilities} \label{tab:timeline} \\
 \hline
-\textbf{Phase} & \textbf{Major Tasks / Deliverables} & \textbf{Responsible Members} & \textbf{Duration} \\ \hline
-\textbf{Already Completed} & M2 (Partially Complete), M5, M3 (Partially Complete), M4 (Partially Complete)\newline & Whole Team & NA \\ \hline
-\textbf{Week 1} & 1. Build out a more sophisticated NLP to SQL interpreter (M2)\newline
-                  2. Develop front-end for 'inventory-esque' filter selection where major data attributes
-                  can be mixed and matched and N values for results are given (M3)
-                  & 1. Back-End Team (Nathan, Leo, Tim) \newline
-                    2. Front-End Team (Aidan, Jeremy) & 1 week \\ \hline
-\textbf{Week 2} & 1. Implement 'inventory-esque' filter selection where major attributes
-                  can be mixed and matched and N values for results are given (M2) \newline
-                  2. Handle front-end routing to backend for new UI features. Connect new
-                  query methods to database. Refine download of files from URLs provided by FRDR (M4) \newline
-                  3. Refine data visualization front-end module (M3) \newline
-                  4. Implement further data visualizations on additional significant attributes (M6), (M4) & 
-                  1. Backend-Team (Nathan, Leo, Tim) \newline
-                  2. Backend-Team (Nathan, Leo, Tim) \newline
-                  3. Front-End Team (Aidan, Jeremy)\newline
-                  4. Visualization Team (Leo, Jeremy) & 1 weeks \\ \hline
-\textbf{Week 3} & 1. Testing on various query functionality. User testing on front-end quality\newline
-                  2. Implement data processing pipeline for behavioural metrics (M7) & 
-                  1. Testing Team (Whole Team + Dr.Henry Szechtman) \newline
-                  2. Data Processing Team (Aidan, Nathan) & 1 week \\ \hline
-\textbf{Week 4} & 1. Testing on visualization quality, data processing pipeline validation \newline
-                  2. Implement Authentication and Access Control (M8) \newline
-                  3. Implement Fault and Error Management Module (M9) & 
-                  1. Testing Team (Whole Team + Dr. Henry Szechtman)\newline
-                  2. Backend + Front-End Team (Whole Team) \newline
-                  3. Backend Team (Nathan, Leo, Tim) & 1 week \\ \hline
-\end{tabular}
-\end{table}
+\textbf{Module} & \textbf{Task} & \textbf{Assignee(s)} & \textbf{Start} & \textbf{End} & \textbf{Status} \\ \hline
+\endfirsthead
+\multicolumn{6}{c}{{\bfseries Table \thetable\ (continued)}} \\
+\hline
+\textbf{Module} & \textbf{Task} & \textbf{Assignee(s)} & \textbf{Start} & \textbf{End} & \textbf{Status} \\ \hline
+\endhead
+\hline
+\endfoot
 
-Ongoing updates, issue tracking, and future work will continue to be maintained through
+\multicolumn{6}{|l|}{\textbf{Phase 1: Foundation and Infrastructure (Jan 10--27)}} \\ \hline
+M1 & Dockerize frontend and backend services & Aidan Goodyer & Jan 10 & Jan 19 & Done \\ \hline
+M1 & CI/CD pipeline: self-hosted runner, deploy workflow & Aidan Goodyer & Jan 23 & Jan 27 & Done \\ \hline
+M1 & Staging environment with port-based separation & Aidan Goodyer & Jan 25 & Jan 27 & Done \\ \hline
+M5 & Database schema development (with Dr.~Szechtman) & Nathan Perry & Pre-Jan & Jan 14 & Done \\ \hline
+
+\multicolumn{6}{|l|}{\textbf{Phase 2: Core Feature Development (Jan 14--Feb 6)}} \\ \hline
+M2 & Build NLP-to-SQL interpreter with LLM API & Nathan Perry & Jan 23 & Jan 28 & Done \\ \hline
+M2 & Integrate local LLM prototype for dev environments & Aidan Goodyer & Jan 10 & Jan 17 & Done \\ \hline
+M2 & Refine LLM: expose query, SQL, and rationale to UI & Aidan Goodyer & Jan 13 & Jan 17 & Done \\ \hline
+M3 & Implement filter page with structured criteria & Jeremy Orr & Nov 21 & Feb 2 & Done \\ \hline
+M3 & Develop inventory-style attribute filter UI & Jeremy Orr & Jan 28 & Feb 4 & Done \\ \hline
+M3 & Navbar and general UI refinements & Tim Pokanai & Feb 4 & Feb 5 & Done \\ \hline
+M4 & Backend server and REST API endpoints & Nathan Perry & Nov 17 & Jan 28 & Done \\ \hline
+M4 & Connect structured queries to PostgreSQL & Nathan Perry & Jan 28 & Feb 6 & Done \\ \hline
+M4 & SQL injection hardening and CodeQL fixes & Aidan Goodyer & Feb 4 & Feb 4 & Done \\ \hline
+M4 & File download from FRDR URLs & Nathan Perry & Jan 25 & Feb 11 & Done \\ \hline
+
+\multicolumn{6}{|l|}{\textbf{Phase 3: Visualization and Processing (Jan 29--Mar 28)}} \\ \hline
+M6 & Initial data visualization (bar charts, front-end) & Leo Vugert & Nov 26 & Feb 5 & Done \\ \hline
+M6 & Heatmap visualization implementation & Tim Pokanai & Feb 4 & Feb 4 & Done \\ \hline
+M6 & Line chart and time-series visualizations & Tim Pokanai & Feb 4 & Mar 26 & Done \\ \hline
+M6 & Spatial heatmap for positional data & Leo Vugert & Mar 26 & Mar 28 & Done \\ \hline
+M6 & Velocity profile visualization & Tim Pokanai & Mar 29 & Mar 29 & Done \\ \hline
+M7 & Path plot trajectory rendering & Nathan Perry & Mar 5 & Mar 11 & Done \\ \hline
+M7 & Summary distance metrics and analysis toolbox & Nathan Perry & Mar 3 & Mar 26 & Done \\ \hline
+M7 & Database with summary measures integration & Nathan Perry & Mar 17 & Mar 17 & Done \\ \hline
+M6 & Dr.~Szechtman's specific analysis queries (10a) & Tim Pokanai & Mar 26 & Mar 28 & Done \\ \hline
+M6 & Standard error of mean in bar charts & Tim Pokanai & Mar 26 & Mar 26 & Done \\ \hline
+
+\multicolumn{6}{|l|}{\textbf{Phase 4: Testing and Validation (Mar 5--Apr 5)}} \\ \hline
+M9 & Backend unit test suite & Aidan Goodyer, Nathan Perry & Mar 5 & Mar 9 & Done \\ \hline
+M9 & Automated testing (VnV Report) & Tim Pokanai & Mar 9 & Mar 9 & Done \\ \hline
+M3 & UI refinements post-user testing & Aidan Goodyer & Mar 26 & Mar 26 & Done \\ \hline
+M8 & Authentication and Access Control & N/A & N/A & N/A & Descoped (Time Constraints) \\ \hline
+
+\end{longtable}
+
+Ongoing updates, issue tracking, and future work continue to be maintained through
 GitHub to ensure transparency and collaboration with supervisors and contributors.
 
 \bibliographystyle {plainnat}
