@@ -123,8 +123,8 @@ brain region, testing room, file type, prescription) populated by \texttt{GET /i
 
   \item \textbf{Valid Single Filter}
   \begin{itemize}
-    \item \textbf{Input:} \texttt{POST /filters/} with a single filter condition
-      (e.g., \texttt{behavior\_\allowbreak{}label = `checking'}).
+    \item \textbf{Input:} \texttt{POST /filters/} with a single filter condition,
+      \texttt{behavior\_\allowbreak{}label = `checking'}.
     \item \textbf{Expected:} Only sessions matching the filter are returned with HTTP 200.
     \item \textbf{Observed:} The endpoint returned a non-empty result set with HTTP~200.
       The unit test (\texttt{test\_\allowbreak{}valid\_\allowbreak{}filter\_\allowbreak{}returns\_200}) confirms the service constructs correct SQL
@@ -143,7 +143,7 @@ brain region, testing room, file type, prescription) populated by \texttt{GET /i
 
   \item \textbf{Contradictory Filters (Zero Results)}
   \begin{itemize}
-    \item \textbf{Input:} Combination of filters that logically yields no matches.
+    \item \textbf{Input:} Combination of filters that logically yields no matches, \texttt{POST /filters/ with filters = []}.
     \item \textbf{Expected:} Empty result set, no crash or error.
     \item \textbf{Observed:} API returned an empty list with HTTP 200. Frontend displayed ``No sessions match your filters.''.
       The unit test (\texttt{test\_\allowbreak{}empty\_\allowbreak{}filters\_\allowbreak{}returns\_200}) confirms the service 
@@ -153,11 +153,11 @@ brain region, testing room, file type, prescription) populated by \texttt{GET /i
 
   \item \textbf{Invalid Filter Column}
   \begin{itemize}
-    \item \textbf{Input:} \texttt{POST /filters/} with a non-existent column name
-      (e.g., \texttt{foo\_column = `bar'}).
+    \item \textbf{Input:} \texttt{POST /filters/} with a non-existent filter operator
+      (e.g., \texttt{operator = `BADOP'}).
     \item \textbf{Expected:} HTTP 422 with a descriptive error message.
     \item \textbf{Observed:} API returned HTTP~422. Pydantic schema validation rejects fields with
-      special characters or SQL injection patterns
+      invalid operators or SQL injection patterns
       (\texttt{test\_\allowbreak{}field\_\allowbreak{}sql\_\allowbreak{}injection\_\allowbreak{}rejected},
       \texttt{test\_\allowbreak{}invalid\_\allowbreak{}operator\_\allowbreak{}returns\_422}). System did not crash.
     \item \textbf{Result:} Pass.
@@ -256,7 +256,7 @@ apparatus patterns, session types, surgery types, brain regions, testing rooms, 
 
   \item \textbf{Category Selection Returns Valid Data}
   \begin{itemize}
-    \item \textbf{Input:} Select a specific apparatus category via \texttt{POST /inventory/counts} with \texttt{apparatus\_id}.
+    \item \textbf{Input:} Select a specific apparatus category via \texttt{POST /inventory/counts} with CSV object types.
     \item \textbf{Expected:} Session list filtered to that category only.
     \item \textbf{Observed:} The unit tests (\texttt{test\_\allowbreak{}counts\_\allowbreak{}returns\_200},
       \texttt{test\_\allowbreak{}sessions\_\allowbreak{}returns\_200}) confirm the endpoints return valid
@@ -324,7 +324,7 @@ The visualization service aggregates metrics like \texttt{total\_behavior\_frequ
 
   \item \textbf{Sessions Without Observations}
   \begin{itemize}
-    \item \textbf{Input:} Query a session known to have no raw data file.
+    \item \textbf{Input:} Query a session with \texttt{observation\_code = 'None'}.
     \item \textbf{Expected:} System gracefully reports no behavioral data; does not crash.
     \item \textbf{Observed:} The unit test (\texttt{test\_\allowbreak{}no\_\allowbreak{}observation\_\allowbreak{}code\_\allowbreak{}omits\_\allowbreak{}filter}) confirms the visualization endpoint returned an empty data series. The frontend displays ``No behavioral data available for this selection.''
     \item \textbf{Result:} Pass.
@@ -384,7 +384,7 @@ average injection count, behavioral frequency, and behavior duration. Frontend c
 
   \item \textbf{Visualization with Empty Result Set}
   \begin{itemize}
-    \item \textbf{Input:} Apply filters that yield zero sessions, then request a barchart.
+    \item \textbf{Input:} Apply filters that yield zero sessions, then request each of three visualizations, i.e.: \texttt{GET /visualizations/\allowbreak{}barchart?x\_\allowbreak{}axis=None\&y\_\allowbreak{}axis=None}
     \item \textbf{Expected:} System returns empty visualization data without error.
     \item \textbf{Observed (initial):} \textbf{Fail.} Backend raised a \texttt{ValueError} on an empty DataFrame when computing aggregations.
     \item \textbf{Resolution:} Added an early return check in \texttt{visualization\_service.py} to return an empty data structure when the query yields no rows. After the fix, the endpoint returned valid empty JSON with HTTP 200.
@@ -718,144 +718,174 @@ querying component of our implementation is much more user friendly, since we in
 processing (NLP) query processor, which allows users to write queries in natural language instead of SQL. 
 Additionally, we have implemented a data visualization component that allows users to create visualizations of 
 relevant categories of data and metrics, which was not present in either of the existing implementations. 
-On top of these new features, we have also significantly improved the user-friendliness of our UI, 
-and provided similar functionality to RatBat1.0 in terms of data filtering, browsing, displaying summary data, 
-and downloading.}
+On top of these new features, we have also significantly improved the user-friendliness of our UI in a functional manner 
+where obtaining the data and insights that users are looking for is much more intuitive and requires less technical knowledge 
+than the previous implementations which required tons of filter configurations or endless UI navigation. We have also expanded 
+upon the visual design and presentation of the UI by commpacting it in the form of a web application similarly to the existing implementations, 
+but making sure to improve our solution based on the feedback given through user acceptance testing on our design decisions and on existing 
+solutions throughout the development process. We have also provided similar functionality to RatBat1.0 in terms of data filtering, browsing, displaying summary data, and downloading.}
 
 \section{Unit Testing}
 
 \paragraph{Shown below is the output of our PyTest unit testing suite which is available in the src/ocd-rat-backend/tests directory. Some comments on
 the final unit test suite relative to the VnV Plan are necessary. Each unit test outlined in the VnV Plan generally relates to one core requirement
-or function that may map to several requirements. When actually developing the tests, we seperated these higher level unit tests into more granular
+or function that may map to several requirements. When actually developing the tests, we separated these higher level unit tests into more granular
 function calls and thus one unit test in the plan may be represented by several tests in our implementation but the ideas presented in the VnV Plan
 are reflected in the implementation. Revamping our VnV Plan to reflect this increased granularity would be highly tedious both to write and to evaluate
 whereas the existing, higher level overview of the unit tests provides a more comprehensive look into the motivation behind the tests and thus was
-left as is.}
+left as is. For readability in this report, the final PyTest results are grouped below by the implementation module to which they apply.}
 
-\begin{lstlisting}
-tests/test_core.py::TestSettings::test_default_values PASSED
-tests/test_core.py::TestSettings::test_env_override PASSED
-tests/test_core.py::TestSettings::test_extra_fields_ignored PASSED
-tests/test_core.py::TestGetSettings::test_returns_settings_instance PASSED
-tests/test_core.py::TestGetSettings::test_caching PASSED
-tests/test_core.py::TestGetDb::test_yields_connection PASSED
-tests/test_core.py::TestGetDb::test_closes_on_exit PASSED
-tests/test_core.py::TestGetDb::test_closes_on_exception PASSED
-tests/test_filter_service.py::TestBuildWhereClause::test_empty_filters_returns_empty PASSED
-tests/test_filter_service.py::TestBuildWhereClause::test_single_equal_filter PASSED
-tests/test_filter_service.py::TestBuildWhereClause::test_comparison_operators[gte->=] PASSED
-tests/test_filter_service.py::TestBuildWhereClause::test_comparison_operators[lte-<=] PASSED
-tests/test_filter_service.py::TestBuildWhereClause::test_comparison_operators[gt->] PASSED
-tests/test_filter_service.py::TestBuildWhereClause::test_comparison_operators[lt-<] PASSED
-tests/test_filter_service.py::TestBuildWhereClause::test_range_operator PASSED
-tests/test_filter_service.py::TestBuildWhereClause::test_range_invalid_format_raises PASSED
-tests/test_filter_service.py::TestBuildWhereClause::test_field_mapping_resolution PASSED
-tests/test_filter_service.py::TestBuildWhereClause::test_unmapped_field_defaults_to_e1 PASSED
-tests/test_filter_service.py::TestBuildWhereClause::test_multiple_filters_anded PASSED
-tests/test_filter_service.py::TestBuildWhereClause::test_where_keyword_present PASSED
-tests/test_filter_service.py::TestExecuteFilterQuery::test_returns_dataframe PASSED
-tests/test_filter_service.py::TestExecuteFilterQuery::test_nan_inf_replaced PASSED
-tests/test_filter_service.py::TestExecuteFilterQuery::test_empty_result PASSED
-tests/test_filter_service.py::TestExecuteFilterQuery::test_query_uses_base_query PASSED
-tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_no_filters_base_condition PASSED
-tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_apparatus_id_filter PASSED
-tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_pattern_id_filter PASSED
-tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_session_type_filter PASSED
-tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_room_id_filter PASSED
-tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_drug_ids_having_clause PASSED
-tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_file_type_ids_having_clause PASSED
-tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_rx_ids_in_clause PASSED
-tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_surgery_type_adds_brain_join PASSED
-tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_target_region_adds_brain_join PASSED
-tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_multiple_filters_combined PASSED
-tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_cte_structure PASSED
-tests/test_inventory_service.py::TestGetInventoryCounts::test_returns_response_model PASSED
-tests/test_inventory_service.py::TestGetInventoryCounts::test_empty_result PASSED
-tests/test_llm.py::TestBuildSystemPrompt::test_contains_key_phrases PASSED
-tests/test_llm.py::TestBuildSystemPrompt::test_no_dangling_placeholders PASSED
-tests/test_llm.py::TestBuildSystemPrompt::test_includes_semantic_context PASSED
-tests/test_llm.py::TestInspectSchema::test_returns_formatted_string PASSED
-tests/test_llm.py::TestInspectSchema::test_error_handling PASSED
-tests/test_llm.py::TestPlanAndGenerateSql::test_valid_json_response PASSED
-tests/test_llm.py::TestPlanAndGenerateSql::test_markdown_wrapped_json_cleaned PASSED
-tests/test_llm.py::TestPlanAndGenerateSql::test_missing_fields_fallback PASSED
-tests/test_llm.py::TestPlanAndGenerateSql::test_json_decode_error_fallback PASSED
-tests/test_llm.py::TestGenerateSql::test_removes_markdown_code_blocks PASSED
-tests/test_llm.py::TestGenerateSql::test_error_returns_comment PASSED
-tests/test_llm.py::TestAskQuestion::test_yields_tokens PASSED
-tests/test_llm.py::TestAskQuestion::test_yields_error_on_exception PASSED
-tests/test_routers.py::TestRootEndpoint::test_health_check PASSED
-tests/test_routers.py::TestFiltersRouter::test_valid_filter_returns_200 PASSED
-tests/test_routers.py::TestFiltersRouter::test_empty_filters_returns_200 PASSED
-tests/test_routers.py::TestFiltersRouter::test_invalid_operator_returns_422 PASSED
-tests/test_routers.py::TestNlpRouter::test_nlp_query_returns_result PASSED
-tests/test_routers.py::TestAskRouter::test_ask_returns_streaming PASSED
-tests/test_routers.py::TestVisualizationsRouter::test_available_returns_200 PASSED
-tests/test_routers.py::TestVisualizationsRouter::test_barchart_valid_params PASSED
-tests/test_routers.py::TestVisualizationsRouter::test_barchart_invalid_x_axis_returns_400 PASSED
-tests/test_routers.py::TestVisualizationsRouter::test_linechart_valid_params PASSED
-tests/test_routers.py::TestVisualizationsRouter::test_linechart_invalid_returns_400 PASSED
-tests/test_routers.py::TestVisualizationsRouter::test_heatmap_valid_params PASSED
-tests/test_routers.py::TestVisualizationsRouter::test_heatmap_same_axes_returns_400 PASSED
-tests/test_inventory_router.py::TestInventoryRouter::test_counts_returns_200 PASSED
-tests/test_inventory_router.py::TestInventoryRouter::test_sessions_returns_200 PASSED
-tests/test_inventory_router.py::TestInventoryRouter::test_filter_options_returns_200 PASSED
-tests/test_schemas.py::TestFilterItem::test_valid_creation PASSED
-tests/test_schemas.py::TestFilterItem::test_all_valid_operators[equal] PASSED
-tests/test_schemas.py::TestFilterItem::test_all_valid_operators[gte] PASSED
-tests/test_schemas.py::TestFilterItem::test_all_valid_operators[lte] PASSED
-tests/test_schemas.py::TestFilterItem::test_all_valid_operators[gt] PASSED
-tests/test_schemas.py::TestFilterItem::test_all_valid_operators[lt] PASSED
-tests/test_schemas.py::TestFilterItem::test_all_valid_operators[range] PASSED
-tests/test_schemas.py::TestFilterItem::test_invalid_operator_rejected PASSED
-tests/test_schemas.py::TestFilterItem::test_field_with_underscores_allowed PASSED
-tests/test_schemas.py::TestFilterItem::test_field_sql_injection_rejected PASSED
-tests/test_schemas.py::TestFilterItem::test_field_with_special_chars_rejected PASSED
-tests/test_schemas.py::TestFilterItem::test_range_value_format PASSED
-tests/test_schemas.py::TestFilterRequest::test_empty_filters_list PASSED
-tests/test_schemas.py::TestFilterRequest::test_multiple_filters PASSED
-tests/test_schemas.py::TestAskRequest::test_valid_question PASSED
-tests/test_schemas.py::TestAskRequest::test_empty_question_allowed PASSED
-tests/test_schemas.py::TestInventoryModels::test_counts_request_defaults PASSED
-tests/test_schemas.py::TestInventoryModels::test_counts_request_with_filters PASSED
-tests/test_schemas.py::TestInventoryModels::test_data_type_count PASSED
-tests/test_schemas.py::TestInventoryModels::test_counts_response PASSED
-tests/test_schemas.py::TestInventoryModels::test_sessions_limit_constant PASSED
-tests/test_schemas.py::TestVisualizationModels::test_bar_chart_data_request PASSED
-tests/test_schemas.py::TestVisualizationModels::test_visualization_data_response PASSED
-tests/test_schemas.py::TestVisualizationModels::test_available_visualizations_response PASSED
-tests/test_visualization_service.py::TestRegistries::test_x_axis_registry_nonempty PASSED
-tests/test_visualization_service.py::TestRegistries::test_y_axis_registry_nonempty PASSED
-tests/test_visualization_service.py::TestRegistries::test_x_axis_entries_are_configs PASSED
-tests/test_visualization_service.py::TestRegistries::test_y_axis_entries_are_configs PASSED
-tests/test_visualization_service.py::TestRegistries::test_x_axis_ids_match_keys PASSED
-tests/test_visualization_service.py::TestRegistries::test_y_axis_ids_match_keys PASSED
-tests/test_visualization_service.py::TestRegistries::test_linechart_registries_nonempty PASSED
-tests/test_visualization_service.py::TestRegistries::test_heatmap_registries_share_barchart PASSED
-tests/test_visualization_service.py::TestGetAvailableVisualizations::test_returns_all_keys PASSED
-tests/test_visualization_service.py::TestGetAvailableVisualizations::test_x_axis_options_nonempty PASSED
-tests/test_visualization_service.py::TestGetAvailableVisualizations::test_option_structure PASSED
-tests/test_visualization_service.py::TestGetAvailableVisualizations::test_y_axis_has_unit PASSED
-tests/test_visualization_service.py::TestBuildFromClause::test_empty_joins PASSED
-tests/test_visualization_service.py::TestBuildFromClause::test_single_join_r1 PASSED
-tests/test_visualization_service.py::TestBuildFromClause::test_multiple_joins PASSED
-tests/test_visualization_service.py::TestBuildFromClause::test_drug_dependency_chain PASSED
-tests/test_visualization_service.py::TestBuildFromClause::test_join_order_preserved PASSED
-tests/test_visualization_service.py::TestVizBuildWhereClause::test_default_without_observation PASSED
-tests/test_visualization_service.py::TestVizBuildWhereClause::test_with_observation_code PASSED
-tests/test_visualization_service.py::TestVizBuildWhereClause::test_observation_code_sql_injection_escaped PASSED
-tests/test_visualization_service.py::TestBuildQuery::test_produces_select_group_order PASSED
-tests/test_visualization_service.py::TestBuildLinechartQuery::test_time_based_grouping PASSED
-tests/test_visualization_service.py::TestBuildHeatmapQuery::test_two_dimensional_grouping PASSED
-tests/test_visualization_service.py::TestBarchartValidation::test_invalid_x_axis_raises PASSED
-tests/test_visualization_service.py::TestBarchartValidation::test_invalid_y_axis_raises PASSED
-tests/test_visualization_service.py::TestLinechartValidation::test_invalid_x_axis_raises PASSED
-tests/test_visualization_service.py::TestLinechartValidation::test_invalid_y_axis_raises PASSED
-tests/test_visualization_service.py::TestHeatmapValidation::test_invalid_x_axis_raises PASSED
-tests/test_visualization_service.py::TestHeatmapValidation::test_invalid_y_axis_raises PASSED
-tests/test_visualization_service.py::TestHeatmapValidation::test_invalid_metric_raises PASSED
-tests/test_visualization_service.py::TestHeatmapValidation::test_same_x_y_raises PASSED
-\end{lstlisting}
+\paragraph{Core Configuration and Database Tests}
+{\small
+\begin{itemize}[leftmargin=1.5em, itemsep=0.2em, topsep=0.3em]
+  \item \nolinkurl{tests/test_core.py::TestSettings::test_default_values} \texttt{PASSED}
+  \item \nolinkurl{tests/test_core.py::TestSettings::test_env_override} \texttt{PASSED}
+  \item \nolinkurl{tests/test_core.py::TestSettings::test_extra_fields_ignored} \texttt{PASSED}
+  \item \nolinkurl{tests/test_core.py::TestGetSettings::test_returns_settings_instance} \texttt{PASSED}
+  \item \nolinkurl{tests/test_core.py::TestGetSettings::test_caching} \texttt{PASSED}
+  \item \nolinkurl{tests/test_core.py::TestGetDb::test_yields_connection} \texttt{PASSED}
+  \item \nolinkurl{tests/test_core.py::TestGetDb::test_closes_on_exit} \texttt{PASSED}
+  \item \nolinkurl{tests/test_core.py::TestGetDb::test_closes_on_exception} \texttt{PASSED}
+\end{itemize}
+}
+
+\paragraph{Query Processing Module Tests}
+{\small
+\begin{itemize}[leftmargin=1.5em, itemsep=0.2em, topsep=0.3em]
+  \item \nolinkurl{tests/test_llm.py::TestBuildSystemPrompt::test_contains_key_phrases} \texttt{PASSED}
+  \item \nolinkurl{tests/test_llm.py::TestBuildSystemPrompt::test_no_dangling_placeholders} \texttt{PASSED}
+  \item \nolinkurl{tests/test_llm.py::TestBuildSystemPrompt::test_includes_semantic_context} \texttt{PASSED}
+  \item \nolinkurl{tests/test_llm.py::TestInspectSchema::test_returns_formatted_string} \texttt{PASSED}
+  \item \nolinkurl{tests/test_llm.py::TestInspectSchema::test_error_handling} \texttt{PASSED}
+  \item \nolinkurl{tests/test_llm.py::TestPlanAndGenerateSql::test_valid_json_response} \texttt{PASSED}
+  \item \nolinkurl{tests/test_llm.py::TestPlanAndGenerateSql::test_markdown_wrapped_json_cleaned} \texttt{PASSED}
+  \item \nolinkurl{tests/test_llm.py::TestPlanAndGenerateSql::test_missing_fields_fallback} \texttt{PASSED}
+  \item \nolinkurl{tests/test_llm.py::TestPlanAndGenerateSql::test_json_decode_error_fallback} \texttt{PASSED}
+  \item \nolinkurl{tests/test_llm.py::TestGenerateSql::test_removes_markdown_code_blocks} \texttt{PASSED}
+  \item \nolinkurl{tests/test_llm.py::TestGenerateSql::test_error_returns_comment} \texttt{PASSED}
+  \item \nolinkurl{tests/test_llm.py::TestAskQuestion::test_yields_tokens} \texttt{PASSED}
+  \item \nolinkurl{tests/test_llm.py::TestAskQuestion::test_yields_error_on_exception} \texttt{PASSED}
+  \item \nolinkurl{tests/test_routers.py::TestNlpRouter::test_nlp_query_returns_result} \texttt{PASSED}
+  \item \nolinkurl{tests/test_routers.py::TestAskRouter::test_ask_returns_streaming} \texttt{PASSED}
+\end{itemize}
+}
+
+\paragraph{Front-End Interface Module Tests}
+{\small
+\begin{itemize}[leftmargin=1.5em, itemsep=0.2em, topsep=0.3em]
+  \item \nolinkurl{tests/test_schemas.py::TestFilterItem::test_valid_creation} \texttt{PASSED}
+  \item \nolinkurl{tests/test_schemas.py::TestFilterItem::test_all_valid_operators[equal]} \texttt{PASSED}
+  \item \nolinkurl{tests/test_schemas.py::TestFilterItem::test_all_valid_operators[gte]} \texttt{PASSED}
+  \item \nolinkurl{tests/test_schemas.py::TestFilterItem::test_all_valid_operators[lte]} \texttt{PASSED}
+  \item \nolinkurl{tests/test_schemas.py::TestFilterItem::test_all_valid_operators[gt]} \texttt{PASSED}
+  \item \nolinkurl{tests/test_schemas.py::TestFilterItem::test_all_valid_operators[lt]} \texttt{PASSED}
+  \item \nolinkurl{tests/test_schemas.py::TestFilterItem::test_all_valid_operators[range]} \texttt{PASSED}
+  \item \nolinkurl{tests/test_schemas.py::TestFilterItem::test_invalid_operator_rejected} \texttt{PASSED}
+  \item \nolinkurl{tests/test_schemas.py::TestFilterItem::test_field_with_underscores_allowed} \texttt{PASSED}
+  \item \nolinkurl{tests/test_schemas.py::TestFilterItem::test_field_sql_injection_rejected} \texttt{PASSED}
+  \item \nolinkurl{tests/test_schemas.py::TestFilterItem::test_field_with_special_chars_rejected} \texttt{PASSED}
+  \item \nolinkurl{tests/test_schemas.py::TestFilterItem::test_range_value_format} \texttt{PASSED}
+  \item \nolinkurl{tests/test_schemas.py::TestFilterRequest::test_empty_filters_list} \texttt{PASSED}
+  \item \nolinkurl{tests/test_schemas.py::TestFilterRequest::test_multiple_filters} \texttt{PASSED}
+  \item \nolinkurl{tests/test_schemas.py::TestAskRequest::test_valid_question} \texttt{PASSED}
+  \item \nolinkurl{tests/test_schemas.py::TestAskRequest::test_empty_question_allowed} \texttt{PASSED}
+  \item \nolinkurl{tests/test_schemas.py::TestInventoryModels::test_counts_request_defaults} \texttt{PASSED}
+  \item \nolinkurl{tests/test_schemas.py::TestInventoryModels::test_counts_request_with_filters} \texttt{PASSED}
+  \item \nolinkurl{tests/test_schemas.py::TestInventoryModels::test_data_type_count} \texttt{PASSED}
+  \item \nolinkurl{tests/test_schemas.py::TestInventoryModels::test_counts_response} \texttt{PASSED}
+  \item \nolinkurl{tests/test_schemas.py::TestInventoryModels::test_sessions_limit_constant} \texttt{PASSED}
+  \item \nolinkurl{tests/test_schemas.py::TestVisualizationModels::test_bar_chart_data_request} \texttt{PASSED}
+  \item \nolinkurl{tests/test_schemas.py::TestVisualizationModels::test_visualization_data_response} \texttt{PASSED}
+  \item \nolinkurl{tests/test_schemas.py::TestVisualizationModels::test_available_visualizations_response} \texttt{PASSED}
+\end{itemize}
+}
+
+\paragraph{API Layer Module Tests}
+{\small
+\begin{itemize}[leftmargin=1.5em, itemsep=0.2em, topsep=0.3em]
+  \item \nolinkurl{tests/test_filter_service.py::TestBuildWhereClause::test_empty_filters_returns_empty} \texttt{PASSED}
+  \item \nolinkurl{tests/test_filter_service.py::TestBuildWhereClause::test_single_equal_filter} \texttt{PASSED}
+  \item \nolinkurl{tests/test_filter_service.py::TestBuildWhereClause::test_comparison_operators[gte->=]} \texttt{PASSED}
+  \item \nolinkurl{tests/test_filter_service.py::TestBuildWhereClause::test_comparison_operators[lte-<=]} \texttt{PASSED}
+  \item \nolinkurl{tests/test_filter_service.py::TestBuildWhereClause::test_comparison_operators[gt->]} \texttt{PASSED}
+  \item \nolinkurl{tests/test_filter_service.py::TestBuildWhereClause::test_comparison_operators[lt-<]} \texttt{PASSED}
+  \item \nolinkurl{tests/test_filter_service.py::TestBuildWhereClause::test_range_operator} \texttt{PASSED}
+  \item \nolinkurl{tests/test_filter_service.py::TestBuildWhereClause::test_range_invalid_format_raises} \texttt{PASSED}
+  \item \nolinkurl{tests/test_filter_service.py::TestBuildWhereClause::test_field_mapping_resolution} \texttt{PASSED}
+  \item \nolinkurl{tests/test_filter_service.py::TestBuildWhereClause::test_unmapped_field_defaults_to_e1} \texttt{PASSED}
+  \item \nolinkurl{tests/test_filter_service.py::TestBuildWhereClause::test_multiple_filters_anded} \texttt{PASSED}
+  \item \nolinkurl{tests/test_filter_service.py::TestBuildWhereClause::test_where_keyword_present} \texttt{PASSED}
+  \item \nolinkurl{tests/test_filter_service.py::TestExecuteFilterQuery::test_returns_dataframe} \texttt{PASSED}
+  \item \nolinkurl{tests/test_filter_service.py::TestExecuteFilterQuery::test_nan_inf_replaced} \texttt{PASSED}
+  \item \nolinkurl{tests/test_filter_service.py::TestExecuteFilterQuery::test_empty_result} \texttt{PASSED}
+  \item \nolinkurl{tests/test_filter_service.py::TestExecuteFilterQuery::test_query_uses_base_query} \texttt{PASSED}
+  \item \nolinkurl{tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_no_filters_base_condition} \texttt{PASSED}
+  \item \nolinkurl{tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_apparatus_id_filter} \texttt{PASSED}
+  \item \nolinkurl{tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_pattern_id_filter} \texttt{PASSED}
+  \item \nolinkurl{tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_session_type_filter} \texttt{PASSED}
+  \item \nolinkurl{tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_room_id_filter} \texttt{PASSED}
+  \item \nolinkurl{tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_drug_ids_having_clause} \texttt{PASSED}
+  \item \nolinkurl{tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_file_type_ids_having_clause} \texttt{PASSED}
+  \item \nolinkurl{tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_rx_ids_in_clause} \texttt{PASSED}
+  \item \nolinkurl{tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_surgery_type_adds_brain_join} \texttt{PASSED}
+  \item \nolinkurl{tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_target_region_adds_brain_join} \texttt{PASSED}
+  \item \nolinkurl{tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_multiple_filters_combined} \texttt{PASSED}
+  \item \nolinkurl{tests/test_inventory_service.py::TestBuildFilteredSessionsSql::test_cte_structure} \texttt{PASSED}
+  \item \nolinkurl{tests/test_inventory_service.py::TestGetInventoryCounts::test_returns_response_model} \texttt{PASSED}
+  \item \nolinkurl{tests/test_inventory_service.py::TestGetInventoryCounts::test_empty_result} \texttt{PASSED}
+  \item \nolinkurl{tests/test_routers.py::TestRootEndpoint::test_health_check} \texttt{PASSED}
+  \item \nolinkurl{tests/test_routers.py::TestFiltersRouter::test_valid_filter_returns_200} \texttt{PASSED}
+  \item \nolinkurl{tests/test_routers.py::TestFiltersRouter::test_empty_filters_returns_200} \texttt{PASSED}
+  \item \nolinkurl{tests/test_routers.py::TestFiltersRouter::test_invalid_operator_returns_422} \texttt{PASSED}
+  \item \nolinkurl{tests/test_inventory_router.py::TestInventoryRouter::test_counts_returns_200} \texttt{PASSED}
+  \item \nolinkurl{tests/test_inventory_router.py::TestInventoryRouter::test_sessions_returns_200} \texttt{PASSED}
+  \item \nolinkurl{tests/test_inventory_router.py::TestInventoryRouter::test_filter_options_returns_200} \texttt{PASSED}
+\end{itemize}
+}
+
+\paragraph{Data Visualization Module Tests}
+{\small
+\begin{itemize}[leftmargin=1.5em, itemsep=0.2em, topsep=0.3em]
+  \item \nolinkurl{tests/test_visualization_service.py::TestRegistries::test_x_axis_registry_nonempty} \texttt{PASSED}
+  \item \nolinkurl{tests/test_visualization_service.py::TestRegistries::test_y_axis_registry_nonempty} \texttt{PASSED}
+  \item \nolinkurl{tests/test_visualization_service.py::TestRegistries::test_x_axis_entries_are_configs} \texttt{PASSED}
+  \item \nolinkurl{tests/test_visualization_service.py::TestRegistries::test_y_axis_entries_are_configs} \texttt{PASSED}
+  \item \nolinkurl{tests/test_visualization_service.py::TestRegistries::test_x_axis_ids_match_keys} \texttt{PASSED}
+  \item \nolinkurl{tests/test_visualization_service.py::TestRegistries::test_y_axis_ids_match_keys} \texttt{PASSED}
+  \item \nolinkurl{tests/test_visualization_service.py::TestRegistries::test_linechart_registries_nonempty} \texttt{PASSED}
+  \item \nolinkurl{tests/test_visualization_service.py::TestRegistries::test_heatmap_registries_share_barchart} \texttt{PASSED}
+  \item \nolinkurl{tests/test_visualization_service.py::TestGetAvailableVisualizations::test_returns_all_keys} \texttt{PASSED}
+  \item \nolinkurl{tests/test_visualization_service.py::TestGetAvailableVisualizations::test_x_axis_options_nonempty} \texttt{PASSED}
+  \item \nolinkurl{tests/test_visualization_service.py::TestGetAvailableVisualizations::test_option_structure} \texttt{PASSED}
+  \item \nolinkurl{tests/test_visualization_service.py::TestGetAvailableVisualizations::test_y_axis_has_unit} \texttt{PASSED}
+  \item \nolinkurl{tests/test_visualization_service.py::TestBuildFromClause::test_empty_joins} \texttt{PASSED}
+  \item \nolinkurl{tests/test_visualization_service.py::TestBuildFromClause::test_single_join_r1} \texttt{PASSED}
+  \item \nolinkurl{tests/test_visualization_service.py::TestBuildFromClause::test_multiple_joins} \texttt{PASSED}
+  \item \nolinkurl{tests/test_visualization_service.py::TestBuildFromClause::test_drug_dependency_chain} \texttt{PASSED}
+  \item \nolinkurl{tests/test_visualization_service.py::TestBuildFromClause::test_join_order_preserved} \texttt{PASSED}
+  \item \nolinkurl{tests/test_visualization_service.py::TestVizBuildWhereClause::test_default_without_observation} \texttt{PASSED}
+  \item \nolinkurl{tests/test_visualization_service.py::TestVizBuildWhereClause::test_with_observation_code} \texttt{PASSED}
+  \item \nolinkurl{tests/test_visualization_service.py::TestVizBuildWhereClause::test_observation_code_sql_injection_escaped} \texttt{PASSED}
+  \item \nolinkurl{tests/test_visualization_service.py::TestBuildQuery::test_produces_select_group_order} \texttt{PASSED}
+  \item \nolinkurl{tests/test_visualization_service.py::TestBuildLinechartQuery::test_time_based_grouping} \texttt{PASSED}
+  \item \nolinkurl{tests/test_visualization_service.py::TestBuildHeatmapQuery::test_two_dimensional_grouping} \texttt{PASSED}
+  \item \nolinkurl{tests/test_visualization_service.py::TestBarchartValidation::test_invalid_x_axis_raises} \texttt{PASSED}
+  \item \nolinkurl{tests/test_visualization_service.py::TestBarchartValidation::test_invalid_y_axis_raises} \texttt{PASSED}
+  \item \nolinkurl{tests/test_visualization_service.py::TestLinechartValidation::test_invalid_x_axis_raises} \texttt{PASSED}
+  \item \nolinkurl{tests/test_visualization_service.py::TestLinechartValidation::test_invalid_y_axis_raises} \texttt{PASSED}
+  \item \nolinkurl{tests/test_visualization_service.py::TestHeatmapValidation::test_invalid_x_axis_raises} \texttt{PASSED}
+  \item \nolinkurl{tests/test_visualization_service.py::TestHeatmapValidation::test_invalid_y_axis_raises} \texttt{PASSED}
+  \item \nolinkurl{tests/test_visualization_service.py::TestHeatmapValidation::test_invalid_metric_raises} \texttt{PASSED}
+  \item \nolinkurl{tests/test_visualization_service.py::TestHeatmapValidation::test_same_x_y_raises} \texttt{PASSED}
+  \item \nolinkurl{tests/test_routers.py::TestVisualizationsRouter::test_available_returns_200} \texttt{PASSED}
+  \item \nolinkurl{tests/test_routers.py::TestVisualizationsRouter::test_barchart_valid_params} \texttt{PASSED}
+  \item \nolinkurl{tests/test_routers.py::TestVisualizationsRouter::test_barchart_invalid_x_axis_returns_400} \texttt{PASSED}
+  \item \nolinkurl{tests/test_routers.py::TestVisualizationsRouter::test_linechart_valid_params} \texttt{PASSED}
+  \item \nolinkurl{tests/test_routers.py::TestVisualizationsRouter::test_linechart_invalid_returns_400} \texttt{PASSED}
+  \item \nolinkurl{tests/test_routers.py::TestVisualizationsRouter::test_heatmap_valid_params} \texttt{PASSED}
+  \item \nolinkurl{tests/test_routers.py::TestVisualizationsRouter::test_heatmap_same_axes_returns_400} \texttt{PASSED}
+\end{itemize}
+}
 
 \section{Changes Due to Testing}
 
@@ -1045,15 +1075,16 @@ While the core services are stable, specific API routers and file handling modul
 \centering
 \caption{Modules Requiring Additional Test Coverage}
 \label{tab:coverage_poor}
-\begin{tabular}{@{}llcp{6cm}@{}}
-\toprule
-\textbf{Module} & \textbf{Coverage} & \textbf{Missed Lines} & \textbf{Identified Issue} \\ \midrule
-\texttt{services/visualization\_service.py} & 83\% & 244 & Heatmap data transformation, NaN handling edge cases \\
-\texttt{routers/visualizations.py} & 74\% & 46 & Multiple router error handling paths \\
-\texttt{routers/ask.py} & 79\% & 19 & Streaming response logic untested \\
-\texttt{routers/filters.py} & 67\% & 15 & Filtering validation logic not tested \\
-\texttt{routers/files.py} & 32\% & 57 & Critical: File upload/download logic largely untested \\ \bottomrule
-\end{tabular}
+\footnotesize
+\begin{tabularx}{\textwidth}{|l|c|c|X|}
+\hline
+\textbf{Module} & \textbf{Coverage} & \textbf{Missed Lines} & \textbf{Identified Issue} \\ \hline
+\texttt{services/visualization\_service.py} & 83\% & 244 & Heatmap data transformation, NaN handling edge cases \\ \hline
+\texttt{routers/visualizations.py} & 74\% & 46 & Multiple router error handling paths \\ \hline
+\texttt{routers/ask.py} & 79\% & 19 & Streaming response logic untested \\ \hline
+\texttt{routers/filters.py} & 67\% & 15 & Filtering validation logic not tested \\ \hline
+\texttt{routers/files.py} & 32\% & 57 & Critical: File upload/download logic largely untested \\ \hline
+\end{tabularx}
 \end{table}
 
 \subsubsection{Test Suite Composition}
@@ -1079,6 +1110,24 @@ Based on the metrics gathered, the following analysis dictates our continued ver
 \bibliography{../../refs/References}
 
 \newpage{}
+
+\section*{Appendix --- Usability Survey Questions}
+
+\begin{itemize}
+  \item{Were the system's features and functionalities easy to find and intuitively placed?}
+  \item{Did the system's functionalities respond quickly to your input?}
+  \item{Were you aware of what the system was doing at all times and did you receive feedback after performing an action?}
+  \item{Were the search and webstore functionalities easy to use?}
+  \item{How well do the search filters satisfy your needs?}
+  \item{Are the system's information display and data visualization clear and well organized?}
+  \item{What were your least favourite parts of using the system to complete a workflow?}
+  \item{On a scale of one to five, how easy was it to learn how to use the system (one meaning impossible and five meaning easy)?}
+  \item{On a scale of one to ten, how was your experience using the system's UI (one meaning not user-friendly at all and ten meaning very 
+  user-friendly)?}
+\end{itemize}
+
+\newpage{}
+
 \section*{Appendix --- Reflection}
 
 The information in this section will be used to evaluate the team members on the
