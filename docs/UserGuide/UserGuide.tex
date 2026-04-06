@@ -22,14 +22,15 @@
 \toprule
 \textbf{Date} & \textbf{Developer(s)} & \textbf{Change}\\
 \midrule
-2026-04-05 & Jeremy Orr & Added full user guide content for frontend functionality\\
-2026-04-05 & --- & Rewrote guide from frontend source: InfraRAT features, routes, downloads, dashboards\\
+2026-04-05 & Jeremy Orr & Initial user guide\\
+2026-04-05 & --- & Restructured around user workflows; matches app navigation order\\
+2026-04-05 & --- & Added per-area overviews (Home through About) before workflows\\
 \bottomrule
 \end{tabularx}
 \end{table}
 
 \vspace{0.5em}
-\noindent\textit{This document uses date-based revision entries. Add a new row when frontend functionality changes significantly.}
+\noindent\textit{Maintainers: add a row when user-visible behaviour changes.}
 
 \newpage
 
@@ -38,328 +39,341 @@
 \tableofcontents
 \newpage
 
+% ---------------------------------------------------------------------------
+\section{How to use this guide}
+\label{sec:how-to-use}
+
+This guide is written for \textbf{you}---someone using InfraRAT in a web browser. You do not need technical setup.
+
+\begin{itemize}[nosep]
+  \item Read \cref{sec:map} for a short menu map, then \cref{sec:area-overview} if you want a fuller picture of what each screen contains.
+  \item Skip to any \textbf{workflow} in \cref{sec:workflows} that matches what you want to do today. Each workflow is a numbered checklist you can follow in order.
+  \item Use \cref{sec:reference} for file types, short definitions, and fixes when something blocks you.
+\end{itemize}
+
 \section{Introduction}
 \label{sec:introduction}
 
-The deployed web client is branded \textbf{InfraRAT}. It is a browser-based front end for exploring a large rat behavioural dataset (on the order of twenty thousand trials): natural-language and structured querying, inventory counts and session lists, configurable charts and heatmaps, pre-built comparison dashboards, and per-session trajectory analysis.
+The web application is branded \textbf{InfraRAT}. It supports data analysis for animal models of OCD on a large rat behavioural dataset (on the order of twenty thousand trials): natural-language questioning, tabular query results, inventory counts and session lists, charts and heatmaps, pre-built comparison dashboards, and per-session trajectory inspection.
 
-This guide describes what appears in the application (\texttt{src/ocd-rat-frontend}) and how end users can accomplish common tasks. The product name in the UI and footer is InfraRAT; \progname{} refers to the capstone project context in \texttt{../Common.tex}.
+This document explains what you see in the app and how to complete common tasks step by step. The product name in the header and footer is InfraRAT; \progname{} is the capstone project name on the title page.
 
-Note: this file imports macros from \texttt{../Comments} and \texttt{../Common}. Ensure both files are included when distributing the document.
-
-\section{Quick Start}
+\section{Quick start}
 \label{sec:quick-start}
 
 \begin{enumerate}[nosep]
-  \item Open the deployed application URL in your browser.
-  \item Read \textbf{Home} for an overview, carousel use cases, and example query wording.
-  \item Use \textbf{Query} in \textbf{Ask} mode for conversational answers, or \textbf{Select} mode for generated SQL and tabular results.
-  \item Open \textbf{Inventory} (\emph{Data Inventory}) to count sessions and files under filters, optionally list up to 500 sessions, and download file bundles.
-  \item Use \textbf{Visualizations} to open bar chart, heatmap, spatial heatmap, velocity profile, or the graph-query dashboard.
-  \item Use \textbf{ToolBox} to load one session, inspect tables and plots, and view summary metrics.
+  \item Open the web address your administrator gave you.
+  \item Read \textbf{Home} for an overview, carousel cards, and example query wording.
+  \item On \textbf{Query}, use \textbf{Ask} for conversational answers, or \textbf{Select} for tables and (when applicable) downloads.
+  \item Open \textbf{Inventory} (\emph{Data Inventory}) to count sessions and files, optionally list up to 500 sessions, and download bundles.
+  \item Use \textbf{Visualizations} for bar chart, heatmap, spatial heatmap, velocity profile, or \textbf{Query Visualizations}.
+  \item Use \textbf{ToolBox} to load one session, inspect tables and the path view, and read summary metrics.
   \item Open \textbf{About} (info icon in the header) for team information and FAQs.
 \end{enumerate}
 
-\section{Access, Authentication, and Environment}
-\label{sec:access}
+\section{What is InfraRAT?}
+\label{sec:what}
 
-There is no login or SSO screen in the current front end. Access is via the deployment URL your administrator provides.
+\textbf{InfraRAT} helps you explore a large rat behavioural dataset (tens of thousands of trials). In plain terms you can: ask questions, filter and count sessions, open charts and maps, compare groups on standard measures, inspect one session closely, and download selected file types for the sessions you care about.
 
-When the app is run locally on port 8080, the header may show a \textbf{STAGING} badge next to the product name.
+The course project name is \progname{}; \textbf{InfraRAT} is the name in the app header.
 
-\section{Global Layout}
-\label{sec:layout}
+\section{How the site is organized}
+\label{sec:map}
 
-\subsection{Header and navigation}
-\label{subsec:navigation}
+The top bar matches the order below (on a phone, open the menu icon first). This is the same order as the workflows in the next section.
 
-The sticky header shows the InfraRAT logo and name. Primary links (desktop) or a popover menu (narrow screens) include:
-\begin{itemize}[nosep]
-  \item \textbf{Home} --- \texttt{/}
-  \item \textbf{Query} --- \texttt{/query}
-  \item \textbf{Visualizations} --- \texttt{/visualizations}
-  \item \textbf{Inventory} --- \texttt{/inventory}
-  \item \textbf{ToolBox} --- linked from the bar as \texttt{/toolbox} (the registered route in code uses mixed case; if a link fails, try \texttt{/ToolBox} on case-sensitive hosts).
-\end{itemize}
+\begin{description}[style=nextline, font=\normalfont\bfseries]
+  \item[Home] Orientation: what the platform does, rotating cards, and example wording (start here on day one).
+  \item[Query] Ask questions in chat, or switch to Select to get tables and optional downloads (\emph{Talk to the FRDR}).
+  \item[Visualizations] Pick a tool from the gallery (bar chart, heatmap, maps, velocity, dashboards).
+  \item[Inventory] \emph{Data Inventory}---counts and filters across the dataset; list sessions and download bundles.
+  \item[ToolBox] \emph{Analysis Toolbox}---one session at a time: tables, path view, summary numbers.
+\end{description}
 
-To the right, an \textbf{About} control (info icon) opens \texttt{/about}. A GitHub icon links to the project issues page for bug reports and feedback.
+To the right: \textbf{About} (info icon) for team and FAQs; \textbf{GitHub} for reporting issues. The footer links to FRDR and the lab collection.
 
-\subsection{Footer}
-\label{subsec:footer}
+\textbf{Tip:} many tasks use two areas---for example Inventory to find IDs, then ToolBox or Visualizations to go deeper.
 
-The footer shows version text (e.g.\ InfraRAT v1.0), course attribution, and external links to the FRDR repository and the Szechtman lab collection.
+\section{Access and environment}
+\label{sec:before}
 
-\subsection{Missing pages}
-\label{subsec:notfound}
+There is no login or single sign-on screen in the current app: you use the deployment URL you were given.
 
-Unknown paths render a not-found page.
+If the header shows a \textbf{STAGING} badge next to the product name (for example when the app is run on a staging port), treat that environment as non-final.
 
-\section{Home Page}
-\label{sec:home}
+\section{Overview of each area}
+\label{sec:area-overview}
 
-The home page states the purpose of the platform (data analysis for animal models of OCD) and highlights scale (twenty-thousand-plus trials).
+The subsections below describe \emph{what each part of the app is for} and what you will see there. Step-by-step instructions are in \cref{sec:workflows}.
 
-\subsection{Carousel}
-\label{subsec:home-carousel}
+\subsection{Header, footer, and navigation}
+\label{subsec:layout-overview}
 
-An auto-advancing carousel summarizes use cases: dataset access and download, visualization and analysis, natural language querying, experiment playback, processing pipeline, and API access. These are orientation slides, not separate routes.
+The header stays visible as you scroll. It shows the InfraRAT logo and name. The main destinations are \textbf{Home}, \textbf{Query}, \textbf{Visualizations}, \textbf{Inventory}, and \textbf{ToolBox}. On a narrow screen, open the menu control to reach the same links.
 
-\subsection{Illustrations and examples}
-\label{subsec:home-examples}
+On the right, the \textbf{About} control (info icon) opens the About page. The \textbf{GitHub} icon opens the project issue tracker in a new tab (for feedback or bug reports).
 
-Still images contrast video trials with temporal or tabular representations. Example natural-language prompts appear with short illustrative copy. A \emph{sample} results table (demo rows such as trial ID, group, checking count, home-base duration, video sync) demonstrates the \emph{shape} of query output; it is not live data from your deployment.
+The footer shows the app version (e.g.\ InfraRAT v1.0), course attribution, and links to FRDR and the Szechtman lab collection. If you open a bad link inside the app, you may see a simple ``not found'' page.
+
+\subsection{Home}
+\label{subsec:home-overview}
+
+\textbf{Home} introduces the platform: purpose, scale (twenty-thousand-plus trials), and the idea of going from raw trials to insights.
+
+An auto-advancing \textbf{carousel} presents use cases---dataset access and download, visualization and analysis, natural language questions, experiment playback, processing pipeline, and API-related messaging. These are overview cards, not separate apps.
+
+Lower on the page, images contrast video trials with temporal or tabular views. Example natural-language prompts appear in quotation marks. A \textbf{sample results table} (trial ID, group, checking count, home-base duration, video sync, etc.) shows the \emph{shape} of tabular output; it is demo content, not live results from your run.
+
+\subsection{Query}
+\label{subsec:query-overview}
+
+\textbf{Query} is the main chat-style interface to the dataset. The page title is \emph{Query}; the subtitle is \emph{Talk to the FRDR} (FRDR is the Federated Research Data Repository, also referenced when you download bundled files).
+
+A switch toggles \textbf{Ask} and \textbf{Select}. In \textbf{Ask}, you type in everyday language and read a streamed answer in chat bubbles; emphasized phrases may appear in bold. In \textbf{Select}, the same kind of input produces a structured reply: \emph{Query Plan}, \emph{SQL Query}, and \emph{Results}. The embedded results table shows up to fifty rows, with a note if there are more.
+
+Your messages appear on the right; the system's replies appear on the left.
+
+Use the bottom text area (placeholder \emph{Ask, Search or Chat\ldots}). Press \textbf{Enter} to send and \textbf{Shift+Enter} for a new line without sending.
+
+After a successful \textbf{Select} answer, a \textbf{Sessions} section below lists the full result set in a wide, scrollable table.
+
+\textbf{Download Session Files} appears on this page only when the last message in the thread is a \textbf{Select} result (not a plain \textbf{Ask} reply). The dialog offers CSV, EWB, GIF, JPG, and MPG; after you confirm, a progress bar runs and your browser saves a ZIP whose name begins with \texttt{FRDR\_FILES\_}.
+
+\subsection{Data Inventory}
+\label{subsec:inventory-overview}
+
+\textbf{Inventory} opens the \emph{Data Inventory} page. It explains that counts are by raw data type (video, track files, and related types) and that filters narrow which sessions are included.
+
+\textbf{Show full inventory} and \textbf{Unoperated rats only} are shortcuts at the top. The left sidebar holds expandable filter groups: drug treatment (you may check several), file types, fine-grained drug regimens (labelled \emph{Drug Regiments} in the app), brain manipulation (surgery type and region), apparatus (including pattern and room), and session type. \textbf{Apply} runs the search; \textbf{Clear} resets choices and clears results and the session table.
+
+After counts load, the main area shows how many sessions match, per-type file and session counts (with info tooltips), and a \textbf{Counts by data type} bar chart. \textbf{View sessions (up to 500)} loads a scrollable session table. \textbf{Download Session Files} in the sidebar is for the filtered list: it becomes available only after you have loaded that table and it is not empty. Format choices match the Query download dialog.
+
+\subsection{Visualizations}
+\label{subsec:viz-overview}
+
+\textbf{Visualizations} opens a \textbf{gallery} of tiles. Each tile has a short description and an \textbf{Open} button. The gallery includes \textbf{Bar Chart}, \textbf{Heatmap}, \textbf{Spatial Heatmap}, \textbf{Velocity Profile}, and \textbf{Query Visualizations}. There is no tile for \textbf{Line Chart} on the gallery; that builder still exists in the app---ask your administrator for a bookmark or link if you need trends over time.
+
+\textbf{Bar chart builder:} choose \textbf{X-Axis (Group By)} and \textbf{Y-Axis}; axis titles and units come from the data service.
+
+\textbf{Line chart builder} (when you have a link): choose \textbf{X-Axis (Time Period)} and a \textbf{Y-Axis} metric for trends over time.
+
+\textbf{Heatmap builder:} choose two dimensions and a \textbf{metric} for cell colour.
+
+\textbf{Spatial heatmap:} combine one or more sessions, bin size, visits vs time in bin, optional fixed colour cap, optional \textbf{home base} rectangle, hover details on the map, and export to CSV or PNG.
+
+\textbf{Velocity profile:} pick a session, define a circular zone (centre and radius), set frame windows and minimum trip length, choose colouring mode, then \textbf{Generate} to see entering and exiting speed traces.
+
+\textbf{Query Visualizations:} choose a \textbf{Graph Set} (e.g.\ Tucci-style snapshot bars or Ballester-style lines across injections). Panels cover measures such as checking frequency, check length, recurrence time, stops before returning, and rest duration. Long on-page text describes the comparison design. Partial failures show a warning while other panels may still load.
+
+\subsection{Analysis ToolBox}
+\label{subsec:toolbox-overview}
+
+\textbf{ToolBox} shows the \emph{Analysis Toolbox} page. Everything here is about \textbf{one session at a time}.
+
+You search or pick a session ID, then \textbf{Load Session}. On success you typically see \textbf{Session Info} (metadata), \textbf{Data Points} (trajectory or frame table), a still \textbf{image} when available, and an \textbf{interactive path} plot of movement.
+
+Three cards summarize \textbf{Distance Travelled} (metres), \textbf{Total Number of Checks}, and \textbf{Average Check Time} (shown as log$_{10}$ seconds). If distance is not available, \textbf{Generate Distance?} tries to compute it from identifiers in session info.
+
+If the session cannot be loaded, the app states that it is not supported.
+
+\subsection{About}
+\label{subsec:about-overview}
+
+\textbf{About} lists faculty and student contributors and credits a prior capstone team. An accordion holds FAQs (purpose, who can use the platform, what data exists, downloads). A button can take you to \textbf{Query} if you want to ask a follow-up question.
+
+\subsection{Downloads and file formats (summary)}
+\label{subsec:downloads-overview}
+
+ZIP bundles from \textbf{Query} (after \textbf{Select}) and \textbf{Inventory} (after loading the session list) can include CSV, EWB, JPG, MPG, and GIF as you select them. Spatial heatmap exports use separate CSV/PNG actions on that page. Full detail is in \cref{ref:zip}.
+
+\section{Guided workflows}
+\label{sec:workflows}
+
+Each workflow below is meant to be followed top to bottom. Screen names and button labels match the app.
+
+\subsection{Workflow A: First visit---orient yourself}
+\label{wf:orient}
+
+\begin{enumerate}
+  \item Open \textbf{Home}. Read the headline and short description of scale.
+  \item Watch the \textbf{carousel}; each card states a capability (access, visualization, natural language, and so on).
+  \item Skim the example questions and the \textbf{sample table}. The table is illustrative only---it shows the \emph{shape} of results, not live data.
+  \item When you are ready to try the app, go to Workflow B or C.
+\end{enumerate}
 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.95\textwidth]{homepage.png}
-\caption{Home page overview: headline, carousel, and example content.}
+\caption{Home: start here to understand what InfraRAT offers.}
 \label{fig:home}
 \end{figure}
 
-\section{About Page}
-\label{sec:about}
+\subsection{Workflow B: Ask a question (no tables or downloads)}
+\label{wf:ask}
 
-The About page (\texttt{/about}) lists faculty and student team members and credits the prior capstone cohort. An accordion presents frequently asked questions (purpose of the platform, audience, hosted data types, downloads). A button invites users who need more detail to go to \textbf{Query} and ask there.
+\begin{enumerate}
+  \item Click \textbf{Query} in the top bar.
+  \item Leave the switch on \textbf{Ask} (left side).
+  \item Type in the box at the bottom (``Ask, Search or Chat\ldots''). Press \textbf{Enter} to send, or \textbf{Shift+Enter} for a new line.
+  \item Read the answer as it appears on the left. Important phrases may appear in \textbf{bold}.
+\end{enumerate}
 
-\section{Query Page}
-\label{sec:query}
+Use this when you want an explanation or exploration, not a spreadsheet or ZIP file.
 
-The Query page is the main text interface to the dataset. The empty state title is \emph{Query}; the subtitle reads \emph{Talk to the FRDR}.
+\subsection{Workflow C: Get a table of sessions from a question (and optionally download)}
+\label{wf:query-select}
 
-\subsection{Ask and Select modes}
-\label{subsec:query-mode}
-
-A toggle switches between:
-\begin{itemize}[nosep]
-  \item \textbf{Ask} --- the client streams a natural-language answer from the backend (\texttt{/ask/}). Replies appear as chat bubbles; text wrapped in \texttt{**} pairs is shown in bold.
-  \item \textbf{Select} --- the same natural-language input is sent to the NLP SQL endpoint (\texttt{/nlp/}). The response is rendered as a structured card: \emph{Query Plan} (rationale), \emph{SQL Query} (monospace), and \emph{Results}. The inline results table shows at most fifty rows with a note if more exist.
-\end{itemize}
-
-User messages appear on the right (dark bubble); assistant content on the left (light bubble or SQL card).
-
-\subsection{Sending a message}
-\label{subsec:entering-queries}
-
-Use the bottom text area (placeholder: ``Ask, Search or Chat\ldots''). Press Enter to send; use Shift+Enter if you need a newline. A send button is also available.
-
-Example prompts shown on Home include natural-language questions and a trial-specific request for \texttt{(x,y,t)} trajectory data.
-
-\subsection{Session table after Select}
-\label{subsec:query-results}
-
-After a successful \textbf{Select} response, a \textbf{Sessions} card below the chat lists the full result set with a horizontal scrollable table and a result count.
+\begin{enumerate}
+  \item Go to \textbf{Query}. Flip the switch to \textbf{Select}.
+  \item Type what you want in plain language; press \textbf{Enter} (or use the send button).
+  \item On the left, read the card: \emph{Query Plan}, then \emph{SQL Query}, then \emph{Results}. The small table shows up to fifty rows; a note appears if there are more.
+  \item Scroll down to \textbf{Sessions} to see the full table for that answer (wide columns---scroll sideways if needed).
+  \item To download files for those sessions: click \textbf{Download Session Files}. It is enabled only if the \textbf{last} message in the thread is a Select result (not Ask). Choose CSV, EWB, GIF, JPG, and/or MPG, confirm, wait for the progress bar, then save the ZIP (name begins with \texttt{FRDR\_FILES\_}).
+\end{enumerate}
 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.95\textwidth]{QueryPage.png}
-\caption{Query page: mode toggle, chat or SQL result, session summary table.}
+\caption{Query: use Select when you need tables and downloads.}
 \label{fig:query}
 \end{figure}
 
-\subsection{Downloading session files (Query)}
-\label{subsec:download-files}
+\subsection{Workflow D: See how much data exists and list sessions}
+\label{wf:inventory}
 
-\textbf{Download Session Files} is enabled only when the \emph{last} message in the thread is a \textbf{Select} SQL result (not after a pure \textbf{Ask} reply). Opening it shows checkboxes for \textbf{CSV}, \textbf{EWB}, \textbf{GIF}, \textbf{JPG}, and \textbf{MPG}. Confirming starts a job; a progress bar reports completion until the browser downloads a ZIP named \texttt{FRDR\_FILES\_<job-id>.zip}. The archive is built for the sessions returned by your last Select query.
-
-\section{Data Inventory (Inventory Page)}
-\label{sec:inventory}
-
-The page title is \textbf{Data Inventory}. It explains that counts are by raw data type (video, track files, and similar) and that filters narrow which sessions are included.
-
-\subsection{Quick presets}
-\label{subsec:inventory-presets}
-
-Two buttons apply common scopes without configuring the sidebar:
-\begin{itemize}[nosep]
-  \item \textbf{Show full inventory} --- all sessions (clears manual filter state for the preset request).
-  \item \textbf{Unoperated rats only} --- restricts to surgery type \emph{Unoperated}.
-\end{itemize}
-
-\subsection{Filters (sidebar)}
-\label{subsec:inventory-filters}
-
-Filters are grouped in accordions:
-\begin{itemize}[nosep]
-  \item \textbf{Drug treatment} --- multi-select checkboxes; multiple drugs combine (OR semantics as implemented by the API request body).
-  \item \textbf{File types} --- multi-select by object type (e.g.\ video vs track files).
-  \item \textbf{Drug Regiments} --- multi-select for fine-grained prescription or regimen labels (the UI label uses this spelling).
-  \item \textbf{Brain manipulation} --- dropdowns for surgery type and brain region.
-  \item \textbf{Apparatus} --- apparatus, pattern, and testing room.
-  \item \textbf{Session type} --- single select.
-\end{itemize}
-
-Use \textbf{Apply} to fetch counts; \textbf{Clear} resets selections and clears results and the session table.
-
-\subsection{Results area}
-\label{subsec:inventory-results}
-
-After Apply (or a preset), the main column shows:
-\begin{itemize}[nosep]
-  \item a card for \textbf{sessions matching filters} (with an info tooltip defining a session as one behavioural trial),
-  \item per-type cards with file counts and session counts (tooltips clarify video vs track where applicable),
-  \item a \textbf{Counts by data type} bar chart.
-\end{itemize}
-
-\textbf{View sessions (up to 500)} loads a scrollable table of matching sessions (column set from the API). Errors appear in a highlighted banner.
-
-\subsection{Downloading session files (Inventory)}
-\label{subsec:inventory-download}
-
-\textbf{Download Session Files} in the sidebar is enabled when a session list is loaded and non-empty. The same ZIP and format checkboxes apply as on Query, but the backend uses filter-based session selection rather than the last NLP query.
-
-\section{Visualizations Hub}
-\label{sec:visualizations-hub}
-
-The hub (\texttt{/visualizations}) lists tiles with short descriptions and an \textbf{Open} control:
-\begin{itemize}[nosep]
-  \item \textbf{Bar Chart} --- \texttt{/visualizations/bar-chart}
-  \item \textbf{Heatmap} --- \texttt{/visualizations/heatmap}
-  \item \textbf{Spatial Heatmap} --- \texttt{/visualizations/spatial-heatmap}
-  \item \textbf{Velocity Profile} --- \texttt{/visualizations/velocity-profile}
-  \item \textbf{Query Visualizations} --- \texttt{/visualizations/graph-query-dashboard}
-\end{itemize}
-
-There is no tile for the line chart on this hub, but the application still registers \texttt{/visualizations/line-chart} (see \cref{subsec:line-chart}).
-
-\begin{figure}[ht]
-\centering
-\includegraphics[width=0.95\textwidth]{Visualizations.png}
-\caption{Visualizations hub: tiles linking to each builder or dashboard.}
-\label{fig:visualizations}
-\end{figure}
-
-\subsection{Bar chart builder}
-\label{subsec:bar-chart}
-
-The bar chart page loads options from \texttt{/visualizations/available}. Choose an \textbf{X-Axis (Group By)} and a \textbf{Y-Axis} metric; the chart requests \texttt{/visualizations/barchart} with the chosen axes. Axis labels and units come from the API.
-
-\subsection{Line chart builder}
-\label{subsec:line-chart}
-
-The line chart page uses the same options endpoint with \textbf{X-Axis (Time Period)} and a \textbf{Y-Axis} metric appropriate for trends over time. Data is loaded from the line-chart endpoint exposed by the visualization API.
-
-\subsection{Heatmap builder}
-\label{subsec:heatmap}
-
-Select two categorical dimensions (X and Y) and a \textbf{metric} for cell colour intensity. The client fetches heatmap-specific axes and metrics from \texttt{/visualizations/available}, then requests aggregated heatmap data from the backend.
-
-\subsection{Spatial heatmap}
-\label{subsec:spatial-heatmap}
-
-This tool builds an occupancy-style map from trajectory points for one or more sessions:
-\begin{itemize}[nosep]
-  \item \textbf{Sessions} --- scrollable checklist loaded from the same session list source as ToolBox; \textbf{Clear All} deselects. Sessions without trajectory data are reported as unsupported.
-  \item \textbf{Bin size (cm)} --- discrete choices (e.g.\ 1, 2, 4, 5, 8, 10, 16, 20, 32, 40, 80, 160) on a 160\,cm arena grid.
-  \item \textbf{Metric} --- \emph{Entries (Visits)} (bin entry counts) or \emph{Time Spent} (dwell time between samples).
-  \item \textbf{Fixed scale max (optional)} --- caps the colour scale so multiple sessions stack visibly on the same scale.
-  \item \textbf{Home base} --- enter four corners (top-left, top-right, bottom-left, bottom-right) in cm, then \textbf{Set Home Base}; optional \textbf{Clear}. When set, the UI shows time-in-home-base as a fraction of total session time. Fixed arena objects are drawn for reference.
-  \item \textbf{Export Data to CSV} and \textbf{Export Map to PNG} --- download bin-level data or a rendered canvas image.
-\end{itemize}
-
-Hovering the map shows bin coordinates, metric value, and contributing session IDs.
-
-\subsection{Velocity profile}
-\label{subsec:velocity-profile}
-
-Steps:
-\begin{enumerate}[nosep]
-  \item \textbf{Select session} --- searchable dropdown (same session search endpoint as ToolBox).
-  \item \textbf{Define zone} --- centre \texttt{X}, \texttt{Y}, and \texttt{Radius} in tracking units (coordinates can be cross-checked in ToolBox).
-  \item \textbf{Parameters} --- \emph{Max frames per side} (allowed range 10--500, default 150) and \emph{Min trip frames} (shorter segments are treated as lingering and excluded).
-  \item \textbf{Colouring} --- \emph{Temporal gradient} (each trip coloured along time) or \emph{Time-slice highlight} (grey baseline with a slider to emphasize a trip index range).
-  \item \textbf{Generate} --- fetches entering and exiting velocity segments and plots them. Summary tiles show total trips, segment counts, and session frames. If no trips qualify, the UI suggests increasing radius or lowering the minimum trip length.
+\begin{enumerate}
+  \item Open \textbf{Inventory} (\emph{Data Inventory}).
+  \item Quick start: press \textbf{Show full inventory} or \textbf{Unoperated rats only}, \emph{or} expand filters on the left (drugs, file types, brain and apparatus fields, session type).
+  \item Press \textbf{Apply}. The main area shows session count, counts by file type, and a bar chart.
+  \item To see rows: press \textbf{View sessions (up to 500)}. A table appears when loading finishes.
+  \item To download files for listed sessions: use \textbf{Download Session Files} in the left panel (only after step~4 produced a non-empty table). Pick formats and confirm as in Workflow~C.
+  \item Press \textbf{Clear} when you want to reset filters and results.
 \end{enumerate}
 
-\subsection{Query Visualizations (graph-query dashboard)}
-\label{subsec:graph-dashboard}
+Use the small \textbf{(i)} icons on cards for short definitions (for example what counts as one \emph{session}).
 
-This page loads pre-defined multi-panel layouts backed by \texttt{/toolbox/graph-query/<id>/}. A \textbf{Graph Set} dropdown switches between:
-\begin{itemize}[nosep]
-  \item \textbf{Query Visualization 1: Tucci et al.\ (2014) format} --- snapshot-style bar panels at selected injections with error bars, plus a legend card. Panels include frequency of checking, length of check, recurrence time, stops before returning, and duration of rest.
-  \item \textbf{Query Visualization 2: Ballester et al.\ (2015) format} --- line charts across injections 1--10 for the same behavioural measures, with cohort markers and error bars.
-\end{itemize}
+\subsection{Workflow E: Inspect one session in depth}
+\label{wf:toolbox}
 
-Each set shows a long methodological description on the page (filters, comparisons, and literature context). If some panels fail to load, a warning appears while successful panels still render. Tooltips on charts show mean, SEM, and $n$ where available.
+\begin{enumerate}
+  \item Open \textbf{ToolBox} (\emph{Analysis Toolbox}).
+  \item In \emph{Search or select a session\ldots}, type part of an ID; pick a row from the dropdown.
+  \item Press \textbf{Load Session}. Wait until loading finishes.
+  \item Read \textbf{Session Info}, then \textbf{Data Points} (scroll the table). View the image if shown, and the \textbf{interactive path} diagram.
+  \item Read the three summary cards: distance, total checks, average check time (shown as log$_{10}$ seconds). If distance says it is not available, press \textbf{Generate Distance?} once.
+\end{enumerate}
 
-\section{Analysis ToolBox}
-\label{sec:toolbox}
-
-The ToolBox page title is \textbf{Analysis Toolbox}. It focuses on a single session at a time.
-
-\subsection{Session search and load}
-\label{subsec:toolbox-selection}
-
-Type in the \emph{Search or select a session\ldots} field; the client queries the backend for matching session IDs and shows a dropdown. Choose an ID and click \textbf{Load Session}. While loading, the button is disabled and a short loading indicator may appear.
-
-\subsection{Successful load}
-\label{subsec:toolbox-loading}
-
-On success, the layout includes:
-\begin{itemize}[nosep]
-  \item \textbf{Session Info} --- metadata table (columns depend on API).
-  \item \textbf{Data Points} --- scrollable trajectory or frame table (e.g.\ position and time columns).
-  \item A \textbf{static image} preview when the API returns image bytes.
-  \item \textbf{PathPlot} --- an interactive trajectory plot built from the same points.
-\end{itemize}
-
-\subsection{Metrics cards}
-\label{subsec:toolbox-metrics}
-
-Three cards summarize:
-\begin{itemize}[nosep]
-  \item \textbf{Distance Travelled} (metres) --- if the value is \texttt{N/A}, a \textbf{Generate Distance?} button recomputes distance using legacy session and trial identifiers from session info.
-  \item \textbf{Total Number of Checks}.
-  \item \textbf{Average Check Time}, labelled in \emph{log(10) seconds} in the UI.
-\end{itemize}
-
-\subsection{Unsupported session}
-\label{subsec:toolbox-unsupported}
-
-If the backend reports failure for the chosen ID, a message states that the session is not supported.
+If the app says the session is not supported, try another ID or confirm with your team.
 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.95\textwidth]{ToolBoxPage.png}
-\caption{ToolBox: session selection, tables, trajectory plot, and metrics.}
+\caption{ToolBox: follow search $\rightarrow$ Load $\rightarrow$ tables and metrics.}
 \label{fig:toolbox}
 \end{figure}
 
-\section{Downloads and File Formats}
-\label{sec:file-format}
+\subsection{Workflow F: Build a bar chart, heatmap, or line chart}
+\label{wf:charts}
 
-Bulk downloads from Query (after Select) and Inventory (after loading sessions) produce a single ZIP archive named \texttt{FRDR\_FILES\_<job-id>.zip}. Inside, the server includes only the extensions you selected:
+\begin{enumerate}
+  \item Click \textbf{Visualizations}. You see a gallery of tiles; press \textbf{Open} on \textbf{Bar Chart} or \textbf{Heatmap}.
+  \item For a \textbf{bar chart}: choose \textbf{X-Axis (Group By)} and \textbf{Y-Axis}; the chart updates from your choices.
+  \item For a \textbf{heatmap}: choose two dimensions and a \textbf{metric} for colour.
+\end{enumerate}
 
-\begin{description}[nosep]
-  \item[CSV] Tabular exports for spreadsheets and analysis.
-  \item[EWB] Experimental workflow / behavioural files used in the research pipeline.
+\textbf{Line chart} (trends over time) is \textbf{not} listed on the gallery page. If your group uses it, ask for the direct link or bookmark it when someone shares it. On that page, choose \textbf{X-Axis (Time Period)} and a \textbf{Y-Axis} metric.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.95\textwidth]{Visualizations.png}
+\caption{Visualizations: choose a tool, then Open.}
+\label{fig:visualizations}
+\end{figure}
+
+\subsection{Workflow G: Map where animals spent time (spatial heatmap)}
+\label{wf:spatial}
+
+\begin{enumerate}
+  \item From \textbf{Visualizations}, open \textbf{Spatial Heatmap}.
+  \item Under \textbf{Sessions}, tick one or more IDs; use \textbf{Clear All} to reset. Unsupported sessions are listed in a message.
+  \item Set \textbf{Bin size (cm)} and the \textbf{metric}: \emph{Entries (Visits)} or \emph{Time Spent}.
+  \item Optionally set \textbf{Fixed scale max} so colours stay comparable across sessions.
+  \item Optionally define a \textbf{home base}: enter the four corners in centimetres, press \textbf{Set Home Base}; the page can show time in that region as a percentage. Use \textbf{Clear} to remove it.
+  \item Move the mouse over the map to inspect bins. Use \textbf{Export Data to CSV} or \textbf{Export Map to PNG} to save your work.
+\end{enumerate}
+
+\subsection{Workflow H: Speed into and out of a zone (velocity profile)}
+\label{wf:velocity}
+
+\begin{enumerate}
+  \item From \textbf{Visualizations}, open \textbf{Velocity Profile}.
+  \item \textbf{Select session} with the search field (same idea as ToolBox).
+  \item \textbf{Define zone:} enter centre $X$, $Y$, and \textbf{Radius}. If you need coordinates, load the session in \textbf{ToolBox} first and read values from the data or plot.
+  \item Set \textbf{Max frames per side} and \textbf{Min trip frames} (short segments are treated as lingering and skipped).
+  \item Choose \textbf{Colouring}: \emph{Temporal gradient} or \emph{Time-slice highlight} (then use the slider under the chart when applicable).
+  \item Press \textbf{Generate}. Read the summary tiles and the chart. If nothing appears, try a larger radius or a smaller minimum trip length.
+\end{enumerate}
+
+\subsection{Workflow I: Compare groups on standard measures (dashboards)}
+\label{wf:dashboard}
+
+\begin{enumerate}
+  \item From \textbf{Visualizations}, open \textbf{Query Visualizations}.
+  \item Read the title and description for the selected layout.
+  \item Open the \textbf{Graph Set} menu and choose a format (for example Tucci-style snapshot bars or Ballester-style lines across injections).
+  \item Scan the grid of panels (checking frequency, check length, recurrence, stops before returning, rest duration, and related measures depending on the set).
+  \item Hover points or bars for mean, error, and sample size when offered. If one panel fails, others may still load---read any warning at the top.
+\end{enumerate}
+
+\subsection{Workflow J: Get help or contact the team}
+\label{wf:about}
+
+\begin{enumerate}
+  \item Click the \textbf{info} icon (\textbf{About}).
+  \item Expand FAQ items for purpose, audience, data types, and downloads.
+  \item If you still need detail, use the button to go to \textbf{Query} and ask there, or use \textbf{GitHub} from the header for technical issues.
+\end{enumerate}
+
+\section{Reference}
+\label{sec:reference}
+
+\subsection{ZIP downloads (Query and Inventory)}
+\label{ref:zip}
+
+Bulk downloads are one ZIP per job. You choose which types to include:
+
+\begin{description}[style=nextline, font=\normalfont\bfseries]
+  \item[CSV] Spreadsheet-friendly tables.
+  \item[EWB] Behavioural workflow files for the research pipeline.
   \item[JPG] Still images.
-  \item[MPG] Video recordings.
-  \item[GIF] Short animated summaries.
+  \item[MPG] Videos.
+  \item[GIF] Short animations.
 \end{description}
 
-Spatial heatmap exports are separate browser downloads (CSV of bins, PNG of the canvas) and do not use the FRDR ZIP flow.
+Spatial heatmap \textbf{Export to CSV/PNG} is separate from this ZIP flow.
 
-\section{Glossary}
+\subsection{Glossary}
 \label{sec:glossary}
 
-\begin{description}[nosep]
-  \item[Ask mode] conversational answers streamed from the ask endpoint (no SQL card).
-  \item[FRDR] Federated Research Data Repository; referenced in copy and download naming.
-  \item[Select mode] natural language interpreted into SQL with tabular results and optional ZIP download.
-  \item[Session] one behavioural experimental trial for a subject (definition also in Inventory tooltips).
-  \item[Graph set] a predefined dashboard layout and backing queries on the Query Visualizations page.
-  \item[Home base] user-defined polygon on the spatial heatmap used for dwell-time ratio.
+\begin{description}[style=nextline, font=\normalfont\bfseries]
+  \item[Ask] Chat answers without a results table or Query-page ZIP download.
+  \item[Select] Mode that shows a plan, SQL, and results; required for downloads on the Query page.
+  \item[FRDR] Federated Research Data Repository; mentioned on Query and in download names.
+  \item[Session] One behavioural trial for one animal (see Inventory tooltips).
+  \item[Graph set] A named dashboard layout on \textbf{Query Visualizations}.
+  \item[Home base] A rectangle on the spatial heatmap used to measure time in a region.
 \end{description}
 
-\section{Troubleshooting}
+\subsection{If something goes wrong}
 \label{sec:troubleshooting}
 
 \begin{itemize}[nosep]
-  \item If \textbf{Download Session Files} stays disabled on Query, run a \textbf{Select} query that returns rows so the last message is a SQL result; Ask-mode threads do not enable the button.
-  \item On Inventory, run \textbf{View sessions (up to 500)} before download if the sidebar button remains disabled.
-  \item If the ToolBox link 404s, try \texttt{/ToolBox} vs \texttt{/toolbox} depending on server case sensitivity.
-  \item Refresh the page on transient network errors; wait for ZIP jobs to finish before starting another.
-  \item For platform issues, use the GitHub issues link in the header or contact your deployment administrator.
+  \item \textbf{Download on Query is greyed out.} Send another message in \textbf{Select} that returns a table, and make sure that message is the \textbf{last} one in the thread.
+  \item \textbf{Download on Inventory is greyed out.} Run \textbf{View sessions (up to 500)} and wait for a non-empty table.
+  \item \textbf{ToolBox menu does nothing or errors.} Refresh the page; if it persists, contact your administrator (the registered address may differ by host).
+  \item \textbf{Empty chart.} Try other axis or metric choices.
+  \item \textbf{Stuck progress bar.} Wait for the current job to finish; refresh only if it hangs a long time.
 \end{itemize}
 
 \end{document}
