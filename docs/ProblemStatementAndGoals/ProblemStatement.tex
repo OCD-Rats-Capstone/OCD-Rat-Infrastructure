@@ -23,6 +23,7 @@
 \textbf{Date} & \textbf{Developer(s)} & \textbf{Change}\\
 \midrule
 22 September 2025& All & Revision 0\\
+6 April 2026& All & Revision 1\\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -38,15 +39,29 @@
 
 \subsection{Problem}
 
-\par{Current behavioral neuroscience research on Obsessive-Compulsive Disorder (OCD) is limited by the lack of 
-accessible tools for managing and analyzing large-scale animal model data sets. With roughly 20,000 trials worth 
-of rat behavioural data constituting one of the most extensive data sets in the field, the data set contains 
-video recordings of rat behaviour with corresponding spatial-temporal tracking data, and additional research files. 
-Although the data set is publicly accessible and contains rich and diverse forms of data, it is not presented in a 
-user-friendly way for researchers to analyze. The current state of the data set impacts researchers by making it 
-difficult to synchronize trajectories with video recordings and extract meaningful insights from correlated data types. 
-This gap in infrastructure reduces the scientific utility of an extensive data set, ultimately slowing the pace of 
-discovery through research.}
+\par{Current behavioral neuroscience research on Obsessive-Compulsive Disorder (OCD) is limited by the lack of
+accessible tools for managing and analyzing large-scale animal model datasets. The Szechtman Lab at McMaster
+University maintains one of the most extensive datasets in the field, comprising approximately 20,000
+experimental sessions of rat behavioural data. This dataset includes video recordings of rat behaviour,
+corresponding spatial-temporal tracking data, and supplementary research files, all publicly archived on
+the Federated Research Data Repository (FRDR). Despite its public availability, the dataset is not presented
+in a way that allows researchers to efficiently navigate, query, or visualize its contents. Researchers face
+significant usability barriers: there is no mechanism to search sessions by experimental attributes (e.g., drug
+regimen, rat strain, or apparatus configuration), no way to synchronize trajectory data with video recordings,
+and no tools to generate visual summaries across thousands of trials. These barriers reduce the scientific
+utility of a uniquely valuable dataset, ultimately slowing the pace of OCD research.}
+
+\par{To address these challenges, InfraRAT is a web-based research data platform that transforms this
+archived dataset into an accessible, queryable, and visual research tool. The term ``infrastructure'' in this
+context refers to the integrated system of a normalized relational database, a backend service layer, and a
+browser-based user interface (UI) that collectively enable structured access to the data. The database catalogues
+all experimental session metadata and their relationships to subjects, drug treatments, testing equipment, and
+raw data files. The platform provides two complementary query interfaces: a structured metadata filter system
+for deterministic search, and a natural language query system powered by a Large Language Model (LLM) that
+translates plain-English research questions into database queries. Additionally, a configurable visualization
+suite allows researchers to explore behavioural patterns, trajectories, and dose-response relationships
+interactively. The raw data files remain externally hosted on the FRDR, while InfraRAT indexes and serves the
+metadata and derived analytics needed for efficient research access.}
 
 \subsection{Inputs and Outputs}
 
@@ -57,9 +72,9 @@ discovery through research.}
 by users without technical experience. This will include: \newline \newline \indent 1. Submitting queries by applying filter criteria related to the experimental sessions or the data itself.
 These could be but are not limited to: type of file, selected study/experiment, drug injection used in the trial,
 rat bodyweight, date and time of trial, etc... \newline \newline \indent
-2. Submitting queries using natural language. “show me trials with strong checking behavior after 5 injections”
-or “find sessions where rats showed compulsive patterns” are examples of this \newline \newline \indent
-3. Making requests for data visualizations such as behavioral metrics (seperated by injection type for example) or visually plotting trajectories of the rats
+2. Submitting queries using natural language. ``Show me trials with strong checking behavior after 5 injections''
+or ``find sessions where rats showed compulsive patterns'' are examples of this \newline \newline \indent
+3. Making requests for data visualizations such as behavioral metrics (separated by injection type for example) or visually plotting trajectories of the rats
 based on their (x,y) coordinates.}
 \newline
 
@@ -75,7 +90,7 @@ based on their (x,y) coordinates.}
   \begin{itemize}
     \item {Behavioural Neuroscience Researchers: Researchers like Dr. Szechtman and Dr. Dvorkin-Gheva will be 
     end users of the platform and will be the core benefitors from the user-friendly search, visualization, and analysis of data.}
-    \item {Data Scientists: This group of users will benefit from the structured database, API query system, 
+    \item {Data Scientists: This group of users will benefit from the structured database, programmatic query interface, 
     and processing tools included in the data processing pipeline.}
     \item {Graduate Students and Lab Members: These will be very frequent users of the application, who will benefit from the simplified 
     preprocessing, visualization, and analysis tools.}
@@ -87,7 +102,7 @@ based on their (x,y) coordinates.}
     \item {Patients with OCD: This stakeholder group may indirectly benefit with an improved quality of life
      from research findings, such as new treatments, accelerated by this platform.}
     \item {Global Research Community: These collaborating institutions, potentially involved in different areas of research, 
-    may indirectly benefit from the streamlined data and its reusability, even if the platform isnt't built directly for them.}
+    may indirectly benefit from the streamlined data and its reusability, even if the platform isn't built directly for them.}
   \end{itemize}
 \end{enumerate}
 
@@ -100,60 +115,112 @@ based on their (x,y) coordinates.}
 }
 
 \par{
-  A publicly accessible web-based platform is required to make the behavioural dataset accessible to the global research community. As such, we must anticpate users accessing the system from a range of web-capable devices, including desktops, laptops, and mobile devices. Users may also be accessing the system from a broad range of network conditions, from high-latencty connections to low bandwidth environments. As such, the system must be designed to be efficient and responsive under varying network conditions. 
+  A publicly accessible web-based platform is required to make the behavioural dataset accessible to the global research community. As such, we must anticipate users accessing the system from a range of web-capable devices, including desktops, laptops, and mobile devices. Users may also be accessing the system from a broad range of network conditions, from high-latency connections to low bandwidth environments. As such, the system must be designed to be efficient and responsive under varying network conditions. 
 }
 
 \par{
-  The system will also expose natural language querying capabilities to enable researchers with limited technical expertise to access the dataset. This necessitates the need for natural language processing tools or large language models to be integrated into the backend infrastructure. As such, the system design must be open to the integration of third-party APIs and services to support these capabilities.
+  The system will also expose natural language querying capabilities to enable researchers with limited technical expertise to access the dataset. This necessitates the need for natural language processing tools or large language models to be integrated into the backend infrastructure. As such, the system design must be open to the integration of third-party services to support these capabilities.
 }
 
 
 \section{Goals}
 
-  \subsection{Goal 1: Sound and Complete DBMS} 
+  \subsection{Goal 1: Comprehensive Data Cataloguing}
   
-  \par{ A complete database schema must be developed for the purposes
-  of this project. This means that all pieces of data in the FRDR repository have
-  been accounted for and are uniquely identified within tables in the DBMS. This also means that
-  all metadata related to each piece of data are accessible for querying. Finally,
-  the relations between data must be properly represented. Video, track files and trajectory diagrams
-  related to the same session must have relationships between them.
+  \par{Achieve complete, structured cataloguing of the Szechtman Lab's OCD behavioural dataset, comprising
+  approximately 20,000 experimental sessions across multiple studies, within a normalized relational database,
+  such that every session record is uniquely identified and linked to its associated subject, drug regimen,
+  apparatus, and raw data files. Researchers currently cannot programmatically locate or cross-reference trials
+  within the archived dataset; a complete catalogue eliminates this barrier and forms the foundation upon which
+  all other platform capabilities depend.}
   
-  Furthermore, a proper query framework must be set up and able to access the DBMS. 
-  The MVP form of this would just be writing SQL into a database request and
-  recieve the correct result. This MVP would essentially just need Rest APIs set up
-  to make a request to the database.}
+  \begin{itemize}
+    \item \textbf{Measurable Criterion:} 100\% of experimental session records from the source FRDR archive
+    are represented in the database with all relational links (subject, drug treatment, apparatus, data files)
+    intact and queryable.
+  \end{itemize}
 
-  \subsection{Goal 2: Sleek and Non-Technical UI}
+  \subsection{Goal 2: Natural Language Data Querying}
   
-  \par{The main user base for this project will be academics with a psychiatric or
-  animal related background and thus the user interface needs to allow for non-technical
-  people to easily make rather complex queries. Our goal is for our front end system to have an intuitive
-  interface for filtering and searching for data. This would include features such as adding easily adding filters related to metadata annotations, a certain study,
-  or the date of the trial. These filters would then be converted into an equivalent query, sent to the DBMS and return the relevant data. In a similar way,
-  this UI will include natural language searching in which a sentence for what the user wants will be similarily converted into an equivalent query and the data returned.}
+  \par{Enable researchers with no database expertise to retrieve experimental records by expressing queries in
+  plain English through the web interface, with the system automatically translating natural language into valid
+  database queries and returning results within a single interaction. This removes the most significant adoption
+  barrier, the requirement for technical database skills, and makes the dataset immediately useful to
+  behavioural neuroscientists and graduate students who would otherwise be unable to query the data
+  independently.}
+  
+  \begin{itemize}
+    \item \textbf{Measurable Criterion (Quantitative):} The natural language query pipeline produces a valid,
+    executable database query for at least 80\% of well-formed research questions posed during user testing.
+    \item \textbf{Measurable Criterion (Qualitative):} In usability evaluations, researchers consistently
+    describe the query workflow as intuitive and report that they can locate target sessions without needing to
+    understand the underlying database structure or query language.
+  \end{itemize}
 
- \subsection{Goal 3: Data Visualization/Processing Capabilities} 
- 
- \par{Due to the large amount of data in the repository, processing and visualization are important in
-  helping users more easily interpret and draw conclusions from the data. The first part of this goal is to successfully implement an algorithm that
-  can identify behaviours in the trials and group them accordingly. The MVP of this is simply an algorithm that can distinguish between compulsive and non-compulsive
-  behaviour.
+  \subsection{Goal 3: Interactive Data Visualization}
   
-  On the visualization side, graphical displays of important metrics should be an option for users to view through the user interface. The different
-  visualizations will likely need to be developed on an ad-hoc basis depending on the user needs but an example of an MVP for this goal would be to provide graphical
-  displays of compulsive behavioural metrics based on the type of injection the rat recieved.}
+  \par{Provide researchers with a configurable suite of interactive visualizations including bar charts,
+  line charts, heatmaps, spatial trajectory plots, and velocity profiles that allow them to visually explore
+  patterns across experimental variables without writing code. With approximately 20,000 sessions, manual
+  inspection of raw data is infeasible; visual tools compress high-dimensional data into interpretable
+  representations, accelerating hypothesis generation and data interpretation.}
+  
+  \begin{itemize}
+    \item \textbf{Measurable Criterion (Quantitative):} The platform supports at least 5 distinct visualization
+    types, each configurable across 3 or more independent axis or metric combinations.
+    \item \textbf{Measurable Criterion (Qualitative):} Researchers report that visualizations reveal trends
+    (e.g., dose-response relationships, strain-level behavioural differences) that were previously difficult to
+    identify from raw tabular data alone.
+  \end{itemize}
+
+  \subsection{Goal 4: Structured Metadata Search and Filtering}
+  
+  \par{Deliver a deterministic, metadata-driven search system that allows users to filter experimental sessions
+  by any combination of catalogued attributes including rat strain, drug compound, apparatus, brain
+  manipulation type, session type, and date range and view or export matching records for downstream
+  analysis. While natural language querying offers flexibility, a structured filter system provides a reliable,
+  reproducible alternative essential for precise and repeatable record retrieval in a research context.}
+  
+  \begin{itemize}
+    \item \textbf{Measurable Criterion:} The filter system supports filtering on at least 8
+    independent metadata dimensions simultaneously, with query response times under 3 seconds for typical
+    filter combinations.
+  \end{itemize}
+
+  \subsection{Goal 5: Global Web Accessibility and Deployability}
+  
+  \par{Ensure the platform is accessible worldwide as a publicly available web application, deployable through
+  a containerized setup, to minimize barriers to adoption across institutions and enable remote collaboration
+  without requiring local software installation or specialized infrastructure. The dataset's scientific value is
+  maximized only when researchers at any institution can explore it without proprietary software dependencies or
+  institution-specific tooling.}
+  
+  \begin{itemize}
+    \item \textbf{Measurable Criterion (Quantitative):} The full application stack (database, backend server,
+    and frontend interface) can be deployed from a clean environment using a single command in under 5 minutes.
+    \item \textbf{Measurable Criterion (Qualitative):} Collaborating researchers at external institutions
+    confirm they can independently access and use the platform from their own machines and network environments.
+  \end{itemize}
 
 
 \section{Stretch Goals}
 
   \subsection{Goal 1: Dataset-Agnostic Reusability}
   
-  \par{To give our project life outside of datasets for rats with OCD, the program should be made as an open platform extensible for any dataset. This would allow different users in other studies and different fields to sort and visualize their data to make it more accessible to others. By doing this, the program would be future-proof allowing it to be used far beyond the scope of the project and for different uses.}
+  \par{To extend the platform's value beyond OCD rat behavioural data, the system should be designed as an
+  open, extensible platform capable of ingesting and serving other structured experimental datasets. The
+  session-centric database schema and configurable visualization axes already provide a foundation for this
+  extensibility. Achieving this stretch goal would future-proof the platform, allowing researchers in other
+  fields to catalogue, query, and visualize their own data using the same infrastructure.}
 
- \subsection{Goal 2: Insights} 
- 
- \par{Beyond basic data visualization, the program should have an extended toolkit of visualizations that provide insights on the data, more than the basic ones provide. This would be supported by data preprocessing techniques in the backend along with data pipelines and machine learning integration that would allow the program to provide more sophisticated insights that could go unnoticed by the human eye.}
+  \subsection{Goal 2: Advanced Insights through Machine Learning}
+  
+  \par{Beyond standard data visualizations, the platform should incorporate machine learning models to
+  automatically classify behavioural patterns, for example, distinguishing compulsive from non-compulsive
+  behaviour in trial recordings. The existing LLM integration for natural language querying provides a
+  foundation for further intelligent analysis. This capability would allow the platform to surface insights
+  from the dataset that might go unnoticed through manual inspection alone, providing researchers with a deeper
+  analytical toolkit backed by data preprocessing pipelines and trained models.}
 
 \section{Extras}
 
