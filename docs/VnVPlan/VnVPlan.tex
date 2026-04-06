@@ -33,7 +33,7 @@
 \midrule
 Oct 27 2025 & 1.0 & Initial Document\\
 \midrule
-April 1 2026 & 1.1 & Prepared Document for Rev 1\\
+April 6 2026 & 1.1 & Prepared Document for Rev 1\\
 \bottomrule
 \end{tabularx}
 
@@ -142,24 +142,36 @@ Our rigorous VnV approach pulls together a variety of methods: automated testing
 
 \subsection{Objectives}
 
+This section defines what this VnV plan is intended to prove and what it does not attempt to validate. The goal is to ensure the delivered system is dependable for its intended research workflows while keeping evaluation boundaries explicit.
 
-   The main objective of this plan is to build confidence in the accuracy, reliability and stability of the software we 
-   are developing. The system works as a connection between researchers and the data set of rat trials. Our focus is on providing 
-   a program that retrieves correct data and works smoothy with no errors. An objective is that the layout and information presented
-   is usable and doesn't provide any friction in it use. However, we are not able to do user testing on a wide population and are 
-   beyond the scope of the project. We assume that the underlying database and external libraries are already validated.
+\subsubsection{Primary Objectives}
+\begin{itemize}
+  \item Validate correctness of core workflows: dataset access, filtering, query execution, and result visualization and display must behave according to the SRS and design specifications.
+  \item Build confidence in reliability and stability: the application should execute repeated normal-use operations without crashes, blocking faults, or inconsistent results.
+  \item Verify usability of the primary interface: users should be able to complete expected tasks with clear navigation and understandable feedback.
+  \item Confirm end-to-end consistency across artifacts: requirements, design decisions, and implementation behavior should remain aligned throughout verification and review.
+\end{itemize}
 
-The plan wants to ensure that the core functions of the interface like data access, filtering and display are
- accurate and reliable,  long-term performance testing is beyond the scope of 
- this phase.
+\subsubsection{Out-of-Scope Objectives}
+\begin{itemize}
+  \item Large-scale usability studies across broad user populations are out of scope for this project phase.
+  \item Long-duration stress and performance characterization under production-scale workloads is deferred beyond this phase.
+  \item Re-validation of third-party libraries and the underlying source database is excluded; these components are treated as trusted dependencies.
+\end{itemize}
 
 \subsection{Challenge Level and Extras}
 
-The project would be advanced because it uses many complex software engineering ideas and principles. Creating a visually appealing UI, integrating an NLP model, implementing the database inventory display while
-also ensuring that the performance is excellent. These features will require a very in depth approach during the design and verification stages of the system.\\
+\subsubsection{Challenge Level Rationale}
+This project is classified as advanced because it combines multiple technical concerns that must be verified together: a user-facing web interface, NLP-based query support, and database-backed data exploration. Each subsystem introduces different failure modes (e.g., query interpretation errors, integration mismatches, and front-end presentation issues), so verification requires both component-level checks and system-level validation.
 
-The project includes two extras, a performance report and a user manual. The performance report identifies ares of the code where the software can be optimized to make it faster and more effecient, and the user manual
-offers the user guidance through the program.
+\subsubsection{Extra Objectives}
+In addition to core deliverables, the team includes two extra outputs to improve long-term software quality and adoption:
+\begin{itemize}
+  \item Performance Report: identifies bottlenecks in key code paths and recommends practical optimizations to improve responsiveness and scalability.
+  \item User Manual: provides step-by-step guidance for common tasks, reducing onboarding friction for non-technical users and supporting independent use of the platform.
+\end{itemize}
+
+These extras are not cosmetic additions; they are used to strengthen maintainability, usability, and deployment readiness.
 
 
 \subsection{Relevant Documentation}
@@ -497,7 +509,7 @@ NLP modules.
     \item \textbf{Control:} Manual + Automatic hybrid (human semantic check)
     \item \textbf{Initial State:} NLP model and API are running. Database populated with varied behavioral patterns.
     \item \textbf{Input:} User enters: ``Show me trials with strong checking behavior after 5 injections.''
-    \item \textbf{Output:} One dataset is returned that matches this semantic filter.
+    \item \textbf{Output:} One dataset is returned that matches the user's semantic filter.
     \item \textbf{Test Case Derivation:} Based on the SRS fit criterion, one dataset should always be returned for a valid query, containing the subset matching the interpreted condition.
     \item \textbf{How test will be performed:} Send query via UI or API. Validate that the system outputs one dataset (non-empty). A human tester verifies semantic correctness (dataset contextually fits query meaning).
 \end{itemize}
@@ -507,11 +519,11 @@ NLP modules.
     \item \textbf{Related Requirement:} FUNC.R.3
     \item \textbf{Test ID:} FR3-Predefined-Inventory
     \item \textbf{Control:} Manual (UI check)
-    \item \textbf{Initial State:} System deployed with an inventory of all available rat trial sessions (e.g., `61474', `61475', and so on...).
-    \item \textbf{Input:} User opens the `ToolBox' interface. User then presses "Load Session" after selecting a session number.
-    \item \textbf{Output:} All rat trial sessions appear for selection.
-    \item \textbf{Test Case Derivation:} Requirement specifies all rat trial sessions must be available to to browse.
-    \item \textbf{How test will be performed:} Manually navigate to the `ToolBox' page and confirm all available rat trial sessions are listed and accessible.
+    \item \textbf{Initial State:} System deployed with an inventory split into named categories across 9 dimensions (e.g., drugs, apparatuses, apparatus patterns, e.t.c. ...).
+    \item \textbf{Input:} User opens the `Inventory' interface. User selects category from the left-sided dropdown for category filtering selection. User presses `Apply'.
+    \item \textbf{Output:} Displays a selected predefined category with corresponding data entries for user browsing.
+    \item \textbf{Test Case Derivation:} Requirement specifies a minimum of 3 sets available for browsing.
+    \item \textbf{How test will be performed:} Manually navigate to the `Inventory' interface and confirm at least 3 datasets are displayed and accessible.
 \end{itemize}
 
 \subsubsection{Behavioral Analysis and Visualization}
@@ -534,12 +546,12 @@ These tests ensure that behavioral categorizations and visual representations ar
 \begin{itemize}
     \item \textbf{Related Requirement:} FUNC.R.5
     \item \textbf{Test ID:} FR5-Visualization
-    \item \textbf{Control:} Manual (UI rendering check)
+    \item \textbf{Control:} Automatic (UI rendering check)
     \item \textbf{Initial State:} User has filtered dataset (non-empty result).
-    \item \textbf{Input:} User types and submits a natural language query to the NLP model in "Select" mode.
-    \item \textbf{Output:} Visualization component renders the converted SQL query from the user's natural language query, and displays tabulated SQL query results.
-    \item \textbf{Test Case Derivation:} The fit criterion specifies at least one visual per result set; therefore, successful rendering of both the query results and SQL query fulfills this requirement at minimum.
-    \item \textbf{How test will be performed:} Manually submit a natural language query (that is valid and applicable to the database) and confirm that the system generates a visual representation of the results and displays the corresponding SQL query.
+    \item \textbf{Input:} A visualization request is made to the backend using the filtered dataset.
+    \item \textbf{Output:} Visualization component renders trajectory or metric chart corresponding to the dataset.
+    \item \textbf{Test Case Derivation:} The fit criterion specifies at least one visual per result set; therefore, successful rendering of the visualization fulfills the requirement.
+    \item \textbf{How test will be performed:} Use UI test automation (e.g., Selenium) to trigger visualization and check that the chart container loads successfully (non-empty DOM element).
 \end{itemize}
 
 \subsubsection{Data Downloading and Accessibility}
@@ -654,7 +666,7 @@ These tests measure user learning time, ease of use, and understandability.
     \item \textbf{Type:} Static, Manual (Content Review)
     \item \textbf{Initial State:} Interface text finalized.
     \item \textbf{Input/Condition:} Non-technical users read through all on-screen text.
-    \item \textbf{Output/Result:} At least 90\% of all interface text rated “understandable” by users.
+    \item \textbf{Output/Result:} At least 90\% of all interface text rated “understandable” by non-technical users.
     \item \textbf{How test will be performed:} Conduct terminology walkthrough; classify all words/phrases as technical or intuitive. Replace technical terms as necessary.
 \end{itemize}
 
@@ -714,8 +726,8 @@ These tests verify latency, throughput, fault-tolerance, and data integrity.
     \item \textbf{Test ID:} NFR11-Maintainability
     \item \textbf{Type:} Static (Code Walkthrough)
     \item \textbf{Initial State:} Source code and documentation complete.
-    \item \textbf{Input/Condition:} Independent developer reviews repository structure and documentation.
-    \item \textbf{Output/Result:} Reviewer able to build and extend system within 1 hour using provided documentation.
+    \item \textbf{Input/Condition:} Developer of our skill level, yet independent of our team reviews repository structure and documentation.
+    \item \textbf{Output/Result:} The reviewing developer able to build and extend system within 1 hour using provided documentation.
     \item \textbf{How test will be performed:} Conduct peer code walkthrough; independent participant attempts new dataset integration per SRS instructions.
 \end{itemize}
 
