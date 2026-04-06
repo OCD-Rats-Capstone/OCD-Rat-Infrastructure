@@ -1053,19 +1053,20 @@ The core business logic and database interactions are highly robust and thorough
 \centering
 \caption{Modules with Excellent Test Coverage}
 \label{tab:coverage_excellent}
-\begin{tabular}{@{}llcp{6cm}@{}}
-\toprule
-\textbf{Module} & \textbf{Coverage} & \textbf{Statements} & \textbf{Notes} \\ \midrule
-\texttt{app.py} & 100\% & 16 & Main FastAPI application entry point \\
-\texttt{core/config.py} & 100\% & 18 & Pydantic settings with environment variables \\
-\texttt{core/database.py} & 100\% & 11 & Database connection factory \\
-\texttt{schemas/*} & 100\% & 74 & Query and visualization validation models \\
-\texttt{services/download\_service.py} & 100\% & 61 & File download logic \\
-\texttt{services/nlp\_service.py} & 100\% & 24 & NLP service wrapper \\
-\texttt{llm/prompt\_builder.py} & 100\% & 6 & System prompt generation \\
-\texttt{llm/llm\_service.py} & 99\% & 76 & 1 missed line (Line 23) \\
-\texttt{services/filter\_service.py} & 98\% & 41 & 1 missed line (Line 77 - edge case) \\ \bottomrule
-\end{tabular}
+\footnotesize
+\begin{tabularx}{\textwidth}{|l|c|c|X|}
+\hline
+\textbf{Module} & \textbf{Coverage} & \textbf{Statements} & \textbf{Notes} \\ \hline
+\texttt{app.py} & 100\% & 16 & Main FastAPI application entry point \\ \hline
+\texttt{core/config.py} & 100\% & 18 & Pydantic settings with environment variables \\ \hline
+\texttt{core/database.py} & 100\% & 11 & Database connection factory \\ \hline
+\texttt{schemas/*} & 100\% & 74 & Query and visualization validation models \\ \hline
+\texttt{services/download\_service.py} & 100\% & 61 & File download logic \\ \hline
+\texttt{services/nlp\_service.py} & 100\% & 24 & NLP service wrapper \\ \hline
+\texttt{llm/prompt\_builder.py} & 100\% & 6 & System prompt generation \\ \hline
+\texttt{llm/llm\_service.py} & 99\% & 76 & 1 missed line (Line 23) \\ \hline
+\texttt{services/filter\_service.py} & 98\% & 41 & 1 missed line (Line 77 - edge case) \\ \hline
+\end{tabularx}
 \end{table}
 
 \paragraph{Moderate to Poor Coverage ($<$ 94\%)}
