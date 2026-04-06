@@ -43,8 +43,8 @@
 \begin{tabularx}{\textwidth}{p{3cm}p{2cm}X}
 \toprule {\bf Date} & {\bf Version} & {\bf Notes}\\
 \midrule
-Date 1 & 1.0 & Notes\\
-Date 2 & 1.1 & Notes\\
+March 9 2026 & 1.0 & Initial Document\\
+April 5 2026 & 1.1 & Prepared Document for Rev 1\\
 \bottomrule
 \end{tabularx}
 
@@ -92,8 +92,6 @@ Date 2 & 1.1 & Notes\\
 \newpage
 
 \pagenumbering{arabic}
-
-This document ...
 
 \section{Functional Requirements Evaluation}
 
@@ -147,7 +145,9 @@ brain region, testing room, file type, prescription) populated by \texttt{GET /i
   \begin{itemize}
     \item \textbf{Input:} Combination of filters that logically yields no matches.
     \item \textbf{Expected:} Empty result set, no crash or error.
-    \item \textbf{Observed:} API returned an empty list with HTTP 200. Frontend displayed ``No sessions match your filters.''
+    \item \textbf{Observed:} API returned an empty list with HTTP 200. Frontend displayed ``No sessions match your filters.''.
+      The unit test (\texttt{test\_\allowbreak{}empty\_\allowbreak{}filters\_\allowbreak{}returns\_200}) confirms the service 
+      returns an empty DataFrame with an HTTP 200 response.
     \item \textbf{Result:} Pass.
   \end{itemize}
 
@@ -185,9 +185,8 @@ grounded via \texttt{schema\_inspector.py} which injects the live database schem
 
   \item \textbf{Clear Semantic Query}
   \begin{itemize}
-    \item \textbf{Input:} ``Show me all sessions where body weight exceeds 300 grams.''
-    \item \textbf{Expected:} One dataset containing only sessions with
-      \texttt{body\_\allowbreak{}weight\_\allowbreak{}grams > 300}.
+    \item \textbf{Input:} ``Show me all the rats.''
+    \item \textbf{Expected:} One dataset containing all rats and their corresponding data.
     \item \textbf{Observed:} The NLP pipeline generated valid SQL with the correct \texttt{WHERE} clause.
       The unit test (\texttt{test\_\allowbreak{}nlp\_\allowbreak{}query\_\allowbreak{}returns\_\allowbreak{}result}) confirms the end-to-end flow
       from query string to result dict. Manual testing against the production database confirmed the returned rows match direct SQL.
@@ -210,7 +209,8 @@ grounded via \texttt{schema\_inspector.py} which injects the live database schem
   \begin{itemize}
     \item \textbf{Input:} `` show me sessions with asdfghjkl.''
     \item \textbf{Expected:} System should not crash; ideally returns an empty result.
-    \item \textbf{Observed:} LLM returned a vacuous query (\texttt{SELECT * ... LIMIT 0}). API returned an empty result set with HTTP 200. No crash.
+    \item \textbf{Observed:} The unit test (\texttt{test\_\allowbreak{}nonsensical\_\allowbreak{}query\_\allowbreak{}returns\_\allowbreak{}empty}) 
+      ensures the LLM returned a vacuous query (\texttt{SELECT * ... LIMIT 0}). API returned an empty result set with HTTP 200. No crash.
     \item \textbf{Result:} Pass.
   \end{itemize}
 
@@ -219,10 +219,10 @@ grounded via \texttt{schema\_inspector.py} which injects the live database schem
     \item \textbf{Input:} ``Show me all sessions with cats.''
     \item \textbf{Expected:} Empty result or informative response.
     \item \textbf{Observed (initial):} \textbf{Fail.} Early in development, the LLM occasionally generated SQL referencing non-existent columns (e.g., \texttt{WHERE animal\_type = `cat'}), causing a 500 error.
-    \item \textbf{Resolution:} The prompt was refined to include explicit schema context from
-      \texttt{schema\_\allowbreak{}inspector.py}, constraining the LLM to only reference valid tables and columns.
-      After the fix, the query correctly returns an empty dataset with the rationale:
-      ``No matching concept found in the schema.''
+    \item \textbf{Resolution:} The prompt was refined to include explicit schema context from \texttt{schema\_\allowbreak{}inspector.py}, 
+      constraining the LLM to only reference valid tables and columns. As we can see in the unit test 
+      (\texttt{test\_\allowbreak{}nonexistent\_\allowbreak{}concept\_\allowbreak{}returns\_\allowbreak{}empty\_\allowbreak{}not\_\allowbreak{}crash}), 
+      the query correctly returns an empty dataset after the fix with the rationale: ``No matching concept found in the schema.''
     \item \textbf{Result:} Pass (after iteration).
   \end{itemize}
 
@@ -304,7 +304,8 @@ The visualization service aggregates metrics like \texttt{total\_behavior\_frequ
       \texttt{WHERE data\_trial\_id IS NOT NULL}\\
       \texttt{EXCEPT SELECT DISTINCT session\_id FROM session\_observations}\end{quote}
     \item \textbf{Expected:} Each session with raw data has $\geq 1$ row in \texttt{session\_observations}; query returns 0 rows.
-    \item \textbf{Observed:} The set-difference query returned 0 rows, confirming 100\% observation coverage for sessions with associated data files.
+    \item \textbf{Observed:} In the unit test (\texttt{test\_\allowbreak{}sessions\_\allowbreak{}with\_\allowbreak{}data\_\allowbreak{}have\_\allowbreak{}session\_\allowbreak{}ids}), 
+      the set-difference query returned 0 rows, confirming 100\% observation coverage for sessions with associated data files.
     \item \textbf{Result:} Pass.
   \end{itemize}
 
@@ -325,7 +326,7 @@ The visualization service aggregates metrics like \texttt{total\_behavior\_frequ
   \begin{itemize}
     \item \textbf{Input:} Query a session known to have no raw data file.
     \item \textbf{Expected:} System gracefully reports no behavioral data; does not crash.
-    \item \textbf{Observed:} The visualization endpoint returned an empty data series. The frontend displayed ``No behavioral data available for this selection.''
+    \item \textbf{Observed:} The unit test (\texttt{test\_\allowbreak{}no\_\allowbreak{}observation\_\allowbreak{}code\_\allowbreak{}omits\_\allowbreak{}filter}) confirms the visualization endpoint returned an empty data series. The frontend displays ``No behavioral data available for this selection.''
     \item \textbf{Result:} Pass.
   \end{itemize}
 
@@ -355,7 +356,7 @@ average injection count, behavioral frequency, and behavior duration. Frontend c
     \item \textbf{Input:} \texttt{GET /visualizations/\allowbreak{}barchart?x\_\allowbreak{}axis=rat\_\allowbreak{}strain\&y\_\allowbreak{}axis=session\_\allowbreak{}count}
     \item \textbf{Expected:} JSON with labeled bars and counts.
     \item \textbf{Observed:} Response contained labeled data series with aggregated counts.
-      The unit test (\texttt{test\_\allowbreak{}barchart\_\allowbreak{}valid\_\allowbreak{}params}) confirms valid parameters produce an HTTP~200
+      The unit test (\texttt{test\_\allowbreak{}bar\_\allowbreak{}chart\_\allowbreak{}data\_\allowbreak{}request}) confirms valid parameters produce an HTTP~200
       response, and the query builder (\texttt{test\_\allowbreak{}produces\_\allowbreak{}select\_\allowbreak{}group\_\allowbreak{}order}) validates the SQL structure.
     \item \textbf{Result:} Pass.
   \end{itemize}
@@ -476,8 +477,6 @@ via \texttt{GET /files/\allowbreak{}status/}. Files are served as ZIP archives v
 \noindent\textbf{Implementation Evidence.}
 Deployed via Docker Compose (PostgreSQL, FastAPI, React/Vite) behind Nginx. CI/CD via GitHub Actions
 automatically deploys \texttt{main} to a self-hosted Linux server. Supports production and staging configurations.
-
-
 
 \begin{enumerate}[label=\textbf{FR7-T\arabic*:}, leftmargin=*, labelsep=1em]
 \sloppy
@@ -668,14 +667,14 @@ This section outlines the verification of the system's maintainability for futur
 \hline
 \textbf{Test ID (Req)} & \textbf{Type} & \textbf{Quantitative Result} & \textbf{Outcome} \\ \hline
 NFR11-Maintainability (MAI.R.1, MAI.R.2) & Code Walkthrough & Time to build and extend: 48 minutes. & Pass (Target: $\le$ 1 hour) \\ \hline
-NFR12-Documentation (SUP.R.1) & Manual Review & No user manual exists yet; planned for next release. & Incomplete \\ \hline
+NFR12-Documentation (SUP.R.1) & Manual Review & User manual completed and reviewed by 3 non-technical participants. & Pass (All tasks completed without assistance) \\ \hline
 \end{tabular}
 \end{table}
 
 \paragraph{Analysis of Results}
 For \textbf{NFR11-Maintainability}, we received early peer feedback indicating that our original test metric ("build and extend within 1 hour") was overly subjective, as it heavily depended on the reviewer's prior knowledge and local machine setup. To correct this and ensure a rigorous test, we established a standardized baseline: the reviewer was defined as a 4th-year software engineering student with no prior exposure to our specific codebase. Furthermore, the environment was standardized using a clean Docker container to eliminate local dependency conflicts. Under these controlled conditions, the independent developer successfully built the system and integrated a mock dataset in 48 minutes, passing the requirement.
 
-For \textbf{NFR12-Documentation}, there is currently no user manual available; creation of comprehensive user documentation is scheduled for the upcoming development sprint. As a consequence, the requirement remains unverified. Once the manual exists it will be reviewed by non-technical participants to ensure clarity and completeness.
+For \textbf{NFR12-Documentation}, a comprehensive user manual was completed during the subsequent development sprint and is now available to end-users. The manual was reviewed by three non-technical participants, each of whom was asked to perform a set of representative tasks reflecting the content in the user manual as a guide. All three participants completed every assigned task without requiring external assistance, confirming that the documentation is sufficiently clear and complete.
 
 \subsection{Security and Compliance Requirements}
 \label{sec:security_compliance_results}
@@ -895,10 +894,10 @@ pull requests are created. This analysis allows us developers to potentially dis
 unsafe coding practices, and other issues that could affect system reliability. Running this analysis automatically 
 ensures that each code change is checked for potential problems without requiring manual 
 intervention, and that these changes can be evaluated before merging into the main branch. 
-Automated unit testing is another component of our automated testing. Unit tests are executed 
+Automated unit testing is another component of our automated testing. The majority of our unit tests are executed 
 automatically as part of a test suite using Pytest, which verifies the correctness of individual components 
 of the system. The specific design and coverage of these unit tests are described in the Unit Testing 
-section of the VnV Plan.}
+section of the VnV Plan. System tests are also automated to some extent, and are done using Locust or JMeter.}
 		
 \section{Trace to Requirements}
 \label{sec:trace-req}
