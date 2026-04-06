@@ -69,11 +69,17 @@ low.}
 
 \section{Extras}
 
-\plt{Summarize the extras that were tackled by this project.  Extras
-can include usability testing, code walkthroughs, user documentation, formal
-proof, GenderMag personas, Design Thinking, etc.  Extras should have already
-been approved by the course instructor as included in your problem statement.}
+\begin{itemize}
 
+    \item{\textbf{User Manual: }The first extra we decided to do was a user manual. This was somewhat based on a request from our TA as the system is surprisingly
+    not very self explanatory it terms of what you are doing and why. A user that is using our platform without previous knowledge of the experimental data and the problems
+    it has historically faced may not really understand how or why they are using our system. The user manual provides an outline of all of the relevant features that a user
+    can interact with in our system, giving them a comprehensive view of what they can do with our system.}
+    \item{\textbf{Code Walkthrough:} A specific request from our project supervisor, we did not initially plan to do this as an extra. However, Dr. Szechtman would like to continue building
+    on our system and improving it over time. As a result, he requested that we provide a reference document for how each module is structured, a brief look at how the code works and potential next steps for
+    improving the product. It also goes over maintenance instructions to some extent for future developers to be able to use what we've built without any headaches. It does not take the form of a 
+    typical code walkthrough as it is more comprehensive at a high-level and likely slightly less detailed than what is usually provided in a code walkthrough.}
+\end{itemize}
 \section{Design Iteration (LO11 (PrototypeIterate))}
 
 \plt{Explain how you arrived at your final design and implementation.  How did
@@ -105,22 +111,46 @@ users currently exist?}
 
 \subsection{How Does Your Project Management Compare to Your Development Plan}
 
-\plt{Did you follow your Development plan, with respect to the team meeting plan, 
-team communication plan, team member roles and workflow plan.  Did you use the 
-technology you planned on using?}
+\par{We did use the technology we planned on using, basically to a Tee. Python was used for the backend which we somewhat anticipated,
+naming python as a technology we would use for 'data analysis and visualizations' but we ended up using it for the entire backend. We anticipated using something like
+React which is exactly what we used. Additionally our Database (Postgres), CI/CD (GitHub Actions),
+and LLM (ChatGPT) technologies that we anticipated were all what we ended up using more or less.
+In terms of our development plan, we did not follow the team member roles at all and we all just acted as general members. We tried to keep up the 
+GitHub issues tracker but as the workload of the semester built up, this became more difficult and we took a more ad-hoc approach to feature assignment. Our team
+meeting plan was not followed for internal meetings. For meetings with our supervisor, we followed that for the whole semester but the twice weekly internal
+team meetings stopped happening after first semester and again were replaced with more ad-hoc meetings. }
 
 \subsection{What Went Well?}
 
-\plt{What went well for your project management in terms of processes and 
-technology?}
+\par{Our DevOps process and technology worked very well. The dockerization of our project made it very easy to run the project on our local machine,
+view changes and mimic a production environment in the development phase. Additionally, it was useful for adjusting our project such as updating
+our database which only required us to replace the SQL files in the db directory when the project was being built. This also made it very easy to deploy the project
+to a remote server as once an actions runner was set up, we could simply run the project build workflow and all the new changes were automatically containerized
+and deployed to the server in a very simple and repeatable way.}
+\par{Another thing that went well was the use of a React frontend. Using this JavaScript framework gave us access to lots of useful components which made it easy to make
+our UI very user friends and asthetically pleasing without wasting a bunch of time on creating our own personal styling components. It also gave us a lot of options in terms of 
+building cool visuals as there are many component libraries that provide a wide array of different dynamic front-end functionality.}
 
 \subsection{What Went Wrong?}
 
-\plt{What went wrong in terms of processes and technology?}
+\par{Our process for task delegation and code reviews did not go great. This was just a product of 
+our general lack of time as university students but we fell behind on assigning explicit tasks for each deliverable
+to each team member and everyone just worked on things as they came. This led to disorganized and inconsistent output from members
+and made it hard to synchronize our workflows. Additionally, our code standards enforcement was not upheld very well as each PR was supposed to have several
+people review it before it was approved. This was more accurately reflected as one person just skims over the PR, not really critiquing it other than glaring issues. In
+extreme time crunches, team members would even approve their own PRs on occasion. Finally, our meeting schedule with our supervisor was great but without the external expectations,
+our internal meetings were not very frequent like we had initially hoped for and were often not overly productive either.}
 
 \subsection{What Would you Do Differently Next Time?}
 
-\plt{What will you do differently for your next project?}
+\par{Ask more questions early. If we were to restart this project from scratch knowing everything we've learned from our project supervisor
+related to what exactly he wants the system to look at as well as the specific nuances of the data, I think we would be able to build something
+much more robust and useful. This is easier said than done as we are students with deadlines and other courses so it was quite difficult to take
+the time to really carefully elicit what our primary stakeholder was looking for early on. Of course we also did not have intimate knowledge of our 
+dataset at that time either so things he thought were self-evident were quite foreign to us. If we were given another chance to do this project with
+a more abundant time budget, we would spend more time carefully figuring out what he wants and learning about the nature of the dataset and it's specific applications.
+In terms of processes, this might mean more systematic client interactions with more structured questions or orchestrating development sprints to very quickly
+elicit feedback out of our supervisor.}
 
 \section{Ethics and Equity (LO18)}
 
