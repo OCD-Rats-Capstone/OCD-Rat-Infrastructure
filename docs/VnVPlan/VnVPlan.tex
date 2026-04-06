@@ -32,6 +32,8 @@
 \toprule {\bf Date} & {\bf Version} & {\bf Notes}\\
 \midrule
 Oct 27 2025 & 1.0 & Initial Document\\
+\midrule
+April 6 2026 & 1.1 & Prepared Document for Rev 1\\
 \bottomrule
 \end{tabularx}
 
@@ -140,24 +142,36 @@ Our rigorous VnV approach pulls together a variety of methods: automated testing
 
 \subsection{Objectives}
 
+This section defines what this VnV plan is intended to prove and what it does not attempt to validate. The goal is to ensure the delivered system is dependable for its intended research workflows while keeping evaluation boundaries explicit.
 
-   The main objective of this plan is to build confidence in the accuracy, reliability and stability of the software we 
-   are developing. The system works as a connection between researchers and the data set of rat trials. Our focus is on providing 
-   a program that retrieves correct data and works smoothy with no errors. AN objective is that the layout and information presented
-   is usable and doesn't provide any friction in it use. However, we are not able to do user testing on a wide population and are 
-   beyond the scope of the project. WE assume that the underlying database and external libraries are already validated.
+\subsubsection{Primary Objectives}
+\begin{itemize}
+  \item Validate correctness of core workflows: dataset access, filtering, query execution, and result visualization and display must behave according to the SRS and design specifications.
+  \item Build confidence in reliability and stability: the application should execute repeated normal-use operations without crashes, blocking faults, or inconsistent results.
+  \item Verify usability of the primary interface: users should be able to complete expected tasks with clear navigation and understandable feedback.
+  \item Confirm end-to-end consistency across artifacts: requirements, design decisions, and implementation behavior should remain aligned throughout verification and review.
+\end{itemize}
 
-The plan wants to ensure that the core functions of the interface like data access, filtering and display are
- accurate and reliable,  long-term performance testing is beyond the scope of 
- this phase.
+\subsubsection{Out-of-Scope Objectives}
+\begin{itemize}
+  \item Large-scale usability studies across broad user populations are out of scope for this project phase.
+  \item Long-duration stress and performance characterization under production-scale workloads is deferred beyond this phase.
+  \item Re-validation of third-party libraries and the underlying source database is excluded; these components are treated as trusted dependencies.
+\end{itemize}
 
 \subsection{Challenge Level and Extras}
 
-The project would be advanced because it uses many complex software engineering ideas and principles. Creating a visually appealing UI, integrating NLP, implementing the store front display while
-also ensuring that the performance is good. These features require to make both the desing and verification of the system very in depth to fit the project.\\
+\subsubsection{Challenge Level Rationale}
+This project is classified as advanced because it combines multiple technical concerns that must be verified together: a user-facing web interface, NLP-based query support, and database-backed data exploration. Each subsystem introduces different failure modes (e.g., query interpretation errors, integration mismatches, and front-end presentation issues), so verification requires both component-level checks and system-level validation.
 
-The project includes two extras, a performance report and a user manual. The performance report identifies ares of the code where the software can be optimized to make it faster and more effecient, and the user manual
-offers the user guidance through the program.
+\subsubsection{Extra Objectives}
+In addition to core deliverables, the team includes two extra outputs to improve long-term software quality and adoption:
+\begin{itemize}
+  \item Code Walkthrough: structured peer review sessions are used to inspect module responsibilities, interfaces, and error-handling logic against the SRS and design artifacts. These walkthroughs are intended to identify maintainability risks, integration issues, and potential performance bottlenecks early, then document concrete follow-up actions.
+  \item User Manual: provides step-by-step guidance for common tasks, reducing onboarding friction for non-technical users and supporting independent use of the platform.
+\end{itemize}
+
+These extras are not cosmetic additions; they are used to strengthen maintainability, usability, and deployment readiness.
 
 
 \subsection{Relevant Documentation}
@@ -189,7 +203,7 @@ the automatic tools we use for testing and verification. Lastly, we will discuss
 \subsection{Verification and Validation Team}
 
 \begin{itemize}
-  \item{\textbf{Aidan Goodyer},\textbf{Jeremy Orr},\textbf{Nathan Perry},\textbf{Timothy Pokanai},\textbf{Leo Vugert}:}
+  \item{\textbf{Aidan Goodyer}, \textbf{Jeremy Orr}, \textbf{Nathan Perry}, \textbf{Timothy Pokanai}, \textbf{Leo Vugert}:}
    \par{The five members of the capstone team will split the testing evenly among themselves. All members will be equally expected to
   contribute to the synthesis of both unit and system tests as well as setting up automated tests down the line. Since the author of the System Testing plan was \textbf{Jeremy Orr}
   and the author of the Unit Testing plan will be \textbf{Nathan Perry}, they will be considered the head of system testing and unit testing respectively. Although
@@ -209,20 +223,20 @@ the automatic tools we use for testing and verification. Lastly, we will discuss
 
 \begin{itemize}
 
-  \item{\textbf{Peer Reviewers: } Our first approach for SRS verification is reviewing the peer review issues created by our classmates. This
+  \item{\textbf{Peer Reviewers:} Our first approach for SRS verification is reviewing the peer review issues created by our classmates. This
   is not the most rigorous or systematic but allows us to evaluate feedback on our SRS and based on these comments, determine if the SRS is consistent,
   correct, feasible and complete or if changes are needed.}
-  \item{\textbf{ Unstructured Supervisor SRS Review: } Our second approach for SRS verification is to provide our SRS document to our supervisor, Dr. Henry Szechtman and
+  \item{\textbf{ Unstructured Supervisor SRS Review:} Our second approach for SRS verification is to provide our SRS document to our supervisor, Dr. Henry Szechtman and
   allow him to make comments on it. This approach is also quite unstructured but is still useful in our verification process. By giving our supervisor
   the time to look over the SRS, it will elicit any large gaps between our understanding of his goals for the system and our interpretation of these goals
   during our meetings to elicit said requirements. In other words, this will show us any glaring issues in our requirements from the perspective of our
   supervisor.}
-  \item{\textbf{Structured Supervisor SRS Review: } Our third approach for SRS verification also involves our supervisor but in a much more structured manner.
+  \item{\textbf{Structured Supervisor SRS Review:} Our third approach for SRS verification also involves our supervisor but in a much more structured manner.
   Our approach to this review would be a meeting in which we present to him the key aspects of the SRS and ask him if he sees any issues with these key sections.
   The main sections (note these do not necessarily refer to specific sections in the SRS template itself) to be covered, in descending order of priority are: Functional Requirements and Use Cases, Project Constraints and Scope, Non-Functional Requirements, Project
   Drivers and Project Issues. During this review we would ask him things like: Is this section complete? Is there anything missing? Does the way we laid out
   these requirements seem correct to you? Do these requirements seem feasible to you? Is this in accordance with your conception of what the system will look like?}
-  \item{\textbf{Structured Team SRS Review: } Our final approach for SRS verification will be a review in a much similar format to the structured supervisor
+  \item{\textbf{Structured Team SRS Review:} Our final approach for SRS verification will be a review in a much similar format to the structured supervisor
   review but only with the five members of our team. We would go over the same key aspects of the SRS and ask mostly the same questions regarding these sections
   as we would in our supervisor review. Doing an internal review like this will be helpful as although the SRS was generated collectively, the actual writing
   of the requirements was done in a very individual and compartmentalized way and this gives each member an opportunity to closely examine the key parts of our
@@ -308,13 +322,13 @@ checklist to be used during design verification.}
 
 \begin{itemize}
 
-  \item{\textbf{Peer Reviewers: } Our first approach for our Verification and Validation Plan verification is reviewing the peer review issues created by our classmates. As
+  \item{\textbf{Peer Reviewers:} Our first approach for our Verification and Validation Plan verification is reviewing the peer review issues created by our classmates. As
   mentioned in the earlier section, this is not the most rigorous or systematic but allows our peers to provide insight from an outside perspective and gives us the
   chance to evaluate these criticisms and determine if changes need to be made.}
-  \item{\textbf{Structured Internal Team VnV Review: } Our second approach for Verification and Validation Plan Verification is to do a structured team review, identical
+  \item{\textbf{Structured Internal Team VnV Review:} Our second approach for Verification and Validation Plan Verification is to do a structured team review, identical
   to that mentioned in the SRS verification section. As a team, we will go over the checklist for the VnV plan and each member will be given the chance to critique
   the section, identify things that should be changed and personally evaluate sections they may have not written or had the chance to inspect closely.}
-  \item{\textbf{Mutation Testing: } The third approach is the only strictly novel approach being used for verifying the Verification and Validation Plan.
+  \item{\textbf{Mutation Testing:} The third approach is the only strictly novel approach being used for verifying the Verification and Validation Plan.
   Mutation tests will be used to validate the unit tests once they are developed and as many system testing modules as are applicable (mutation testing
   may not be appropriate for some mutation). Each test that is subject to our mutation testing should satisfy the requirements denoted in the checklist written in
   the next subsection.}
@@ -322,7 +336,7 @@ checklist to be used during design verification.}
 
 \subsubsection{Verification and Validation Plan Verification Checklist}
 
-\textbf{Mutation Testing Specific Checks:}
+\quad{\textbf{Mutation Testing Specific Checks:}}
 
 \begin{itemize}
   \item{Do all relevant test modules have at least one mutation test associated with them?}
@@ -347,94 +361,107 @@ checklist to be used during design verification.}
 
 \subsection{Implementation Verification}
 
+The implementation verification will be used to guide the system's adherance to the specifications 
+as defined in the SRS. Verification will be done using both static and dynamic methods. The team will 
+employ several static tools including linters and code quality analyzers to enforce a high standard 
+and detect vulnerabilities. 
 
-The implementation verification will be used to guide the system's adherance to the specifications as defined in the SRS. Verification will be done using both static and dynamic methods. The team will employ several static tools including linters and code quality analyzers to enforce a high standard and detect vulnerabilities. 
-
-
-
-
-
-One major source of verification will be our unit test suite, which will be defined for both frontend and backend components of the system and integrated into the CI process. Test cases will target functional requirements as defined in the 
-
-
+Our major sources of verification will be our unit test suite which will be defined for the backend 
+components of the system, and the static analysis tools integrated into the CI process for verifying 
+both the frontend and backend. Test cases will target functional requirements as defined in the SRS.
+\\
+\\
 \textbf{Unit Testing:}
 
-Unit Test cases will target functional requirements as defined in the System Tests (see \hyperref[sec:system_tests]{Section~\ref{sec:system_tests}}). These tests will be important drivers of system correctness, ensuring functionality works according to specification. Correctness of querying behaviour (\textbf{FR2}) is one example of a critical requirement to verify. 
-
-
-
-
+Unit Test cases will target functional requirements as defined in the System Tests 
+(see \hyperref[sec:system_tests]{Section~\ref{sec:system_tests}}). These tests will be 
+important drivers of system correctness, ensuring functionality works according to specification. 
+Correctness of querying behaviour (\textbf{FR2-NLP-Query}) is one example of a critical requirement to verify. 
+\\
+\\
 \textbf{Performance Testing:}
 
 Performance testing will be used to validate several important benchmarks impacting usability including:
 \begin{itemize}
-  \item Query Speed (\textbf{NFR8})
-  \item  Fault Tolerance (\textbf{NFR9}),
-  \item Scalability (\textbf{NFR10}). 
+  \item Query Speed and Latency (\textbf{NFR8-Performance})
+    \item Fault-Tolerance and Logging (\textbf{NFR9-Robustness}),
+  \item Capacity and Scalability (\textbf{NFR10-Capacity}). 
 \end{itemize}
 
-
-Performance testing will utilize end-to-end methods to validate metrics like query speed, where the response time can be measured using an automated UI test. 
-
+Performance testing will utilize end-to-end methods to validate metrics like query speed, where 
+the response time can be measured using an automated UI test. 
+\\
+\\
 \textbf{Static Analysis:}
 
-Static analysis tools will be employed to maintain a consistent quality threshold throughout the development lifecycle, helping adhere to style guidelines and protecting against defects early on. Specific tools are defined in section 3.6.  
-
-\textbf{Code Walkthroughs and Inspections}
-
-\begin{itemize}
-  \item \textbf{Peer Review:} Pull Requests will go through a mandatory peer review process prior to any PR being merged. A minimum of 2 reviewers will be required prior to merging.  
-\end{itemize}
-
-\textbf{Manual Reviews:}
-
-To verify many of the non-functional requirements, the team will employ manual reviews and user studies to ensure the sytem meets look, feel, and usability requirements.  Walkthroughs will be useful for several of the following: 
+Static analysis tools will be employed to maintain a consistent quality threshold throughout the 
+development lifecycle, helping adhere to style guidelines and protecting against defects and 
+vulnerabilityies early on. Specific tools are defined in Automated Testing and Verification Tools 
+(see \hyperref[sec:automated_tools]{Section~\ref{sec:automated_tools}}).  
+\\
+\\
+\textbf{Code Walkthroughs and Inspections:}
 
 \begin{itemize}
+  \item \textbf{Peer Reviews:} Pull requests will go through a mandatory peer review process prior to any PR being merged. A minimum of 2 reviewers will be required prior to merging.
+  \item \textbf{Manual Reviews:} To verify many of the non-functional requirements, the team will employ manual reviews and user studies to ensure the sytem meets look, feel, and usability requirements. Walkthroughs will be useful for several of the following:
+  \begin{itemize}
     \item NFR3 UI Familiarity
-  \item NFR4 Ease of Use
- \item NFR5 Learning Curve Assessment
+    \item NFR4 Ease of Use
+    \item NFR5 Learning Curve Assessment
+  \end{itemize}
 \end{itemize}
 
 
 \subsection{Automated Testing and Verification Tools}
+\label{sec:automated_tools}
 
-The following tools are to be used during the verification and validation process to facilitate automated testing and verification. Broadly, these tools are separated into frontend and backend categories:
-
+The following tools are to be used during the verification and validation process to facilitate 
+automated testing and verification. Broadly, these tools are separated into frontend and backend 
+categories:
+\\
+\\
 \textbf{Frontend:}
 \begin{itemize}
-  \item Jest: Facilitates frontend unit testing and coverage 
-  \item ESLint: A JavaScript/TypeScript linter with support for JSX
-  \item Puppeteer: End to end testing and automated UI testing.
+  \item CodeQL: Static code analysis for security vulnerabilities, code quality issues, and code coverage.
+  \item PyTest: Unit and integration tests of frontend components.
+  \item Postman: API testing for frontend-backend integration and end-to-end testing of user flows.
 \end{itemize}
 
 \textbf{Backend:}
 \begin{itemize}
-  \item flake8: Style guide enforcement for Python backend
-  \item PyTest: Unit testing and integration testing. 
+  \item CodeQL: Static code analysis for security vulnerabilities, code quality issues, and code coverage.
+  \item Apache JMeter: Performance and stress testing for API endpoints.
+  \item PyTest: Unit testing and integration testing.
+  \item Locust: Load and reliability testing for API endpoints.
+  \item unittest: Python library for running unit tests and mocking dependencies and testing in isolation.
+  \item Postman: API testing for backend endpoints and integration testing with the frontend.
 \end{itemize}
 
 \textbf{Continuous Integration:}
 
-We will use GitHub actions for CI purposes, which will be configured to run the complete test suite for the frontend and backend upon commit, and serve as a quality gate prior to PR merges. Jobs will also be configured to run static analysis and linting checks, as well as generate coverage reports. 
-
+We will use GitHub actions for CI purposes, which will be configured to run the complete backend test suite 
+upon a new commit, and serve as a quality gate prior to PR merges. Jobs will also be configured to run 
+static analysis and linting checks on both frontend and backend code, and generate resulting coverage reports. 
 
 \subsection{Software Validation}
 
-
-This section outlines our plan for validating the system to ensure it meets the needs of our stakeholders and users. Our core goal is to confirm the system provides an accessible and non-technical interface for researchers to analyze the rat behavioural data. The project is not defined in terms of specific performance metrics, but instead by its utility as an exploratory platform for researchers. Therefore, our validation strategy focuses on researcher utility and data integrity. 
-
+This section outlines our plan for validating the system to ensure it meets the needs of our 
+stakeholders and users. Our core goal is to confirm the system provides an accessible and non-technical 
+interface for researchers to analyze the rat behavioural data. The project is not defined in terms of 
+specific performance metrics, but instead by its utility as an exploratory platform for researchers. 
+Therefore, our validation strategy focuses on researcher utility and data integrity. 
 
 The following methods will be used to engage our project stakeholders and elicit feedback throughout the project lifecycle. 
 
 \begin{itemize}
-  \item \textbf{ Revision 0 Demonstration:}  The revision 0 demonstratation will be an important validation milestone for our software requirements. We will present this revision of the system to our supervisors to demonstrate the core features of the system. This will allow us to validate that the implementation aligns with the client goals and needs effectively. 
+  \item \textbf{Revision 0 Demonstration:}  The revision 0 demonstratation will be an important validation milestone for our software requirements. We will present this revision of the system to our supervisors to demonstrate the core features of the system. This will allow us to validate that the implementation aligns with the client goals and needs effectively. 
   \item \textbf{Iterative Supervisor Feedback:} The team will leverage our weekly scheduled meetings with Dr. Szechtman and Dr. Dvorkin-Gheva to elicit ongoing feedback during the project's development. These meetings will provide continuous validation and will help us ensure that the project is aligned with our stakeholder expectations.  
   \item \textbf{User Testing:} Towards the end of the developnent cycle we will conduct user testing. The user will be asked to perform tasks like executing a natural language query, filtering the data, or producing a visualization. We will use this user feedback to validate that the system is ready for its intended users.  
  \end{itemize}
 
-\label{sec:system_tests}
 \section{System Tests}
+\label{sec:system_tests}
 
 This section defines the tests used to verify the system’s compliance with the
 Functional Requirements specified in Section~9.1 of the SRS. Each test ensures
@@ -482,7 +509,7 @@ NLP modules.
     \item \textbf{Control:} Manual + Automatic hybrid (human semantic check)
     \item \textbf{Initial State:} NLP model and API are running. Database populated with varied behavioral patterns.
     \item \textbf{Input:} User enters: ``Show me trials with strong checking behavior after 5 injections.''
-    \item \textbf{Output:} One dataset is returned that matches this semantic filter.
+    \item \textbf{Output:} One dataset is returned that matches the user's semantic filter.
     \item \textbf{Test Case Derivation:} Based on the SRS fit criterion, one dataset should always be returned for a valid query, containing the subset matching the interpreted condition.
     \item \textbf{How test will be performed:} Send query via UI or API. Validate that the system outputs one dataset (non-empty). A human tester verifies semantic correctness (dataset contextually fits query meaning).
 \end{itemize}
@@ -490,13 +517,13 @@ NLP modules.
 \paragraph{Test 3: Verify Predefined Data Categories Available for Browsing}
 \begin{itemize}
     \item \textbf{Related Requirement:} FUNC.R.3
-    \item \textbf{Test ID:} FR3-Predefined-Sets
+    \item \textbf{Test ID:} FR3-Predefined-Inventory
     \item \textbf{Control:} Manual (UI check)
-    \item \textbf{Initial State:} System deployed with at least 3 predefined sets (e.g., ``Exploration Trials'', ``Compulsive Behavior'', ``Control Trials'').
-    \item \textbf{Input:} User opens the ``Browse'' interface.
-    \item \textbf{Output:} At least 3 predefined datasets appear for selection.
+    \item \textbf{Initial State:} System deployed with an inventory split into named categories across 9 dimensions (e.g., drugs, apparatuses, apparatus patterns, e.t.c. ...).
+    \item \textbf{Input:} User opens the `Inventory' interface. User selects category from the left-sided dropdown for category filtering selection. User presses `Apply'.
+    \item \textbf{Output:} Displays a selected predefined category with corresponding data entries for user browsing.
     \item \textbf{Test Case Derivation:} Requirement specifies a minimum of 3 sets available for browsing.
-    \item \textbf{How test will be performed:} Manually navigate to the Browse page and confirm at least 3 datasets are displayed and accessible.
+    \item \textbf{How test will be performed:} Manually navigate to the `Inventory' interface and confirm at least 3 datasets are displayed and accessible.
 \end{itemize}
 
 \subsubsection{Behavioral Analysis and Visualization}
@@ -521,9 +548,9 @@ These tests ensure that behavioral categorizations and visual representations ar
     \item \textbf{Test ID:} FR5-Visualization
     \item \textbf{Control:} Automatic (UI rendering check)
     \item \textbf{Initial State:} User has filtered dataset (non-empty result).
-    \item \textbf{Input:} User clicks ``Generate Visualization''.
+    \item \textbf{Input:} A visualization request is made to the backend using the filtered dataset.
     \item \textbf{Output:} Visualization component renders trajectory or metric chart corresponding to the dataset.
-    \item \textbf{Test Case Derivation:} The fit criterion specifies at least one visual per result set; therefore, successful rendering of a chart or trajectory fulfills this requirement.
+    \item \textbf{Test Case Derivation:} The fit criterion specifies at least one visual per result set; therefore, successful rendering of the visualization fulfills the requirement.
     \item \textbf{How test will be performed:} Use UI test automation (e.g., Selenium) to trigger visualization and check that the chart container loads successfully (non-empty DOM element).
 \end{itemize}
 
@@ -540,7 +567,7 @@ These tests confirm that datasets and visuals can be downloaded correctly and th
     \item \textbf{Input:} User clicks ``Download CSV'' or ``Download Visualization''.
     \item \textbf{Output:} File downloaded successfully; first 100 rows match database query results.
     \item \textbf{Test Case Derivation:} Fit criterion requires verification against the first 100 rows; thus, equality of the first 100 entries validates correctness.
-    \item \textbf{How test will be performed:} Automated script downloads dataset and compares first 100 entries with direct database query output.
+    \item \textbf{How test will be performed:} Automated PyTest unit test downloads dataset and compares first 100 entries with direct database query output.
 \end{itemize}
 
 \paragraph{Test 7: Verify Global Accessibility and Performance}
@@ -552,9 +579,8 @@ These tests confirm that datasets and visuals can be downloaded correctly and th
     \item \textbf{Input:} Users (or simulated clients) from 3+ regions (e.g., North America, Europe, Asia) access the site.
     \item \textbf{Output:} Average page load time $<$ 4 seconds across all regions; no functional degradation.
     \item \textbf{Test Case Derivation:} Requirement defines measurable metric (4 seconds); success if timing threshold not exceeded.
-    \item \textbf{How test will be performed:} Use tools such as Lighthouse, GTmetrix, or JMeter with geo-distributed endpoints to measure average response time and record metrics.
+    \item \textbf{How test will be performed:} Use Locust with geo-distributed endpoints to measure average response time and record metrics.
 \end{itemize}
-
 
 \subsection{Tests for Nonfunctional Requirements}
 
@@ -640,7 +666,7 @@ These tests measure user learning time, ease of use, and understandability.
     \item \textbf{Type:} Static, Manual (Content Review)
     \item \textbf{Initial State:} Interface text finalized.
     \item \textbf{Input/Condition:} Non-technical users read through all on-screen text.
-    \item \textbf{Output/Result:} At least 90\% of all interface text rated “understandable” by users.
+    \item \textbf{Output/Result:} At least 90\% of all interface text rated “understandable” by non-technical users.
     \item \textbf{How test will be performed:} Conduct terminology walkthrough; classify all words/phrases as technical or intuitive. Replace technical terms as necessary.
 \end{itemize}
 
@@ -667,7 +693,7 @@ These tests verify latency, throughput, fault-tolerance, and data integrity.
     \item \textbf{Initial State:} Server and database running under normal load.
     \item \textbf{Input/Condition:} Execute 100 queries of varying sizes up to 5,000 records.
     \item \textbf{Output/Result:} Average query time $<$ 2 seconds; request latency $<$ 100 ms.
-    \item \textbf{How test will be performed:} Automated benchmark using JMeter or Locust. Generate graph of response time vs. query size.
+    \item \textbf{How test will be performed:} Automated benchmark done using JMeter. Generate graph of response time vs. query size.
 \end{itemize}
 
 \paragraph{Test 9: Fault-Tolerance and Logging Verification}
@@ -678,7 +704,7 @@ These tests verify latency, throughput, fault-tolerance, and data integrity.
     \item \textbf{Initial State:} Backend running.
     \item \textbf{Input/Condition:} Submit invalid input payloads and simulate network interruptions.
     \item \textbf{Output/Result:} Errors logged without system crash; user receives appropriate feedback message.
-    \item \textbf{How test will be performed:} Automated injection of malformed JSON; verify log entries and system stability.
+    \item \textbf{How test will be performed:} Automated injection of malformed JSON using JMeter; verify log entries and system stability.
 \end{itemize}
 
 \paragraph{Test 10: Capacity and Scalability Evaluation}
@@ -689,7 +715,7 @@ These tests verify latency, throughput, fault-tolerance, and data integrity.
     \item \textbf{Initial State:} System deployed in cloud environment.
     \item \textbf{Input/Condition:} Simulate 250 concurrent users performing queries.
     \item \textbf{Output/Result:} Throughput $\geq$ 5,000 transactions/hour; performance efficiency $\geq$ 80\%.
-    \item \textbf{How test will be performed:} Use load testing tools (Locust, K6) to simulate concurrent access and measure throughput metrics.
+    \item \textbf{How test will be performed:} Use JMeter to simulate concurrent access and measure throughput metrics.
 \end{itemize}
 
 \subsubsection{Maintainability and Support Requirements}
@@ -700,8 +726,8 @@ These tests verify latency, throughput, fault-tolerance, and data integrity.
     \item \textbf{Test ID:} NFR11-Maintainability
     \item \textbf{Type:} Static (Code Walkthrough)
     \item \textbf{Initial State:} Source code and documentation complete.
-    \item \textbf{Input/Condition:} Independent developer reviews repository structure and documentation.
-    \item \textbf{Output/Result:} Reviewer able to build and extend system within 1 hour using provided documentation.
+    \item \textbf{Input/Condition:} Developer of our skill level, yet independent of our team reviews repository structure and documentation.
+    \item \textbf{Output/Result:} The reviewing developer able to build and extend system within 1 hour using provided documentation.
     \item \textbf{How test will be performed:} Conduct peer code walkthrough; independent participant attempts new dataset integration per SRS instructions.
 \end{itemize}
 
@@ -910,12 +936,12 @@ cases, modules will not be tested and an explanation will be given for why.
     \item \textbf{Test ID:} UT1-FR2-TestAskQuestion
     \item \textbf{Type:} Dynamic, Automatic
     \item \textbf{Initial State Base Case:} API connection to LLM model is live
-    \item \textbf{Input Base Case:} user inputs question or phrase such as 'hello'
+    \item \textbf{Input Base Case:} User selects "Ask" mode, then inputs question or phrase such as 'hello'
     \item \textbf{Output Base Case:} We expect the response to contain the token "Hello"
     \item \textbf{Initial State Edge Case 1:} API connection raises an exception and cannot complete requests.
-    \item \textbf{Input Edge Case 1:} user inputs question or phrase such as 'hello'
+    \item \textbf{Input Edge Case 1:} User selects "Ask" mode, then inputs question or phrase such as 'hello'
     \item \textbf{Output Base Case 1:} User is informed of failure to call on model response
-    \item \textbf{Test Case Derivation:} Our query module has a "query" section and an "ask" section. The ask section allows the user to interact with the model and learn more about the tool.
+    \item \textbf{Test Case Derivation:} Our query module has a "Select" section and an "Ask" section. The ask section allows the user to interact with the model and learn more about the tool.
     \item \textbf{How test will be performed:} Pytest assertions. Call the query module's \texttt{ask\_question()} function with parameter \texttt{user\_phrase}.
 \end{itemize}
 
@@ -934,13 +960,14 @@ a tool such as Selenium. The relevant tests for functional requirements are list
     \item \textbf{Initial State Base Case:} Front-End/Backend Connection/DB is live.
     \item \textbf{Input Pattern:}
       \begin{itemize}
-        \item Navigate each of available tabs in the NavBar (Home, Query, Inventory, Visualizations, About)
+        \item Navigate each of available tabs in the NavBar (Home, Query, Visualizations, Inventory, ToolBox, About)
         \item Input question into the Query tab, ensure it displays as a message in the chat box and a response is provided
         \item Input query into the Query tab, ensure a response is given as a table embedded in the chat window
         \item Select various filters in the Inventory tab, apply and ensure session counts are updated and sessions display in the table
         \item Clear filters in the Inventory tab, ensure session counts update accordingly
         \item Select Download button in both the Query and Inventory tabs, ensure they render properly and file extensions can be selected
-        \item Select each of the three available visualizations and select any combination of X and Y parameters. Ensure visualizations render in a user-friendly way
+        \item Select each of the five available visualizations and generate at least one successful visualization of each type. Ensure visualizations render in a user-friendly way
+        \item Select an available rat trial session in the ToolBox tab. Ensure the session details are displayed and the kinematic trajectory visualization renders properly
       \end{itemize}
     \item \textbf{Output Case:} 200 HTTP code
     \item \textbf{Test Case Derivation:} Verifies baseline user experience and responsiveness in the front-end
@@ -959,10 +986,12 @@ a tool such as Selenium. The relevant tests for functional requirements are list
     \item \textbf{Output Case 1:} 200 HTTP code
     \item \textbf{Input Case 2:} NLP module backend endpoint, user query in request body
     \item \textbf{Output Case 2:} 200 HTTP code, JSON response
-    \item \textbf{Input Case 3:} Inventory module backend endpoint, filter set in request body
+    \item \textbf{Input Case 3:} Visualization module backend endpoint, visualization parameters in request body
     \item \textbf{Output Case 3:} 200 HTTP code, JSON response
-    \item \textbf{Input Case 4:} Visualization module backend endpoint, visualization parameters in 
+    \item \textbf{Input Case 4:} Inventory module backend endpoint, filter set in request body
     \item \textbf{Output Case 4:} 200 HTTP code, JSON response
+    \item \textbf{Input Case 5:} ToolBox module backend endpoint, rat trial session is loaded using an ID
+    \item \textbf{Output Case 5:} 200 HTTP code, JSON response
     \item \textbf{Test Case Derivation:} The primary function of the API module is ensuring the data is routed through the system properly.
     \item \textbf{How test will be performed:} Pytest assertions. Call the various endpoints and assert the response codes are 200 and JSON format is correct
 \end{itemize}
