@@ -67,6 +67,12 @@ low.}
 
 \subsection{VnV Plan and Report}
 
+\begin{itemize}
+    \item \textbf{VnV Plan:} Our TA supervisor noted that Sections 2.2--2.3 were too vague and that several fit criteria were ambiguous. In response, we restructured the General Information content to make the scope more explicit in terms of Primary Objectives vs.
+    Out-of-Scope Objectives, we also clarified the role of the extras we chose for our project. We also refined test wording to make interpretation more consistent: FR2 now explicitly uses a manual and automatic hybrid testing with defined execution steps, NFR6 explicitly anchors understandability to non-technical users and a measurable 90\% threshold, and NFR11 is framed as a concrete static/manual maintainability review with explicit an review procedure and associated artifacts. These changes were made directly applied to the VnV Plan to reduce reviewer subjectivity and improve traceability from requirements to their respective verification methods.
+    \item \textbf{VnV Report:} Feedback from our TA supervisor and peer teams (Team 7 and Team 15) emphasized that the report needed clearer presentation, stronger traceability, and more consistent formatting. In response, we reorganized Section 6 by grouping unit tests by module instead of presenting a single raw PyTest dump, and we improved readability by restructuring long test-output presentation. We also tightened reproducibility and traceability by clarifying specific test inputs/outputs in key cases (including FR5-T4), and by connecting quantitative outcomes and "changes due to testing" back to concrete test evidence. Formatting and flow issues were also addressed: coverage tables were reformatted for consistency, the table layout being cutoff was fixed, survey-related content and revision metadata were included and updated, and cross-section references were adjusted to improve reading order. Finally, based on peer feedback for Section 5, we expanded the comparison to prior implementations by grounding UI claims in concrete HCI rationale, such as considering the usability intent, rather than just using broad statements.
+\end{itemize}
+
 \section{Extras}
 
 \begin{itemize}
