@@ -82,13 +82,45 @@ low.}
 \end{itemize}
 \section{Design Iteration (LO11 (PrototypeIterate))}
 
-\plt{Explain how you arrived at your final design and implementation.  How did
-the design evolve from the first version to the final version?} 
+\par{Our final design was driven jointly by \textbf{client goals} (the lab and supervisory team), \textbf{documented requirements}, and \textbf{verification feedback} from walkthroughs and structured usability tests. The subsections below describe how the product moved from an early demonstrator toward the shipped InfraRAT experience, emphasizing \emph{why} choices were made rather than only listing deltas.}
 
-\plt{Don't just say what you changed, say why you changed it.  The needs of the
-client should be part of the explanation.  For example, if you made changes in
-response to usability testing, explain what the testing found and what changes
-it led to.}
+\subsection{Starting point and client needs}
+
+\par{The problem context is documented in the problem statement: FRDR exposes the Szechtman lab dataset but offers limited ways to search by experimental attributes, align trajectories with video, or summarize behaviour across thousands of trials. The prior student implementation (RatBat~1.0) improved on FRDR with filtering, summaries, and structured querying, but still demanded substantial configuration and technical comfort. Our stakeholders---behavioural neuroscience researchers, graduate students, and lab members---needed paths that work for people \emph{without} software backgrounds: natural-language access, clearer browsing of ``what exists,'' and visual analytics grounded in how the lab compares cohorts and injections. Those needs anchored every major feature area (metadata inventory, NLP query, visualization suite, per-session toolbox, downloads).}
+
+\subsection{From proof-of-concept to a calmer first impression}
+
+\par{The proof-of-concept and early Rev~0 demos prioritized \textbf{showing capability}: NLP-backed query, hooks for visualization, and enough UI surface to convince supervisors that integration risks were manageable. Some controls that existed for demonstration (for example, exposing advanced NLP-related parameters on the main experience) were never intended as the long-term default for first-time users.}
+
+\par{Heuristic evaluation against our simplicity requirement (NFR2 / APP.R.2) recorded \textbf{seven} primary interactive elements on the homepage and described the first load as somewhat ``intimidating.'' The \textbf{why} for change was direct: our target users are non-technical researchers; cognitive load on entry conflicts with the goal of inviting exploration. We responded by \textbf{scoping the default experience} so that advanced or demo-only controls are not part of the initial path, aligning the landing story with orientation and example prompts instead of parameter panels. This was not abandonment of power-user features---it was \textbf{progressive disclosure}: keep the default surface small, route depth to Query, Inventory, and Visualizations as users need it.}
+
+\subsection{Client conversations and requirements clarification}
+
+\par{Ongoing discussion with Dr.~Henry Szechtman shaped data and user-facing structure. As noted in our detailed design reflection, schema and catalogue decisions for experimental sessions, and priorities for what the system should \emph{do} with data and visualizations, were refined with him as domain expert. One concrete clarification was the ``predefined datasets'' idea: the client was less interested in fixed ``product'' bundles and more in a \textbf{web-store-style browse}---sorting and narrowing available records by categories the lab cares about (drugs, apparatus, session types, and related metadata). That shift steered the \textbf{Inventory} experience toward familiar filter-and-apply patterns rather than a rigid product grid, while still satisfying the intent of making the corpus navigable. Dr.~Anna Dvorkin-Gheva and the same supervisory line provided design walkthrough and validation touchpoints through the year (as planned in the V\&V plan).}
+
+\subsection{What usability testing changed}
+
+\par{We did not rely only on intuition. Structured checks against look-and-feel and usability requirements informed iteration:}
+
+\begin{itemize}
+    \item \textbf{E-commerce metaphor (NFR1):} Five non-technical evaluators in a design walkthrough consistently related the interface to familiar e-commerce layouts (cards, holding areas for selections). The finding \textbf{validated} the direction---researchers should feel they are ``shopping'' the corpus for trials, not operating a database console---and we kept reinforcing familiar layout patterns where they helped recognition.
+    \item \textbf{Inventory filters (NFR3):} All five participants rated filter intuition highly; average time to complete a filter task was about forty seconds. Participants especially valued a clear \textbf{Clear} / reset affordance. That feedback reinforced keeping accordion filters, visible Apply/Clear actions, and predictable feedback after Apply rather than introducing novel interaction models.
+    \item \textbf{End-to-end task study (NFR4--NFR5):} Participants completed standard workflows (prepackaged query path, custom NLP search, visualization) within time targets, and time-to-proficiency stayed under the thirty-minute learning-curve goal. Observational notes still flagged \textbf{hesitation at the first NLP query}; the verification report therefore called for a dismissible quick-start or in-field hint---a small change aimed at \textbf{reducing first-query friction} without dumbing down the tool.
+    \item \textbf{Language in the UI (NFR6):} Content review with non-technical reviewers showed that internal or implementation-heavy labels (for example around NLP confidence) hurt understandability. We iterated copy and tooltips toward \textbf{domain-friendly wording} so the UI reads like neuroscience and experiment design, not like model internals---because the client's users are scientists, not ML engineers.
+    \item \textbf{Accessibility audit (NFR7):} Automated checks exposed low ARIA coverage on dynamic pieces (e.g.\ filter panels and chart regions). The immediate lesson was that ``semantic HTML is not enough'' for our level of interactivity; the planned response (tracked issues, \texttt{aria-live} for dynamic filter results, richer roles on figures, and tooling such as axe-core in the workflow) is part of the same iteration loop, prioritizing \textbf{equitable access} for assistive technologies even when primary users are sighted researchers.
+\end{itemize}
+
+\subsection{Correctness and robustness iterations}
+
+\par{Functional verification also forced design-adjacent changes. For example, NLP queries that referenced non-existent schema concepts initially failed tests; we improved the system's \textbf{grounding in the actual schema} (context supplied to the LLM pipeline) so answers stay tied to real tables and columns---because the client needs \textbf{trustworthy} retrieval, not plausible hallucination. Another failure mode was empty visualization results; we added explicit handling so the UI fails gracefully instead of presenting broken or blank charts, preserving user confidence during exploratory analysis.}
+
+\subsection{Documentation and handoff as part of design}
+
+\par{Iteration was not only code. Feedback that the system is ``not self-explanatory'' without domain context led to a \textbf{user manual} extra so workflows are documented for new lab members and external collaborators. Dr.~Szechtman also asked for a \textbf{code walkthrough}-style artifact oriented toward future maintenance and extension; that shaped how we document module structure and next steps, so the \emph{design} of the delivery includes sustainability for the lab after the capstone team steps back.}
+
+\subsection{Summary: first version versus final}
+
+\par{In summary, the \textbf{first versions} emphasized demonstrable integration (NLP, DB, early UI) and sometimes exposed too much surface at once. The \textbf{final direction} aligns with client needs: browse-and-filter inventory, conversational and tabular query paths, visualization and dashboard views that match how papers compare injections and behaviour, single-session depth in the toolbox, and downloads that support offline analysis---all wrapped in patterns that verification showed non-technical users can recognize and complete within acceptable time. Iteration closed the gap between ``technically possible'' and ``useful and approachable for the lab,'' with measurable criteria from the V\&V report as the forcing function for several concrete UI and content changes.}
 
 \section{Design Decisions (LO12)}
 
@@ -99,7 +131,7 @@ it led to.}
 \section{Economic Considerations (LO23)}
 
 \plt{Is there a market for your product? What would be involved in marketing your 
-product? What is your estimate of the cost to produce a version that you could 
+product?  What is your estimate of the cost to produce a version that you could 
 sell?  What would you charge for your product?  How many units would you have to 
 sell to make money? If your product isn't something that would be sold, like an 
 open source project, how would you go about attracting users?  How many potential 
