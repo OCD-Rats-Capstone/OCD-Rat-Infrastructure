@@ -154,8 +154,11 @@ elicit feedback out of our supervisor.}
 
 \section{Ethics and Equity (LO18)}
 
-\plt{Describe how your team applied the principle of equity and universal design
-to ensure equitable treatment of all stakeholders.}
+\par{Our team treated ethics and equity as design constraints, not optional features. The primary stakeholders were our supervisors, Dr. Szechtman and Dr. Dvorkin-Gheva, who are both behavioural neuroscience researchers, but we intentionally designed for a broader user base that includes collaborators with varying technical backgrounds. This directly affected our interface and workflow choices: we prioritized plain-language labels, guided filtering, natural-language querying, and a user manual so that users without software engineering experience could still use the system independently. In this sense, equity meant reducing technical gatekeeping and ensuring that access to research insights was not limited to users with SQL or programming expertise.}
+
+\par{We also considered responsible stewardship of a high-value research dataset. Although the platform exposes rat-trial metadata and linked files, we treated data integrity and controlled access as ethical responsibilities. Our architecture preserved the original source-of-truth relationship to FRDR, kept the application focused on read-oriented research workflows, and incorporated verification activities for robustness, security, and compliance. Throughout development, we treated failures such as weak error handling and injection vulnerabilities as ethical issues (not only technical bugs) because they can undermine trust in scientific outputs and disproportionately impact non-technical users who cannot easily detect system faults.}
+
+\par{Finally, we recognized that this project has indirect human impact through OCD research outcomes. While the software does not make clinical decisions, better accessibility and reliability can accelerate how quickly researchers explore behavioural patterns and generate hypotheses. To support equitable treatment of stakeholders, we used iterative supervisor feedback, non-technical usability testing, and accessibility checks to reduce bias toward developer assumptions. In future iterations, we would strengthen this further with earlier accessibility integration (including ARIA coverage targets), broader participant diversity in usability studies, and a more explicit governance process for ethically handling model-assisted query behavior.}
 
 \section{Reflection on Capstone}
 
