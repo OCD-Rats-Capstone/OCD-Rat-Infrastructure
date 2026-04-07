@@ -2,7 +2,6 @@
 
 \usepackage{tabularx}
 \usepackage{booktabs}
-\usepackage{float}
 
 \title{Reflection and Traceability Report on \progname}
 
@@ -17,73 +16,83 @@
 
 \maketitle
 
-\plt{Reflection is an important component of getting the full benefits from a
-learning experience.  Besides the intrinsic benefits of reflection, this
-document will be used to help the TAs grade how well your team responded to
-feedback.  Therefore, traceability between Revision 0 and Revision 1 is and
-important part of the reflection exercise.  In addition, several CEAB (Canadian
-Engineering Accreditation Board) Learning Outcomes (LOs) will be assessed based
-on your reflections.}
 
 \section{Changes in Response to Feedback}
 
-\plt{Summarize the changes made over the course of the project in response to
-feedback from TAs, the instructor, teammates, other teams, the project
-supervisor (if present), and from user testers.}
-
-\plt{For those teams with an external supervisor, please highlight how the feedback 
-from the supervisor shaped your project.  In particular, you should highlight the 
-supervisor's response to your Rev 0 demonstration to them.}
-
-\plt{Version control can make the summary relatively easy, if you used issues
-and meaningful commits.  If you feedback is in an issue, and you responded in
-the issue tracker, you can point to the issue as part of explaining your
-changes.  If addressing the issue required changes to code or documentation, you
-can point to the specific commit that made the changes.  Although the links are
-helpful for the details, you should include a label for each item of feedback so
-that the reader has an idea of what each item is about without the need to click
-on everything to find out.}
-
-\plt{If you were not organized with your commits, traceability between feedback
-and commits will not be feasible to capture after the fact.  You will instead
-need to spend time writing down a summary of the changes made in response to
-each item of feedback.}
-
-\plt{You should address EVERY item of feedback.  A table or itemized list is
-recommended.  You should record every item of feedback, along with the source of
-that feedback and the change you made in response to that feedback.  The
-response can be a change to your documentation, code, or development process.
-The response can also be the reason why no changes were made in response to the
-feedback.  To make this information manageable, you will record the feedback and
-response separately for each deliverable in the sections that follow.}
-
-\plt{If the feedback is general or incomplete, the TA (or instructor) will not
-be able to grade your response to feedback.  In that case your grade on this
-document, and likely the Revision 1 versions of the other documents will be
-low.} 
-
 \subsection{SRS and Hazard Analysis}
+
+\subsubsection*{Peer Review Feedback (Team 7)}
+
+\begin{itemize}
+    \item \textbf{SRS -- \S 12.1 Speed \& Latency (SAL.R.1, SAL.R.2)}
+    \begin{itemize}
+        \item \textbf{Feedback:} SAL.R.2 (network requests $<100$ ms) is uncontrollable end-to-end over public networks/FRDR. Recommended scoping to server processing time with percentile SLOs (e.g., p95 $\le$ 400 ms). SAL.R.1 ($\le$ 2 s) lacks scope clarity regarding metadata vs. large media, and needs hardware/concurrency specs for testability.
+        \item \textbf{Response \& Changes Made:} Revised SAL.R.2 to focus strictly on server-side API processing latency (p95 $\le$ 400 ms). Clarified SAL.R.1 to apply specifically to metadata queries. Added testable details including dataset size, expected indices, hardware assumptions (4 vCPUs, 16 GB RAM), and concurrency (250 users). Aligned with Hazard Analysis scope.
+    \end{itemize}
+
+    \item \textbf{SRS -- \S 6.3 Work Partitioning (NLP Integration)}
+    \begin{itemize}
+        \item \textbf{Feedback:} Natural language query generation requires strategies to offset LLM limitations and decrease processing time, such as keyword dictionaries, caching, and prompt rulesets.
+        \item \textbf{Response \& Changes Made:} Expanded the ``NLP Integration'' subsection. Added explicit mitigation strategies including caching frequent queries, implementing keyword dictionaries for common terms, and designing fallbacks to the structured filter engine to improve accuracy and reduce latency.
+    \end{itemize}
+
+    \item \textbf{Hazard Analysis -- \S 4.1 Critical Assumptions}
+    \begin{itemize}
+        \item \textbf{Feedback:} Treating the FRDR API as an unavoidable point of failure lacks contingencies. Recommended adding alternative data storage forms or caching for project resilience.
+        \item \textbf{Response \& Changes Made:} Expanded the ``FRDR API Availability'' assumption. Added discussion of mitigation strategies and contingencies, including local data caching of frequently accessed queries and periodic snapshots to allow limited offline access during FRDR outages.
+    \end{itemize}
+
+    \item \textbf{SRS -- \S 2.5 Personas}
+    \begin{itemize}
+        \item \textbf{Feedback:} Personas rely on generic labels (e.g., ``Undergraduate Student'') and lack personal touches, names, and complete demographics, failing the V.A.R.I.E.D. criteria.
+        \item \textbf{Response \& Changes Made:} Revised all system personas to include fictional names (e.g., ``Alex Johnson''), specific ages, locations, and richer demographic details to make the user profiles more actionable and empathetic for the development team.
+    \end{itemize}
+
+    \item \textbf{Hazard Analysis -- \S 5.1 Out of Scope Hazards}
+    \begin{itemize}
+        \item \textbf{Feedback:} The list of out-of-scope hazards lacks justification. Entries like ``user misuses data'' can be mitigated by UI design, and external outages should be explicitly justified as outside team control.
+        \item \textbf{Response \& Changes Made:} Added explanatory text to every item in the out-of-scope list. Explicitly justified why external factors (FRDR outages) are beyond the system boundary, and clarified that while UI design mitigates data misinterpretation, the ultimate misuse of data remains an out-of-scope user error.
+    \end{itemize}
+\end{itemize}
+
+\vspace{\baselineskip}
+\subsubsection*{TA Grading Feedback}
+
+\begin{itemize}
+    \item \textbf{SRS \& Hazard Analysis -- Figures 1, 2, and 3}
+    \begin{itemize}
+        \item \textbf{Feedback:} Figures 1 and 2 have poor color contrast and small font sizes, making them hard to read. Figure 3 lacks a legend or text explaining what the arrows represent (e.g., data flow, API calls).
+        \item \textbf{Response \& Changes Made:} Re-generated Figures 1 and 2 using high-contrast white backgrounds and scaled-up font sizes for professional legibility. Added explicit text labels to every interaction arrow in Figure 3 to clearly define the data flow.
+    \end{itemize}
+
+    \item \textbf{SRS -- Figures 6 and 7 (Diagrams \& Models)}
+    \begin{itemize}
+        \item \textbf{Feedback:} Figure 6 is a process flow and must be replaced with a standard UML Use Case diagram. Figure 7 (Business Data Model) is dropped in without context or explanation.
+        \item \textbf{Response \& Changes Made:} Completely replaced Figure 6 with a comprehensive UML Use Case Diagram utilizing correct actor and system boundary notation. Added an introductory paragraph to Figure 7 that walks the reader through the core entities and their relationships.
+    \end{itemize}
+
+    \item \textbf{SRS -- Requirements \& Traceability}
+    \begin{itemize}
+        \item \textbf{Feedback:} Quantitative metrics lack justification (e.g., why SAL.R.1 dictates 2 seconds). The document lacks a Traceability Matrix mapping functional to non-functional requirements. Requirement IDs are not hyperlinked.
+        \item \textbf{Response \& Changes Made:} Appended explicit rationales to quantitative metrics detailing the reasoning behind the numbers. Built and inserted a comprehensive Requirements Traceability Matrix. Implemented clickable hyperlinks for all requirement IDs (e.g., FUNC.R.1) throughout the document.
+    \end{itemize}
+
+    \item \textbf{SRS -- Specific Learning Outcomes (LO\_SpecMath \& LO\_ExtKnowledge)}
+    \begin{itemize}
+        \item \textbf{Feedback:} Missing formal mathematical specifications for a critical system portion (LO\_SpecMath). External references lack consistent formatting and inline citations within the text (LO\_ExtKnowledge).
+        \item \textbf{Response \& Changes Made:} Added an appendix section establishing ``Formal Mathematical Specifications,'' detailing the Euclidean distance formulas for trajectories and a Finite State Machine for query processing. Added inline citations tied to a formatted reference list.
+    \end{itemize}
+
+    \item \textbf{SRS \& Hazard Analysis -- Specific Learning Outcomes (LO\_Standards \& LO\_Assumptions)}
+    \begin{itemize}
+        \item \textbf{Feedback:} Insufficient listing of standards, codes, or regulatory factors. Implicit assumptions regarding system boundaries are not clearly stated.
+        \item \textbf{Response \& Changes Made:} Expanded the Standards Compliance section to explicitly list WCAG 2.1, OpenAPI 3.0, TLS 1.3, and CCAC animal care guidelines. Rewrote the Assumptions section to clearly bound the system regarding external FRDR API stability and LLM availability.
+    \end{itemize}
+\end{itemize}
 
 \subsection{Design and Design Documentation}
 
-In response to feedback regarding the layout structure, requirement consistency, and precision of the module interface behaviors, we implemented several major corrections across the Module Interface Specification (MIS) and Module Guide (MG) documentation:
-\begin{itemize}
-    \item \textbf{Timeline and Formatting Overhaul}: We introduced a explicit margin limits and replaced statically defined tables (\texttt{tabular}) with dynamic \texttt{tabularx} structures bounded to \verb|\textwidth| to permanently cure severe horizontal margin overflow across the MIS. The MG timeline was completely overhauled to shift away from broad generalizations toward a heavily precise week-by-week layout reflecting git history.
-    \item \textbf{Mathematical Specification}: Based on feedback that the MIS lacked formalization, we drafted an explicit finite state machine (FSM) model and set-theoretic mathematical formalisms for the Natural Language Query Processor (M2). The "stateless" discrepancy previously noted in M6 was also rectified by formally documenting its active state variables 
-    
-    (\texttt{ActiveChartConfig}, \texttt{SupportedVTypes}).
-    \item \textbf{Design De-scoping and Traceability Consistency}: Recognizing hard time constraints, we officially marked the Authentication and Access Control Module (M8) as descoped. We heavily audited the Traceability Matrix to safely remap security proxy requirements (\texttt{INT.R.1}, \texttt{IMM.R.1}, \texttt{IMM.R.2}) over to the Fault and Error Management Module (M9) and purged redundant matrix rows. 
-    \item \textbf{Access Routine Coherence}: Across the MIS, we explicitly defined previously missing access routine semantics for the Front-End (M3), API Layer (M4), and Fault Management (M9) modules. We also introduced proper cross-document hyperlinking using \texttt{xurl}.
-    \item \textbf{Peer Feedback Integration}: In response to peer feedback from Team 7, we resolved several naming and hierarchy inconsistencies. We unified the naming of the NLP Query Processor Module (M2) across the MIS so that subsections consistently share terminology with their parent module title, mitigating reader confusion. Furthermore, in the MG, we decomposed Anticipated Change AC1 into three separate, atomic concerns (layout, accessibility, and responsiveness) rather than bundling them, and we corrected a structural discrepancy where the NLP Query Processor was categorized inconsistently between the module hierarchy table and its section description.
-\end{itemize}
-
 \subsection{VnV Plan and Report}
-
-\begin{itemize}
-    \item \textbf{VnV Plan:} Our TA supervisor noted that Sections 2.2--2.3 were too vague and that several fit criteria were ambiguous. In response, we restructured the General Information content to make the scope more explicit in terms of Primary Objectives vs.
-    Out-of-Scope Objectives, we also clarified the role of the extras we chose for our project. We also refined test wording to make interpretation more consistent: FR2 now explicitly uses a manual and automatic hybrid testing with defined execution steps, NFR6 explicitly anchors understandability to non-technical users and a measurable 90\% threshold, and NFR11 is framed as a concrete static/manual maintainability review with explicit an review procedure and associated artifacts. These changes were made directly applied to the VnV Plan to reduce reviewer subjectivity and improve traceability from requirements to their respective verification methods.
-    \item \textbf{VnV Report:} Feedback from our TA supervisor and peer teams (Team 7 and Team 15) emphasized that the report needed clearer presentation, stronger traceability, and more consistent formatting. In response, we reorganized Section 6 by grouping unit tests by module instead of presenting a single raw PyTest dump, and we improved readability by restructuring long test-output presentation. We also tightened reproducibility and traceability by clarifying specific test inputs/outputs in key cases (including FR5-T4), and by connecting quantitative outcomes and "changes due to testing" back to concrete test evidence. Formatting and flow issues were also addressed: coverage tables were reformatted for consistency, the table layout being cutoff was fixed, survey-related content and revision metadata were included and updated, and cross-section references were adjusted to improve reading order. Finally, based on peer feedback for Section 5, we expanded the comparison to prior implementations by grounding UI claims in concrete HCI rationale, such as considering the usability intent, rather than just using broad statements.
-\end{itemize}
 
 \section{Extras}
 
@@ -100,122 +109,28 @@ In response to feedback regarding the layout structure, requirement consistency,
 \end{itemize}
 \section{Design Iteration (LO11 (PrototypeIterate))}
 
-\par{Our final design was driven jointly by \textbf{client goals} (the lab and supervisory team), \textbf{documented requirements}, and \textbf{verification feedback} from walkthroughs and structured usability tests. The subsections below describe how the product moved from an early demonstrator toward the shipped InfraRAT experience, emphasizing \emph{why} choices were made rather than only listing deltas.}
+\plt{Explain how you arrived at your final design and implementation.  How did
+the design evolve from the first version to the final version?} 
 
-\subsection{Starting point and client needs}
-
-\par{The problem context is documented in the problem statement: FRDR exposes the Szechtman lab dataset but offers limited ways to search by experimental attributes, align trajectories with video, or summarize behaviour across thousands of trials. The prior student implementation (RatBat~1.0) improved on FRDR with filtering, summaries, and structured querying, but still demanded substantial configuration and technical comfort. Our stakeholders---behavioural neuroscience researchers, graduate students, and lab members---needed paths that work for people \emph{without} software backgrounds: natural-language access, clearer browsing of ``what exists,'' and visual analytics grounded in how the lab compares cohorts and injections. Those needs anchored every major feature area (metadata inventory, NLP query, visualization suite, per-session toolbox, downloads).}
-
-\subsection{From proof-of-concept to a calmer first impression}
-
-\par{The proof-of-concept and early Rev~0 demos prioritized \textbf{showing capability}: NLP-backed query, hooks for visualization, and enough UI surface to convince supervisors that integration risks were manageable. Some controls that existed for demonstration (for example, exposing advanced NLP-related parameters on the main experience) were never intended as the long-term default for first-time users.}
-
-\par{Heuristic evaluation against our simplicity requirement (NFR2 / APP.R.2) recorded \textbf{seven} primary interactive elements on the homepage and described the first load as somewhat ``intimidating.'' The \textbf{why} for change was direct: our target users are non-technical researchers; cognitive load on entry conflicts with the goal of inviting exploration. We responded by \textbf{scoping the default experience} so that advanced or demo-only controls are not part of the initial path, aligning the landing story with orientation and example prompts instead of parameter panels. This was not abandonment of power-user features---it was \textbf{progressive disclosure}: keep the default surface small, route depth to Query, Inventory, and Visualizations as users need it.}
-
-\subsection{Client conversations and requirements clarification}
-
-\par{Ongoing discussion with Dr.~Henry Szechtman shaped data and user-facing structure. As noted in our detailed design reflection, schema and catalogue decisions for experimental sessions, and priorities for what the system should \emph{do} with data and visualizations, were refined with him as domain expert. One concrete clarification was the ``predefined datasets'' idea: the client was less interested in fixed ``product'' bundles and more in a \textbf{web-store-style browse}---sorting and narrowing available records by categories the lab cares about (drugs, apparatus, session types, and related metadata). That shift steered the \textbf{Inventory} experience toward familiar filter-and-apply patterns rather than a rigid product grid, while still satisfying the intent of making the corpus navigable. Dr.~Anna Dvorkin-Gheva and the same supervisory line provided design walkthrough and validation touchpoints through the year (as planned in the V\&V plan).}
-
-\subsection{What usability testing changed}
-
-\par{We did not rely only on intuition. Structured checks against look-and-feel and usability requirements informed iteration:}
-
-\begin{itemize}
-    \item \textbf{E-commerce metaphor (NFR1):} Five non-technical evaluators in a design walkthrough consistently related the interface to familiar e-commerce layouts (cards, holding areas for selections). The finding \textbf{validated} the direction---researchers should feel they are ``shopping'' the corpus for trials, not operating a database console---and we kept reinforcing familiar layout patterns where they helped recognition.
-    \item \textbf{Inventory filters (NFR3):} All five participants rated filter intuition highly; average time to complete a filter task was about forty seconds. Participants especially valued a clear \textbf{Clear} / reset affordance. That feedback reinforced keeping accordion filters, visible Apply/Clear actions, and predictable feedback after Apply rather than introducing novel interaction models.
-    \item \textbf{End-to-end task study (NFR4--NFR5):} Participants completed standard workflows (prepackaged query path, custom NLP search, visualization) within time targets, and time-to-proficiency stayed under the thirty-minute learning-curve goal. Observational notes still flagged \textbf{hesitation at the first NLP query}; the verification report therefore called for a dismissible quick-start or in-field hint---a small change aimed at \textbf{reducing first-query friction} without dumbing down the tool.
-    \item \textbf{Language in the UI (NFR6):} Content review with non-technical reviewers showed that internal or implementation-heavy labels (for example around NLP confidence) hurt understandability. We iterated copy and tooltips toward \textbf{domain-friendly wording} so the UI reads like neuroscience and experiment design, not like model internals---because the client's users are scientists, not ML engineers.
-    \item \textbf{Accessibility audit (NFR7):} Automated checks exposed low ARIA coverage on dynamic pieces (e.g.\ filter panels and chart regions). The immediate lesson was that ``semantic HTML is not enough'' for our level of interactivity; the planned response (tracked issues, \texttt{aria-live} for dynamic filter results, richer roles on figures, and tooling such as axe-core in the workflow) is part of the same iteration loop, prioritizing \textbf{equitable access} for assistive technologies even when primary users are sighted researchers.
-\end{itemize}
-
-\subsection{Correctness and robustness iterations}
-
-\par{Functional verification also forced design-adjacent changes. For example, NLP queries that referenced non-existent schema concepts initially failed tests; we improved the system's \textbf{grounding in the actual schema} (context supplied to the LLM pipeline) so answers stay tied to real tables and columns---because the client needs \textbf{trustworthy} retrieval, not plausible hallucination. Another failure mode was empty visualization results; we added explicit handling so the UI fails gracefully instead of presenting broken or blank charts, preserving user confidence during exploratory analysis.}
-
-\subsection{Documentation and handoff as part of design}
-
-\par{Iteration was not only code. Feedback that the system is ``not self-explanatory'' without domain context led to a \textbf{user manual} extra so workflows are documented for new lab members and external collaborators. Dr.~Szechtman also asked for a \textbf{code walkthrough}-style artifact oriented toward future maintenance and extension; that shaped how we document module structure and next steps, so the \emph{design} of the delivery includes sustainability for the lab after the capstone team steps back.}
-
-\subsection{Summary: first version versus final}
-
-\par{In summary, the \textbf{first versions} emphasized demonstrable integration (NLP, DB, early UI) and sometimes exposed too much surface at once. The \textbf{final direction} aligns with client needs: browse-and-filter inventory, conversational and tabular query paths, visualization and dashboard views that match how papers compare injections and behaviour, single-session depth in the toolbox, and downloads that support offline analysis---all wrapped in patterns that verification showed non-technical users can recognize and complete within acceptable time. Iteration closed the gap between ``technically possible'' and ``useful and approachable for the lab,'' with measurable criteria from the V\&V report as the forcing function for several concrete UI and content changes.}
+\plt{Don't just say what you changed, say why you changed it.  The needs of the
+client should be part of the explanation.  For example, if you made changes in
+response to usability testing, explain what the testing found and what changes
+it led to.}
 
 \section{Design Decisions (LO12)}
 
-% \plt{Reflect and justify your design decisions.  How did limitations,
-%  assumptions, and constraints influence your decisions?  Discuss each of these
-%  separately.}
-
-\subsection{Limitations}
-
-The principal limitation of the project is its reliance on a massive, read-only external dataset hosted on the Federated Research Data Repository (FRDR). Because the multi-terabyte raw video and tracking files are immutable and externally managed, our system was designed to focus exclusively on indexing and querying the metadata rather than replicating the raw assets. Furthermore, the integration of a Large Language Model (LLM) for natural language querying introduces financial and rate-limiting bottlenecks; we purposefully designed the system to decouple the NLP processing from the core database queries to ensure that the system is still functional even if the LLM is unavailable.
-
-\subsection{Assumptions}
-
-Our architecture was heavily influenced by the assumption that the target users (neuroscience researchers and clinical students) possess domain expertise but lack technical software engineering skills (e.g., writing SQL). This drove the decision to build a highly intuitive web interface that bridges natural language and structured property filters instead of exposing a raw database connection. We also assumed that users would access the platform through standard, modern web browsers from varied network environments, justifying the stateless API layer and the decision to offload heavy data processing to backend cloud infrastructure rather than the client device.
-
-\subsection{Constraints}
-
-Since this project serves a niche research community and has no commercial revenue model, economic constraints played a central role in our design. The architecture is deliberately lightweight, designed to be containerized and run on a single, low-cost virtual machine, while keeping token usage within a strict monthly budget. Furthermore, time constraints bounded the scope of our data processing pipeline; we elected to prioritize generalized backend filtering and indexing tools rather than building highly specialized, domain-specific machine learning models, ensuring we met the immediate needs of the lab within the Capstone timeframe. These constraints shaped the project into an extensible tool, that can be built upon by future researchers to enable more functionality. 
-
+\plt{Reflect and justify your design decisions.  How did limitations,
+ assumptions, and constraints influence your decisions?  Discuss each of these
+ separately.}
 
 \section{Economic Considerations (LO23)}
 
-% \plt{Is there a market for your product? What would be involved in marketing your 
-% product? What is your estimate of the cost to produce a version that you could 
-% sell?  What would you charge for your product?  How many units would you have to 
-% sell to make money? If your product isn't something that would be sold, like an 
-% open source project, how would you go about attracting users?  How many potential 
-% users currently exist?}
-
-\subsection{Market Considerations}
-
-There is no commercial market for this product. From its inception, the project was intended to be an open source platform to provide access to data analysis tools for researchers and students studying OCD in rats. 
-
-\subsection{Production Cost Estimate}
-
-Throughout the development of this platform, the resources and infrastructure required to support this project have been provided by the Computing and Software Department. As the project transitions out of its development phase and into a maintenance phase, the costs associated with running the platform will need to be assumed by its primary stakeholders, namely Dr. Szechtman's research group. 
-
-Due to the project's self-contained nature, the most advisable path would be to move the platform to a cloud compute service such as AWS EC2. The two main cost consideration factors that dominate are the compute costs of running the docker containers, and the token costs incurred by the use of the natural language service. Naturally, costs are a function of demand, and so the estimates below are based on the assumption that the maximum concurrent users of the tool will be 50, and that approximately 3000 deep queries will be performed per month. 
-
-\begin{table}[H]
-\centering
-\caption{Estimated Monthly Production Costs on AWS}
-\label{tab:ProductionCosts}
-\begin{tabularx}{0.8\textwidth}{Xr}
-\toprule
-\textbf{Component} & \textbf{Estimated Monthly Cost} \\
-\midrule
-Compute (\texttt{t3.medium}) & \$30.00 \\
-Storage (30GB gp3 EBS) & \$2.40 \\
-Public IPv4 Address & \$3.60 \\
-Data Transfer & \$5.00 \\
-\midrule
-\textbf{Total} & \textbf{\$41.00} \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-\begin{table}[H]
-\centering
-\caption{Estimated Monthly LLM Token Costs Per 3000 Deep Queries}
-\label{tab:LLMCosts}
-\begin{tabularx}{\textwidth}{>{\hsize=2.2\hsize}X >{\raggedleft\arraybackslash\hsize=0.6\hsize}X >{\raggedleft\arraybackslash\hsize=0.6\hsize}X >{\raggedleft\arraybackslash\hsize=0.6\hsize}X}
-\toprule
-\textbf{Model Tier} & \textbf{Input Cost} & \textbf{Output Cost} & \textbf{Estimated Monthly Cost} \\
-\midrule
-Budget (Gemini 2.5 Flash-Lite) & \$0.10 & \$0.40 & \$3.60 \\
-Mid-Tier (GPT-5 Mini) & \$0.25 & \$2.00 & \$10.50 \\
-Flagship (GPT-5.4 / Claude Opus 4.6) & \$2.50 & \$15.00 & \$97.50 \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-Based on the estimates above, the total monthly cost of running the platform would be approximately \$44.60 to \$138.50, depending on the model tier chosen. This is a highly cautious estimate, as it assumes the maximum concurrent users and deep queries will be reached. If scale ever exceeds this, our system lends itself well to replication, and so costs would scale according to the number of replicas. 
-
-\subsection{User Estimates and Market Size}
-
-Due to the niche nature of the research domain, the number of potential users is relatively limited to those interested in behavioral neuroscience and obsessive-compulsive disorder research. A reasonable estimate of the number of potential users of this tool is approximately 100-200 researchers worldwide. However, the availability of this tool is intended to garner student interest in the dataset, and so the number of users is expected to grow over time as the tool becomes more widely known. 
+\plt{Is there a market for your product? What would be involved in marketing your 
+product? What is your estimate of the cost to produce a version that you could 
+sell?  What would you charge for your product?  How many units would you have to 
+sell to make money? If your product isn't something that would be sold, like an 
+open source project, how would you go about attracting users?  How many potential 
+users currently exist?}
 
 \section{Reflection on Project Management (LO24)}
 
@@ -266,23 +181,79 @@ elicit feedback out of our supervisor.}
 
 \section{Ethics and Equity (LO18)}
 
-\par{Our team treated ethics and equity as design constraints, not optional features. The primary stakeholders were our supervisors, Dr. Szechtman and Dr. Dvorkin-Gheva, who are both behavioural neuroscience researchers, but we intentionally designed for a broader user base that includes collaborators with varying technical backgrounds. This directly affected our interface and workflow choices: we prioritized plain-language labels, guided filtering, natural-language querying, and a user manual so that users without software engineering experience could still use the system independently. In this sense, equity meant reducing technical gatekeeping and ensuring that access to research insights was not limited to users with SQL or programming expertise.}
-
-\par{We also considered responsible stewardship of a high-value research dataset. Although the platform exposes rat-trial metadata and linked files, we treated data integrity and controlled access as ethical responsibilities. Our architecture preserved the original source-of-truth relationship to FRDR, kept the application focused on read-oriented research workflows, and incorporated verification activities for robustness, security, and compliance. Throughout development, we treated failures such as weak error handling and injection vulnerabilities as ethical issues (not only technical bugs) because they can undermine trust in scientific outputs and disproportionately impact non-technical users who cannot easily detect system faults.}
-
-\par{Finally, we recognized that this project has indirect human impact through OCD research outcomes. While the software does not make clinical decisions, better accessibility and reliability can accelerate how quickly researchers explore behavioural patterns and generate hypotheses. To support equitable treatment of stakeholders, we used iterative supervisor feedback, non-technical usability testing, and accessibility checks to reduce bias toward developer assumptions. In future iterations, we would strengthen this further with earlier accessibility integration (including ARIA coverage targets), broader participant diversity in usability studies, and a more explicit governance process for ethically handling model-assisted query behavior.}
+\plt{Describe how your team applied the principle of equity and universal design
+to ensure equitable treatment of all stakeholders.}
 
 \section{Reflection on Capstone}
 
-\plt{This question focuses on what you learned during the course of the capstone project.}
+\subsection{Which Courses Were Relevant}
 
 \subsection{Which Courses Were Relevant}
 
-\plt{Which of the courses you have taken were relevant for the capstone project?}
+\par{The following McMaster Software Engineering courses were directly relevant to our capstone project:}
+
+\subsubsection*{Highly Relevant Courses}
+
+\begin{itemize}
+    \item \textbf{SFWRENG 3DB3 - Databases:} PostgreSQL schema design, relational database optimization, indexing strategies for our dataset.
+    
+    \item \textbf{SFWRENG 3A04 - Software Design III - Large System Design:} Architecture for integrating React frontend, FastAPI backend, and PostgreSQL database into a cohesive system.
+    
+    \item \textbf{SFWRENG 3BB4 - Software Design II - Concurrent System Design:} Asynchronous processing, handling concurrent API requests, managing multiple simultaneous user sessions (250 user target).
+    
+    \item \textbf{SFWRENG 3RA3 - Software Requirements and Security Considerations:} Requirements specification methodology (critical for our SRS document), API security, authentication protocols.
+    
+    \item \textbf{SFWRENG 4C03 - Computer Networks and Security:} API integration (FRDR and OpenAI), TLS/HTTPS security, secure data transmission over public networks.
+    
+    \item \textbf{SFWRENG 4HC3 - Human Computer Interfaces:} UI/UX design for non-technical researchers, accessibility compliance (WCAG 2.1), usability testing.
+        
+    \item \textbf{SFWRENG 3S03 - Software Testing:} Testing NLP query accuracy, filter correctness, visualization data integrity, behavioral metric calculations.
+    
+    \item \textbf{SFWRENG 4AA4 - Real-Time Systems and Control Applications:} Real-time data processing pipelines, trajectory analysis workflows, behavioral metric computation.
+    
+    \item \textbf{SFWRENG 4X03 - Scientific Computation:} Behavioral metrics calculations, Euclidean distance formulas for trajectories, signal processing for data smoothing.
+    
+    \item \textbf{ENGINEER 4A03 - Ethics, Equity and Law in Engineering:} Research ethics, data integrity principles, accessibility considerations for diverse researchers.
+\end{itemize}
+
+\subsubsection*{Moderately Relevant Courses}
+
+\begin{itemize}
+    \item \textbf{SFWRENG 2OP3 - Object-Oriented Programming:} Foundational OOP principles applied in React and FastAPI development.
+    
+    \item \textbf{SFWRENG 2AA4 - Software Design I - Introduction to Software Development:} Foundational design patterns and software architecture principles.
+    
+    \item \textbf{SFWRENG 2C03 - Data Structures and Algorithms:} Query optimization algorithms, efficient data structure selection for trajectory storage and retrieval.
+    
+    \item \textbf{MATH 2Z03 - Engineering Mathematics III:} Mathematical foundations for formal specifications (FSM notation, distance calculations).
+\end{itemize}
 
 \subsection{Knowledge/Skills Outside of Courses}
 
-\plt{What skills/knowledge did you need to acquire for your capstone project
-that was outside of the courses you took?}
+\par{Several critical skills and domain knowledge areas were required for this project that extended beyond our standard computer science and engineering curriculum:}
+
+\begin{itemize}
+    \item \textbf{Behavioral Neuroscience Domain Knowledge:} Understanding OCD research, rat behavioral trials, spatial-temporal data interpretation, and the scientific context of compulsive behavior metrics. This required extensive collaboration with our client (Dr. Szechtman) and review of primary research literature.
+    
+    \item \textbf{Large-Scale Data Engineering:} Managing and processing largedatasets, implementing efficient database indexing strategies, designing data pipelines, and optimizing query performance for large-scale research datasets.
+    
+    \item \textbf{Full-Stack Integration (React + FastAPI + PostgreSQL):} Integrating individual technologies into a production-ready system with proper API design, asynchronous processing, and real-time data handling required hands-on learning beyond coursework.
+    
+    \item \textbf{DevOps \& Containerization (Docker, GitHub Actions):} Practical containerization, CI/CD pipeline setup, automated testing, and deployment automation were largely self-taught through industry documentation and experimentation.
+    
+    \item \textbf{External API Integration:} Integrating with the FRDR API for data retrieval and OpenAI/ChatGPT APIs for NLP, including authentication, rate limiting, and error handling.
+    
+    \item \textbf{LLM Prompt Engineering:} Designing effective prompts, managing LLM contexts, and fine-tuning language models for domain-specific applications required research and iterative testing.
+    
+    \item \textbf{Research-Oriented Documentation:} Writing user manuals and deployment guides tailored to academic researchers (non-software engineers) required different communication styles than typical technical documentation.
+    
+    \item \textbf{Client Management \& Requirements Elicitation:} Learning to ask clarifying questions, document implicit assumptions, and manage evolving requirements from domain experts without software engineering backgrounds.
+    
+    \item \textbf{Video Data Handling:} Managing, streaming, and synchronizing video files with trajectory data, including file I/O optimization.
+    
+    \item \textbf{Behavioral Analysis Algorithms:} Implementing trajectory smoothing, pattern detection, and compulsive behavior classification required research into signal processing and pattern recognition.
+\end{itemize}
+
+\par{Overall, the capstone project required us to bridge the gap between academic computer science and real-world research software engineering, learning how to work effectively with domain experts and manage complex interdisciplinary systems.}
 
 \end{document}
