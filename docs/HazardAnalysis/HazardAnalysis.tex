@@ -75,35 +75,79 @@ The primary purpose of conducting this analysis is to identify software related 
 \par{ The components of the system that will be subject to the hazard analysis are as follows:}
 
 \begin{enumerate}
-    \item \textbf{The FRDR Database:} All 29 individual datasets and 60,000 relevant data objects that exist on this repository. Note that this component is
-    incorporated into the system in a read-only fashion meaning that at no point in the system creation will any part of it be changed, developed or written to
-    with the exception of Dr. Henry Szechtman or Dr. Anna Dvorkin-Gheva depositing more data into the repository, the execution of which is seperate from the system.
-    \item \textbf{Front-End Query Application:} A front-end web application that provides access for users to query results from the system. This component contains
-    some subcomponents
+    \item \textbf{External Data Source - FRDR Database:} The Federated Research Data Repository (FRDR) contains 29 individual datasets and approximately 60,000 relevant data objects related to OCD rat behavioral studies. This component is accessed in a read-only fashion; the system does not add, modify, or delete data from the repository. Data additions to FRDR are performed by Dr. Henry Szechtman or Dr. Anna Dvorkin-Gheva and are separate from the system's operation. The system retrieves data from FRDR via API calls to populate the local PostgreSQL database.
+    
+    \item \textbf{Frontend Application (React TypeScript):} A web-based user interface deployed as a React application that provides researchers with multiple ways to query and visualize behavioral data. This component includes:
         \begin{itemize}
-            \item \textbf{Natural Language Processor:} This subcomponent takes in natural language input and uses an LLM to generate a relevant query.
-            \item \textbf{Filter Query Engine:} This subcomponent allows the user to manually add filters based on trial data and generates a relevant query.
-            \item \textbf{Webstore Query Engine:} This subcomponent provides pre-defined result sets that may be relevant to the user for the user to browse and
-            use if relevant.
+            \item \textbf{Query Pages:} Interactive pages allowing users to construct queries through natural language input or structured filtering. Communicates with the backend API via HTTP/REST.
+            \item \textbf{Visualization Pages:} Multiple visualization modules including bar charts, line charts, heatmaps, path plots, and a graph query dashboard. These pages request processed data from the backend and render interactive charts.
+            \item \textbf{Inventory Page:} Displays available datasets and sessions matching user-specified filters, allowing users to explore data availability before querying.
+            \item \textbf{ToolBox Page:} Provides access to session-specific data downloads and analysis tools.
+            \item \textbf{Navigation and Routing:} Navbar, footer, and routing components that direct users between different pages and features.
         \end{itemize}
-    \item \textbf{API Layer:} An API layer will be implemented to connect the constructed system with the FRDR database. This layer will be responsible for 
-    retrieving the relevant data from the FRDR for each individual query.
-    \item \textbf{Backend System:} This component includes several subcomponents:
+    
+    \item \textbf{Backend API (FastAPI Application):} A RESTful API server that processes requests from the frontend and manages all data operations. This component is organized into multiple routers, each handling a specific class of operations:
         \begin{itemize}
-            \item \textbf{Database Schema:} This subcomponent is a database scehma which unifies the datasets into one schema while also connecting the metadata annotations
-            and related data objects in the format of a relational DBMS and points to the FRDR database.
-            \item \textbf{Behavioural Analysis LLM:} This subcomponent contains the business logic and an LLM model responsible for categorizing the trials
-            based on compulsive behaviour or rat poses.
-            \item \textbf{Visualization Engine:} This subcomponent is responsible for taking a result set and generating requested visualizations from it.
+            \item \textbf{NLP Router (/nlp):} Accepts natural language queries, generates SQL via LLM, and executes queries against the database. Returns results with rationale and SQL for transparency.
+            \item \textbf{Filters Router (/filters):} Processes structured filter requests (multi-field filtering with AND logic) and returns matching experimental sessions.
+            \item \textbf{Visualizations Router (/visualizations):} Provides endpoints for generating visualization data (bar charts, line charts, heatmaps) and listing available visualization types and configurations.
+            \item \textbf{Ask Router (/ask):} Handles conversational queries about the research project, dataset, or tool usage via streaming Server-Sent Events (SSE) response format.
+            \item \textbf{Inventory Router (/inventory):} Returns counts of raw data objects by type for filtered sessions and provides session lists capped at 500 entries for performance. Supplies filter dimension options.
+            \item \textbf{Files/Toolbox Router (/toolbox):} Manages session loading, file downloads, and graph query execution. Returns packaged data files and session-specific analyses.
         \end{itemize}
+    
+    \item \textbf{Services Layer:} Business logic components that handle data processing, analysis, and coordination:
+        \begin{itemize}
+            \item \textbf{NLP Service:} Orchestrates natural language query processing by invoking the LLM service to generate SQL, executing that SQL against the database, and returning results with explanations.
+            \item \textbf{Filter Service:} Validates and applies structured filter conditions to experimental sessions, supporting multi-field filtering with AND logic.
+            \item \textbf{Visualization Service:} Generates data aggregations and transformations for bar charts, line charts, and heatmaps. Manages observation code availability and chart configuration options.
+            \item \textbf{Inventory Service:} Computes counts across raw data object types for sessions matching filter criteria and retrieves session metadata lists.
+            \item \textbf{LLM Service:} Abstraction layer for Large Language Model interactions, including SQL generation with rationale, conversational responses, and prompt management.
+            \item \textbf{Download Service:} Packages session data, smoothed behavioral metrics, and analysis results for download. Handles file zipping and stream responses.
+            \item \textbf{Summary Service:} Manages graph query execution and pre-defined query slots for multi-panel dashboard displays.
+        \end{itemize}
+    
+    \item \textbf{Database Layer (PostgreSQL):} A relational database schema that unifies behavioral trial data from multiple datasets with standardized metadata. Session-centric design with central \texttt{experimental\_sessions} table linked to:
+        \begin{itemize}
+            \item Subject information (rats table with ID, name, sex, strain, DOB)
+            \item Experimenter details (testers table)
+            \item Equipment specifications (apparatuses, apparatus\_patterns, testing\_rooms)
+            \item Drug administration records (drug\_rx, drug\_compounds)
+            \item Surgical interventions (brain\_manipulations with region and procedure type)
+            \item Session metadata (session types, timestamps, body weight, light conditions)
+            \item Raw data object references and trial identifiers
+        \end{itemize}
+        The database schema acts as the normalized data store, consolidating diverse datasets into a queryable format while maintaining referential integrity.
+    
+    \item \textbf{LLM Components:} Language model infrastructure supporting natural language understanding and generation:
+        \begin{itemize}
+            \item \textbf{LLM Service:} Core service managing API calls to external LLM providers (configured via environment variables) for SQL generation, query rationale, and conversational responses.
+            \item \textbf{Prompt Builder:} Constructs structured prompts that include database schema information, query examples, and task-specific instructions for the LLM.
+            \item \textbf{Schema Inspector:} Inspects and extracts database schema metadata to provide the LLM with accurate table and column information for SQL generation.
+        \end{itemize}
+    
+    \item \textbf{Configuration and Connection Management:} Infrastructure components that establish and maintain system connectivity:
+        \begin{itemize}
+            \item \textbf{Database Connection Manager:} Uses psycopg2 to establish PostgreSQL connections, providing dependency injection for FastAPI routes. Manages connection lifecycle (opening/closing).
+            \item \textbf{Environment Configuration:} Loads and validates application settings (database credentials, LLM API keys, model selection) from environment variables using Pydantic settings.
+        \end{itemize}
+
 \end{enumerate}
+\begin{figure}[p]
+    \centering
+    \makebox[\textwidth][c]{%
+        \includegraphics[width=1.1\textwidth]{SystemBoundariesDiagram.png}%
+    }
+    \caption{System Boundaries Diagram}
+    \label{fig:SystemBoundaries}
+\end{figure}
 
 \section{Critical Assumptions}
 
 
 \begin{enumerate}
     \item FRDR API Availability
-    \item[] It is assumed that the FRDR repository and corresponding API will remain accessibile and availabile throughout the lifetime of the product. API outages and/or other lapses in availability of this resource will be considered outside of the team's control. 
+    \item[] It is assumed that the FRDR repository and corresponding API will remain accessibile and availabile throughout the lifetime of the product. API outages and/or other lapses in availability of this resource will be considered outside of the team's control. To mitigate potential unavailability, the system will implement local data caching for frequently accessed metadata, periodic snapshots of key datasets, and support for hybrid storage models (e.g., mirroring critical data locally for offline access). If FRDR becomes permanently unavailable, the system can fall back to cached data with clear user notifications about data freshness. 
     \item Read-Only Data Access
     \item[] It is assumed that the system will access the FRDR dataset solely in a read-only manner. Therefore, the system will not add, modify, or delete data from the source repository. 
     \item Minimum System Access Standards
@@ -117,12 +161,12 @@ The primary purpose of conducting this analysis is to identify software related 
 \subsection{Hazards Considered Out of Scope}
 
 \begin{itemize}
-    \item The FRDR domain goes down for reasons such as maintenance or an outage
-    \item The FRDR repository or a subset of it is lost or corrupted
-    \item Addition, modification, or deletion of FRDR data by an authorized user
-    \item Pre-existing errors in FRDR metadata and mislabeled entries
-    \item The user misuses data by making an error in interpreting information through the system's data visualizer
-    \item User experience affected by local system issues such as slow internet or failing hardware
+    \item The FRDR domain goes down for reasons such as maintenance or an outage (justification: This is managed by an external provider, Digital Research Alliance of Canada, and is beyond the team's control; however, the system includes monitoring and user notifications for such events).
+    \item The FRDR repository or a subset of it is lost or corrupted (justification: Data preservation is handled by FRDR's infrastructure with redundant storage and backups; the system assumes data integrity but cannot prevent or recover from FRDR-level failures).
+    \item Addition, modification, or deletion of FRDR data by an authorized user (justification: The system operates in read-only mode and does not provide data modification capabilities; changes to FRDR are performed externally by data owners like Dr. Szechtman).
+    \item Pre-existing errors in FRDR metadata and mislabeled entries (justification: The system assumes source data integrity as per ASSUMPTION.7 in the SRS; systematic errors would require FRDR-level corrections, not system-level fixes).
+    \item The user misuses data by making an error in interpreting information through the system's data visualizer (justification: While system design can mitigate this through clear labeling and tooltips, ultimate data interpretation is a user responsibility; the system provides accurate data but cannot control how users analyze it).
+    \item User experience affected by local system issues such as slow internet or failing hardware (justification: The system requires minimum standards (modern browser, JavaScript) but cannot control user-side infrastructure; users on legacy systems may experience reduced functionality as noted in ASSUMPTION.6).
 \end{itemize}
 
 \subsection{Failure Modes and Effect Analysis Table}

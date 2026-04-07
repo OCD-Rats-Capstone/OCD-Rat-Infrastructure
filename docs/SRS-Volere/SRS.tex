@@ -275,11 +275,15 @@ to drastically improve the availability of the vast data set they have created s
     \item Extensions and add ons in the project.
 \end{itemize}
 
-\begin{figure}[H]
+
+
+\begin{figure}[p]
     \centering
-    \includegraphics[width=0.5\textwidth]{2.1 Org Chart.png}
+    \makebox[\textwidth][c]{%
+        \includegraphics[width=1.1\textwidth]{2.1 Org Chart.png}%
+    }
     \caption{Client Organizational Chart.}
-    \label{fig:myimage}
+    \label{fig:Client Org Chart}
 \end{figure}
 
 \begin{table}[H] 
@@ -324,7 +328,7 @@ knowledge on the topics for each step, and feedback where it is needed.}
     \centering
     \includegraphics[width=1\textwidth]{2.3 Other Stakeholders Chart.png}
     \caption{Stakeholder Chart.}
-    \label{fig:myimage}
+    \label{fig:stakeholder-chart}
 \end{figure}
 
 \subsection{Hands-On Users of the Project}
@@ -344,13 +348,13 @@ These users will primarily interact with the system through the web interface fo
 
 \subsection{Personas}
 
-Personas represent typical users of the system. They help in understanding user needs, goals, and interactions with the software. Each persona should include demographic information, technical expertise, motivations, and usage patterns.
+Personas represent typical users of the system. They help in understanding user needs, goals, and interactions with the software. Each persona should include demographic information, technical expertise, motivations, and usage patterns. Personas are designed following the V.A.R.I.E.D. criteria (Vivid, Actionable, Realistic, Independent, Empathetic, Diverse) to ensure they are relatable and useful for design decisions.
 
 \begin{itemize}
-    \item \textbf{Persona Name:} Undergraduate Student
+    \item \textbf{Persona Name:} Alex Johnson, Undergraduate Student
     \begin{itemize}
         \item \textbf{Role/Occupation:} Undergraduate student studying in the sciences.
-        \item \textbf{Demographics:} 21 years old, undergraduate at McMaster University.
+        \item \textbf{Demographics:} 21 years old, male, undergraduate at McMaster University in Hamilton, Ontario, Canada.
         \item \textbf{Technical Expertise:} Basic knowledge in the sciences, familiar with query interfaces, moderate computer and data analysis skills.
         \item \textbf{Goals:} Search, filter, and download records from the database for coursework or research projects.
         \item \textbf{Tasks/Responsibilities:} Navigate the website, search and filter the database, access relevant datasets.
@@ -358,10 +362,10 @@ Personas represent typical users of the system. They help in understanding user 
         \item \textbf{Usage Scenario:} Accessing the platform during a lab session to analyze data and draw conclusions.
     \end{itemize}
 
-    \item \textbf{Persona Name:} Developer
+    \item \textbf{Persona Name:} Jordan Lee, Developer
     \begin{itemize}
         \item \textbf{Role/Occupation:} Software developer or technical enthusiast.
-        \item \textbf{Demographics:} 20+ years old, undergraduate-level knowledge, comfortable with computers and software.
+        \item \textbf{Demographics:} 22 years old, non-binary, undergraduate-level knowledge, comfortable with computers and software, based in Toronto, Ontario, Canada.
         \item \textbf{Technical Expertise:} High technical skill in programming, database usage, and development tools.
         \item \textbf{Goals:} Extend system features or integrate the platform into custom workflows.
         \item \textbf{Tasks/Responsibilities:} DevOps, project management, software development, testing new features.
@@ -369,10 +373,10 @@ Personas represent typical users of the system. They help in understanding user 
         \item \textbf{Usage Scenario:} Downloading the system to run locally and develop additional features or tools.
     \end{itemize}
 
-    \item \textbf{Persona Name:} Advisors
+    \item \textbf{Persona Name:} Dr. Maria Rodriguez, Advisors
     \begin{itemize}
         \item \textbf{Role/Occupation:} Experienced researchers or professors overseeing the project.
-        \item \textbf{Demographics:} Highly experienced in behavioral neuroscience, main stakeholders for the project.
+        \item \textbf{Demographics:} 45 years old, female, highly experienced in behavioral neuroscience, main stakeholders for the project, based in McMaster University.
         \item \textbf{Technical Expertise:} Advanced knowledge in the field and research methodologies.
         \item \textbf{Goals:} Ensure the system is scientifically accurate and usable for research.
         \item \textbf{Tasks/Responsibilities:} Provide guidance, make decisions on features, validate data integrity.
@@ -380,10 +384,10 @@ Personas represent typical users of the system. They help in understanding user 
         \item \textbf{Usage Scenario:} Reviewing the platform and verifying its usability for research purposes.
     \end{itemize}
 
-    \item \textbf{Persona Name:} Data Scientist
+    \item \textbf{Persona Name:} Sam Patel, Data Scientist
     \begin{itemize}
         \item \textbf{Role/Occupation:} Researcher or analyst focused on computational analysis.
-        \item \textbf{Demographics:} Graduate student or postdoctoral researcher with experience in data science.
+        \item \textbf{Demographics:} 28 years old, male, graduate student or postdoctoral researcher with experience in data science, based in Vancouver, British Columbia, Canada.
         \item \textbf{Technical Expertise:} Proficient in Python, R, and statistical/machine learning tools.
         \item \textbf{Goals:} Analyze large-scale behavioral datasets, extract patterns, and generate insights.
         \item \textbf{Tasks/Responsibilities:} Run algorithms, process data, visualize results, integrate findings into research.
@@ -588,16 +592,32 @@ involved in the Project}
 
 \subsection{Assumptions}
 
-\begin{itemize}
-    \item The availability and accessibility of the data in the FRDR will be upheld in definitely or at least for the lifecycle of this project.
-    \item The system will not at any point, need to physically store any of the relevant data and can use the FRDR as a datastore.
-    \item The API provided by the FRDR repository will be made available for our use.
-    \item The query performance of the FRDR API will be reasonably efficient for our purposes.
-    \item An out of the box machine learning model(s) will be available and capable of being trained in a way that it can
-    perform natural language queries and categorization of rat behaviours. 
-    \item API requests to the repository are independent of the user's operating system and device state. i.e. Users
-    will not require any setup on their local machine to use the system.
+The following assumptions form the foundation of this system specification. Each assumption includes its explicit scope boundary, detailing what the system is and is not responsible for:
 
+\begin{itemize}
+    \item \textbf{ASSUMPTION.1 --- FRDR Availability:} We assume that the Federated Research Data Repository (FRDR) will maintain data availability and accessibility for the duration of this project's lifecycle. \textit{System Boundary: The system is NOT responsible for FRDR outages, data corruption at FRDR, or FRDR service discontinuation. Users experiencing FRDR unavailability will receive informative error messages but the system cannot guarantee data access if FRDR is offline.}
+    
+    \item \textbf{ASSUMPTION.2 --- External Data Storage Model:} We assume the system will not need to physically store copies of the behavioral trial data locally, and can depend entirely on \\gls{frdr} as the authoritative data source. \textit{System Boundary: The system is NOT designed for local data caching/replication. All query operations assume network access to FRDR. Offline operation is not supported for data queries, though the web interface may function in a limited read-only state.}
+    
+    \item \textbf{ASSUMPTION.3 --- FRDR API Availability:} We assume the FRDR repository will provide and maintain API access to dataset metadata and file objects. \textit{System Boundary: The system depends on FRDR API contract stability. If the FRDR API changes or is deprecated, system functionality would require architectural redesign. The system is NOT responsible for negotiating API changes with FRDR.}
+    
+    \item \textbf{ASSUMPTION.4 --- FRDR API Performance:} We assume the FRDR API will deliver query results with latency that enables our 2-second response time target (SAL.R.1). \textit{System Boundary: System performance is bounded by FRDR response times. If FRDR latency exceeds 1.5 seconds, the 2-second requirement cannot be met. The system is NOT responsible for optimizing FRDR infrastructure.}
+    
+    \item \textbf{ASSUMPTION.5 --- Machine Learning Model Availability:} We assume suitable pre-trained or trainable machine learning models will be available for natural language query processing and behavioral categorization. \textit{System Boundary: The system is NOT responsible for developing custom AI models from scratch. Implementation assumes third-party models (e.g., OpenAI API, Google Vertex AI) remain available and functional. Model accuracy failures are beyond system scope.}
+    
+    \item \textbf{ASSUMPTION.6 --- Client Platform Independence:} We assume web API requests are platform-independent and that users can access the system from any modern browser without special local software installation. \textit{System Boundary: The system requires a modern web browser with JavaScript/HTML5 support. Users on legacy systems, isolated networks, or with restrictive security policies may experience reduced functionality. The system is NOT designed for embedded or specialized hardware.}
+    
+    \item \textbf{ASSUMPTION.7 --- Research Data Stability:} We assume the underlying OCD rat trial data will remain scientifically valid and that no systematic errors in the source data will require widespread correction during the project lifecycle. \textit{System Boundary: The system assumes data integrity at FRDR. If systematic data errors are discovered, the system provides query capability but cannot retroactively correct erroneous results already downloaded by users.}
+    
+    \item \textbf{ASSUMPTION.8 --- PostgreSQL Viability:} We assume PostgreSQL will remain a viable, well-maintained relational database solution for the project's 5-year maintenance window. \textit{System Boundary: The system is NOT designed for migration to alternative database technologies (e.g., NoSQL, blockchain). Architectural refactoring would be required if PostgreSQL needs replacement.}
+    
+    \item \textbf{ASSUMPTION.9 --- Technology Ecosystem Stability:} We assume React, TypeScript, FastAPI, and Python ecosystem components will remain stable, well-supported technologies throughout the project lifecycle. \textit{System Boundary: The system may require dependency updates and patches but is NOT designed to accommodate wholesale technology replacements (e.g., switching from React to Vue, or Python to Go).}
+    
+    \item \textbf{ASSUMPTION.10 --- Maintenance Team Availability:} We assume future development teams will have sufficient technical documentation and code clarity to maintain and extend the system beyond the initial capstone project term. \textit{System Boundary: The system depends on documentation quality (Design Document, User Manual, inline code comments) to remain maintainable. If documentation becomes outdated or lost, future maintenance becomes significantly more costly.}
+    
+    \item \textbf{ASSUMPTION.11 --- Internet Connectivity:} We assume all end users have reliable internet connectivity and can access web-hosted services at latencies below 100ms. \textit{System Boundary: Users on high-latency connections (satellite, remote regions) may experience degraded performance. The system is NOT optimized for low-bandwidth or intermittent connectivity scenarios.}
+    
+    \item \textbf{ASSUMPTION.12 --- Dataset Scope Stability:} We assume the OCD rat behavioral trial dataset will not expand beyond the current 11 TB capacity during the 5-year operational lifespan. \textit{System Boundary: The database and infrastructure are sized for 11 TB. Significant dataset expansion would require infrastructure scaling. The system is NOT designed for dynamic, unbounded data growth.}
 \end{itemize}
 
 
@@ -613,7 +633,7 @@ Additionally, there is a large amount of metadata that is not well related to th
 users are able to access all of the available data, it is very fragmented, nearly impossible to filter and search
 effectively and hard to leverage for any specific research purposes. \newline\newline
 
-Additionally, the project from last year, \href{https://ratbat.mcmaster.ca}{RatBat}, is also pulling from the \gls{frdr}
+Additionally, the project from last year, RatBat \cite{GitHub_RatBAT}, is also pulling from the \gls{frdr}
 dataset using its provided API. Please see below of a graphical layout of the current situation.\newline\newline
 
 \indent Note that each arrow simply indicates an exchange of information from the system to some cooperating component or vice versa.}
@@ -622,7 +642,7 @@ dataset using its provided API. Please see below of a graphical layout of the cu
     \centering
     \includegraphics[width=0.8\textwidth]{6.1 Current Situation.png}
     \caption{The Current Situation}
-    \label{fig:myimage}
+    \label{fig:current-situation}
 \end{figure}
 
 
@@ -631,8 +651,8 @@ dataset using its provided API. Please see below of a graphical layout of the cu
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{6.2 Context of the Work.png}
-    \caption{The Current Situation}
-    \label{fig:myimage}
+    \caption{The Context of the Work}
+    \label{fig:context-work}
 \end{figure}
 
 \subsection{Work Partitioning}
@@ -667,6 +687,10 @@ The work is divided into the following components to ensure clarity, manageabili
     \item \textbf{NLP Integration:} 
         \begin{itemize}
             \item Integrate language model APIs to support natural language queries.
+            \item Implement keyword dictionaries for common domain terms (e.g., "compulsive behavior", "injection type") to improve query parsing accuracy.
+            \item Add caching for frequent natural language queries to reduce processing time and LLM API costs.
+            \item Develop detailed prompt engineering with domain-specific rulesets and examples to offset LLM limitations.
+            \item Provide fallback to structured filters if NLP parsing fails.
         \end{itemize}
         
     \item \textbf{Deployment and DevOps:} 
@@ -693,11 +717,14 @@ diagram objects represent business events.\newline\newline
 to the use case with the most high level event (the use case) at the beginning and every subsequent step
 being more granular. i.e. every subsequent step of the business event must be performed for the initial one to be completed. }
 
-\begin{figure}[H]
+
+\begin{figure}[p]
     \centering
-    \includegraphics[width=0.8\textwidth]{6.4 Use Case Diagram.png}
+    \makebox[\textwidth][c]{%
+        \includegraphics[width=1\textwidth]{6.4 Use Case Diagram.png}%
+    }
     \caption{Use Case Diagram}
-    \label{fig:myimage}
+    \label{fig:UseCaseDiagram}
 \end{figure}
 
 \begin{table}[H]
@@ -705,13 +732,13 @@ being more granular. i.e. every subsequent step of the business event must be pe
 \hline
 \textbf{Use Case} & \textbf{Actors} & \textbf{Description} & \textbf{Outcome} & \textbf{Functional Requirement}\\ 
 \hline
-BUC1: Get Result Set & Researcher & Query dataset & Filtered dataset returned & FUNC.R.1, FUNC.R.2, FUNC.R.3\\
+BUC1: Get Result Set & Researcher & Query dataset & Filtered dataset returned & \hyperref[req:func.r.1]{FUNC.R.1}, \hyperref[req:func.r.2]{FUNC.R.2}, \hyperref[req:func.r.3]{FUNC.R.3}\\
 \hline
-BUC2: Download Data & Researcher & Download trials & Files downloaded  & FUNC.R.6 \\
+BUC2: Download Data & Researcher & Download trials & Files downloaded  & \hyperref[req:func.r.6]{FUNC.R.6} \\
 \hline
-BUC3: Get Data Visualizations & Researcher & Generate visualizations based on a requested data set & Graphical visualizations related to relevant dataset & FUNC.R.5\\
+BUC3: Get Data Visualizations & Researcher & Generate visualizations based on a requested data set & Graphical visualizations related to relevant dataset & \hyperref[req:func.r.5]{FUNC.R.5}\\
 \hline
-BUC4: Get Behavioural Metrics & Researcher & Generate statistical metrics of rat behaviour & Statistical breakdown of behavioural metrics in relevant dataset & FUNC.R.4\\
+BUC4: Get Behavioural Metrics & Researcher & Generate statistical metrics of rat behaviour & Statistical breakdown of behavioural metrics in relevant dataset & \hyperref[req:func.r.4]{FUNC.R.4}\\
 \hline
 BUC5: Deposit Data & Dr. Henry Szechtman/Dr. Anna Dvorkin & Deposit New Data into FRDR & New data becomes available & Handled By Methods outside of System Scope \\
 \hline
@@ -722,6 +749,21 @@ BUC5: Deposit Data & Dr. Henry Szechtman/Dr. Anna Dvorkin & Deposit New Data int
 
 \section{Business Data Model and Data Dictionary}
 \subsection{Business Data Model}
+
+The Business Data Model in Figure \ref{fig:myimage} presents the major entities and relationships that describe how the system, the research users, and the underlying experimental data are structured. The model is centered on the Trial entity, which captures a single behavioral session and links the trial to the subject rat, the associated behavioral observations, the experimental conditions, and the supporting metadata. It also shows the human stakeholders involved in the project, including the Researcher, the Project Supervisor, and the Developer, to illustrate how user roles relate to the system and its data.
+
+The key diagram elements are:
+\begin{itemize}
+    \item \textbf{Researcher:} A primary system user who queries data, reviews trial results, and interprets behavior measures.
+    \item \textbf{Project Supervisor:} The academic or research supervisor overseeing the project, connected to researcher and developer roles to reflect governance and oversight.
+    \item \textbf{Developer:} The team member responsible for building and maintaining the system.
+    \item \textbf{FRDR Repository:} The external research data source where trial records are stored and from which the system ingest or references experimental datasets.
+    \item \textbf{Trial:} The central business object representing a single experiment session, including identifiers, timing, injection details, and notes.
+    \item \textbf{Rat:} The animal subject associated with each trial, with attributes such as weight, sex, age, and strain.
+    \item \textbf{Condition:} The experimental condition or treatment applied during a trial, including severity, duration, and notes.
+    \item \textbf{Behavior:} Observed behaviors recorded for each trial, including descriptions, timestamps, and intensity.
+    \item \textbf{Metadata:} Supporting files and descriptive information for each trial, including file type, size, keys, and values.
+\end{itemize}
 
 \begin{figure}[H]
 \begin{center}
@@ -766,8 +808,8 @@ BUC5: Deposit Data & Dr. Henry Szechtman/Dr. Anna Dvorkin & Deposit New Data int
 \node[umlclass] (Metadata) at (12,0) {Metadata\\ \rule{\linewidth}{0.4pt}\\ + key\\ + value\\ + fileType\\ + fileSize};
 
 % Relationships
-\draw[umlrelationship] (Researcher) -- (Supervisor) node[multiplicity, pos=0.1, left] {1} node[multiplicity, pos=0.9, left] {*};
-\draw[umlrelationship] (Supervisor) -- (Developer) node[multiplicity, pos=0.1, left] {*} node[multiplicity, pos=0.9, left] {1};
+\draw[umlrelationship] (Researcher) -- (Supervisor) node[multiplicity, pos=0.1, left] {*} node[multiplicity, pos=0.9, left] {*};
+\draw[umlrelationship] (Supervisor) -- (Developer) node[multiplicity, pos=0.1, left] {*} node[multiplicity, pos=0.9, left] {*};
 
 \draw[umlrelationship] (Researcher) -- (Trial) node[multiplicity, pos=0.1, left] {*} node[multiplicity, pos=0.9, left] {*};
 \draw[umlrelationship] (Researcher) -- (FRDR) node[multiplicity, pos=0.1, below left] {*} node[multiplicity, pos=0.9, above left] {*};
@@ -781,7 +823,7 @@ BUC5: Deposit Data & Dr. Henry Szechtman/Dr. Anna Dvorkin & Deposit New Data int
 \end{tikzpicture}
 \end{center}
 \caption{Business Data Model with Detailed Attributes}
-\label{fig:myimage}
+\label{fig:business-data-model}
 \end{figure}
 
 
@@ -886,13 +928,13 @@ UC3: Deployment \& Access & DevOps Engineer & Deploy platform online or locally 
 }
 \textbf{Req \#} & \textbf{Description} & \textbf{PUC} & \textbf{Fit Criterion} & \textbf{Creation} \\
 
-\textbf{FUNC.R.1:} & The program shall filter data to produce results based on predefined labels. & 1 & When a user selects a filter, the system provides a set that matches the labels to 100\% accuracy. & 1/10/2025 \\
-\textbf{FUNC.R.2:} & The program shall generate results based on Natural Language Processing (NLP). & 1 & Given a user query, the system returns one dataset. & 1/10/2025 \\
-\textbf{FUNC.R.3:} & The program shall provide categorized data allowing the user to browse different predefined sets. & 1 & The program should have at least 3 predetermined data sets for users to browse. & 1/10/2025 \\
-\textbf{FUNC.R.4:} & The program shall provide behavioural categorization for each trial and behavioural metrics for result sets. & 1 & Each trial has at least one categorization. & 1/10/2025 \\
-\textbf{FUNC.R.5:} & The program shall create visuals based on the results set. & 1 & For each result set, there is at least one corresponding visual. & 1/10/2025 \\
-\textbf{FUNC.R.6:} & The program shall download data. & 1,2 & Users can export data sets or visualizations, verified against the first 100 rows. & 1/10/2025 \\
-\textbf{FUNC.R.7:} & The program shall be easily accessible globally. & 3 & Users from multiple regions around the world can access the system without performance degradation; average page load under 4 seconds. & 1/10/2025 \\
+\textbf{FUNC.R.1:}\label{req:func.r.1} & The program shall filter data to produce results based on predefined labels. & 1 & When a user selects a filter, the system provides a set that matches the labels to 100\% accuracy. & 1/10/2025 \\
+\textbf{FUNC.R.2:}\label{req:func.r.2} & The program shall generate results based on Natural Language Processing (NLP). & 1 & Given a user query, the system returns one dataset. & 1/10/2025 \\
+\textbf{FUNC.R.3:}\label{req:func.r.3} & The program shall provide categorized data allowing the user to browse different predefined sets. & 1 & The program should have at least 3 predetermined data sets for users to browse. & 1/10/2025 \\
+\textbf{FUNC.R.4:}\label{req:func.r.4} & The program shall provide behavioural categorization for each trial and behavioural metrics for result sets. & 1 & Each trial has at least one categorization. & 1/10/2025 \\
+\textbf{FUNC.R.5:}\label{req:func.r.5} & The program shall create visuals based on the results set. & 1 & For each result set, there is at least one corresponding visual. & 1/10/2025 \\
+\textbf{FUNC.R.6:}\label{req:func.r.6} & The program shall download data. & 1,2 & Users can export data sets or visualizations, verified against the first 100 rows. & 1/10/2025 \\
+\textbf{FUNC.R.7:}\label{req:func.r.7} & The program shall be easily accessible globally. & 3 & Users from multiple regions around the world can access the system without performance degradation; average page load under 4 seconds. & 1/10/2025 \\
 \end{longtblr}
 
 \begin{longtblr}[
@@ -909,10 +951,10 @@ UC3: Deployment \& Access & DevOps Engineer & Deploy platform online or locally 
 \textbf{FUNC.R.1} & This is the foundation of the system. The most basic and important goal of our users is to be able to access this data in a unified and holistic way to
             enable researchers to repurpose this vast amount of data in a way that is useful for their experiments. & Very High \\
 
-\textbf{FUNC.R.2} & This is an optimization of FUNC.R.1, simply providing improved accessibility for users who are less technical or may not be comfortable with
+\textbf{FUNC.R.2} & This is an optimization of \hyperref[req:func.r.1]{FUNC.R.1}, simply providing improved accessibility for users who are less technical or may not be comfortable with
             a strict filter approach. This requirement exists to enable users to receive relevant data based on ideas in natural language & High \\
 
-\textbf{FUNC.R.3} & This is an additional optimization of FUNC.R.1 which provides further accessibility improvements for users who may not know exactly what
+\textbf{FUNC.R.3} & This is an additional optimization of \hyperref[req:func.r.1]{FUNC.R.1} which provides further accessibility improvements for users who may not know exactly what
             they are looking for. Providing datasets that may be useful allows a user to browse for something that may be relevant to them
             and gives users a good starting point. & High \\
 
@@ -940,10 +982,10 @@ UC3: Deployment \& Access & DevOps Engineer & Deploy platform online or locally 
 \subsection{Appearance Requirements}
 
 \begin{itemize}
-    \item \textbf{APP.R.1:} The system shall resemble a webstore or online boutique in which possibly useful queries are packaged and presented for selection to guide 
+    \item \textbf{APP.R.1:}\label{req:app.r.1} The system shall resemble a webstore or online boutique in which possibly useful queries are packaged and presented for selection to guide 
     a non-technical user audience.
-    \item \textbf{APP.R.2:} The system shall not overwhelm the user with too many or overly complex visible features as to not intimidate a non-technical user audience.
-    \item \textbf{APP.R.3:} The system shall present the filtering and searching capabilities of the system in a way that is familiar and intuitive, such as the 
+    \item \textbf{APP.R.2:}\label{req:app.r.2} The system shall not overwhelm the user with too many or overly complex visible features as to not intimidate a non-technical user audience.
+    \item \textbf{APP.R.3:}\label{req:app.r.3} The system shall present the filtering and searching capabilities of the system in a way that is familiar and intuitive, such as the 
     filtering provided in an online shopping storefront.
 \end{itemize}
 
@@ -958,9 +1000,9 @@ UC3: Deployment \& Access & DevOps Engineer & Deploy platform online or locally 
 \subsection{Ease of Use Requirements}
 
 \begin{itemize}
-    \item \textbf{EOU.R.1:} The system shall have a very low ease of use floor. This floor being scrolling through
+    \item \textbf{EOU.R.1:}\label{req:eou.r.1} The system shall have a very low ease of use floor. This floor being scrolling through
     pre-packaged query options and clicking on the one most relevant to their needs.
-    \item \textbf{EOU.R.2:} The system shall have a reasonably low ease of use ceiling with intuitive an intuitive filtering interface
+    \item \textbf{EOU.R.2:}\label{req:eou.r.2} The system shall have a reasonably low ease of use ceiling with intuitive an intuitive filtering interface
     as well as a simple natural language search interface and provided options for generating metrics and visualizations.
 \end{itemize}
 
@@ -973,19 +1015,19 @@ UC3: Deployment \& Access & DevOps Engineer & Deploy platform online or locally 
 \subsection{Learning Requirements}
 
 \begin{itemize}
-    \item \textbf{LEA.R.1:} Assuming that the user is familiar with nature of the data itself, the system should
+    \item \textbf{LEA.R.1:}\label{req:lea.r.1} Assuming that the user is familiar with nature of the data itself, the system should
     have a learning curve of less than 30 minutes. Users shall easily be able to find and use searching
     mechanisms and querying pre-packaged and custom searches shall be very intuitive.
-    \item \textbf{LEA.R.2:} The system shall provide options to generate available metrics or visualizations based on the queried
+    \item \textbf{LEA.R.2:}\label{req:lea.r.2} The system shall provide options to generate available metrics or visualizations based on the queried
     data so the user does not need to learn to create their own.
 \end{itemize}
 
 \subsection{Understandability and Politeness Requirements}
 
 \begin{itemize}
-    \item \textbf{UAP.R.1:} The system shall hide the technical details of its queries from the users and only present naturally understandable information
+    \item \textbf{UAP.R.1:}\label{req:uap.r.1} The system shall hide the technical details of its queries from the users and only present naturally understandable information
     about the result set (i.e. show applied filters, natural language summary of the results).
-    \item \textbf{UAP.R.2:} The general interface of the system should only include words that are naturally understandable to a non-technical audience (i.e. Add filters vs.
+    \item \textbf{UAP.R.2:}\label{req:uap.r.2} The general interface of the system should only include words that are naturally understandable to a non-technical audience (i.e. Add filters vs.
     refine query or get data vs. send database request) with the exception of technical terms in the behavioural science domain
     that are inherent to the dataset.
 \end{itemize}
@@ -993,15 +1035,15 @@ UC3: Deployment \& Access & DevOps Engineer & Deploy platform online or locally 
 \subsection{Accessibility Requirements}
 
 \par{
-   \textbf{ACC.R.1:} The system must comply with basic web accessibility standards to ensure usability for a diverse set of researchers. All page elements must be complete with proper labelling to meet ARIA standards and ensure compatibility with assistive technology. Media including images, videos, and diagrams must offer proper alt-text and captions wherever possible. Furthermore, the system must use sufficient color contrast to support users with color blindness, and support text scaling to ensure legibility at larger font sizes.   
+   \textbf{ACC.R.1:}\label{req:acc.r.1} The system must comply with web accessibility standards including WCAG 2.1 Level AA \cite{WCAG2021} to ensure usability for a diverse set of researchers. All page elements must be complete with proper labelling to meet ARIA standards \cite{W3CARIA2022} and ensure compatibility with assistive technology. Media including images, videos, and diagrams must offer proper alt-text and captions wherever possible. Furthermore, the system must use sufficient color contrast to support users with color blindness, and support text scaling to ensure legibility at larger font sizes.   
 }
 
 \section{Performance Requirements}
 
 \subsection{Speed and Latency Requirements}
 \begin{itemize}
-    \item \textbf{SAL.R.1:} The system shall return all query results within 2 seconds for result sets of up to 5,000 records.
-    \item \textbf{SAL.R.2:} All network requests shall have latency below 100 ms under normal operating conditions.
+    \item \textbf{SAL.R.1:}\label{req:sal.r.1} The system shall return all query results within 2 seconds for result sets of up to 5,000 records (metadata only, excluding large media files such as videos). This applies to queries against the local database populated from FRDR. Dataset size: 11 TB; expected indices: on trial ID, timestamp, rat ID, injection type; hardware: cloud VM with 4 vCPUs, 16 GB RAM; expected concurrency: up to 250 users. \textit{Rationale: This 2-second response time is justified by established user expectations for web applications \cite{NielsenWebUsability2000} and research tools, where delays beyond this threshold significantly impact productivity and user satisfaction. Research shows that users perceive systems as responsive when response times are under 2 seconds, and this metric ensures the system remains usable for interactive data exploration without requiring users to wait excessively between queries. Alignment with Hazard Analysis: External networks/FRDR are out of scope for guarantees but in scope for monitoring.}
+    \item \textbf{SAL.R.2:}\label{req:sal.r.2} Server-side processing latency for API requests shall be p95 $\leq$ 400 ms under normal operating conditions (excluding network transmission time). \textit{Rationale: Server-side latency below 400ms (p95) ensures smooth user interactions for real-time features like filtering and navigation, focusing on controllable processing time rather than end-to-end network delays. This metric is based on web performance standards \cite{NielsenWebUsability2000} where server response times above this threshold begin to noticeably degrade user experience, particularly for dynamic interfaces with frequent API calls. Alignment with Hazard Analysis: External networks/FRDR are out of scope for guarantees but in scope for monitoring.}
 \end{itemize}
 
 \subsection{Safety-Critical Requirements}
@@ -1011,66 +1053,66 @@ UC3: Deployment \& Access & DevOps Engineer & Deploy platform online or locally 
 
 \subsection{Precision or Accuracy Requirements}
 \begin{itemize}
-    \item \textbf{POA.R.1:} All query results shall be accurate and filtered according to user specifications.
-    \item \textbf{POA.R.2:} There shall be no inconsistencies between the source database and query results.
+    \item \textbf{POA.R.1:}\label{req:poa.r.1} All query results shall be accurate and filtered according to user specifications.
+    \item \textbf{POA.R.2:}\label{req:poa.r.2} There shall be no inconsistencies between the source database and query results.
 \end{itemize}
 
 \subsection{Robustness or Fault-Tolerance Requirements}
 \begin{itemize}
-    \item \textbf{ROFT.R.1:} The system shall log and report all input errors without crashing.
-    \item \textbf{ROFT.R.2:} The backend shall handle errors gracefully, storing detailed logs for debugging and monitoring purposes.
+    \item \textbf{ROFT.R.1:}\label{req:roft.r.1} The system shall log and report all input errors without crashing.
+    \item \textbf{ROFT.R.2:}\label{req:roft.r.2} The backend shall handle errors gracefully, storing detailed logs for debugging and monitoring purposes.
 \end{itemize}
 
 \subsection{Capacity Requirements}
 \begin{itemize}
-    \item \textbf{CAP.R.1:} The system shall support up to 250 concurrent users and handle 5,000 transactions per hour.
-    \item \textbf{CAP.R.2:} The database and associated controllers shall be able to manage up to 11 TB of data.
+    \item \textbf{CAP.R.1:}\label{req:cap.r.1} The system shall support up to 250 concurrent users and handle 5,000 transactions per hour. \textit{Rationale: The 250 concurrent users metric is based on expected usage patterns for a specialized research tool serving the OCD behavioral research community. The 5,000 transactions per hour accounts for typical query patterns where users perform multiple filtering and visualization operations during analysis sessions, ensuring the system can handle peak academic usage periods.}
+    \item \textbf{CAP.R.2:}\label{req:cap.r.2} The database and associated controllers shall be able to manage up to 11 TB of data. \textit{Rationale: The 11 TB capacity requirement is derived from the current size of the FRDR dataset (approximately 60,000 data objects) plus projected growth over the system's 5-year lifespan. This ensures the system can accommodate dataset expansion without requiring immediate architectural changes.}
 \end{itemize}
 
 \subsection{Scalability or Extensibility Requirements}
 \begin{itemize}
     \item \textbf{SOE.R.1:} The system shall allow additional modules to be integrated without requiring major changes to existing features.
-    \item \textbf{SOE.R.2:} Under heavy user loads, the system shall maintain at least 80\% of its performance efficiency.
+    \item \textbf{SOE.R.2:}\label{req:soe.r.2} Under heavy user loads, the system shall maintain at least 80\% of its performance efficiency.
 \end{itemize}
 
 \subsection{Longevity Requirements}
 \begin{itemize}
-    \item \textbf{LON.R.1:} The system shall be designed to operate reliably for at least 5 years, with multiple teams and developers able to maintain and extend it.
-    \item \textbf{LON.R.2:} The system shall be compatible with any operating system when running offline.
+    \item \textbf{LON.R.1:}\label{req:lon.r.1} The system shall be designed to operate reliably for at least 5 years, with multiple teams and developers able to maintain and extend it.
+    \item \textbf{LON.R.2:}\label{req:lon.r.2} The system shall be compatible with any operating system when running offline.
 \end{itemize}
 
 
 \section{Operational and Environmental Requirements}
 \subsection{Expected Physical Environment}
 \begin{itemize}
-    \item \textbf{EPE.R.1:} The system shall be able to run on a standard desktop with atleast 12 GB RAM and average processor.
-    \item \textbf{EPE.R.2:} The software shall function correctly on Windows, macOS, and Linux operating systems.
-    \item \textbf{EPE.R.3:} The software should be able to run in normal office environment conditions which includes temperatures between 15°C and 30°C. 
+    \item \textbf{EPE.R.1:}\label{req:epe.r.1} The system shall be able to run on a standard desktop with atleast 12 GB RAM and average processor.
+    \item \textbf{EPE.R.2:}\label{req:epe.r.2} The software shall function correctly on Windows, macOS, and Linux operating systems.
+    \item \textbf{EPE.R.3:}\label{req:epe.r.3} The software should be able to run in normal office environment conditions which includes temperatures between 15°C and 30°C. 
 \end{itemize}
 
 \subsection{Wider Environment Requirements}
 
 \begin{itemize}
-    \item \textbf{WE.R.1:} The system shall be able to run the top three popular browers.
+    \item \textbf{WE.R.1:}\label{req:we.r.1} The system shall be able to run the top three popular browers.
 \end{itemize}
 
 
 \subsection{Requirements for Interfacing with Adjacent Systems}
 
 \begin{itemize}
-    \item \textbf{IWAS.R.1:} Data exchanged with adjacent systems shall use JSON format and be transmitted over HTTPS.
+    \item \textbf{IWAS.R.1:}\label{req:iwas.r.1} Data exchanged with adjacent systems shall use JSON format and be transmitted over HTTPS \cite{HTTPSecurity2023}.
 \end{itemize}
 
 \subsection{Productization Requirements}
 \begin{itemize}
-    \item \textbf{PROD.R.1:} The system will use Docker and Kubernetes as it's envoirment for assebility to run on all systems.
+    \item \textbf{PROD.R.1:}\label{req:prod.r.1} The system will use Docker and Kubernetes as it's envoirment for assebility to run on all systems.
     \item \textbf{PROD.R.2:} The system will provide all code changes and software updates on the GitHub Repository. 
 \end{itemize}
 
 \subsection{Release Requirements}
 \begin{itemize}
-    \item \textbf{REL.R.1:} The system releases shall follow the versioning defined by MAJOR\#.MINOR\#.PATCH\#.
-    \item \textbf{REL.R.2} The system will provide all code changes and software updates on the GitHub Repository. Code then can be pulled and tagged from the appraite GitHub release.
+    \item \textbf{REL.R.1:}\label{req:rel.r.1} The system releases shall follow the versioning defined by MAJOR\#.MINOR\#.PATCH\#.
+    \item \textbf{REL.R.2:}\label{req:rel.r.2} The system will provide all code changes and software updates on the GitHub Repository. Code then can be pulled and tagged from the appraite GitHub release.
 \end{itemize}
 
 
@@ -1078,27 +1120,27 @@ UC3: Deployment \& Access & DevOps Engineer & Deploy platform online or locally 
 \subsection{Maintenance Requirements}
 
 \begin{itemize}
-    \item \textbf{MAI.R.1:} Due to the open source nature of this system, maintenance shall be possible for those who are not the original developers.
+    \item \textbf{MAI.R.1:}\label{req:mai.r.1} Due to the open source nature of this system, maintenance shall be possible for those who are not the original developers.
     The future design documentation shall provide the necessary information to accomplish this
-    \item \textbf{MAI.R.2:} The system shall be able to immediately accomodate the addition of new datasets into the \gls{frdr}
+    \item \textbf{MAI.R.2:}\label{req:mai.r.2} The system shall be able to immediately accomodate the addition of new datasets into the \gls{frdr}
     assuming the contain relevant data and reflect the same structure and template as the existing datasets.
 \end{itemize}
 
 \subsection{Supportability Requirements}
 
 \begin{itemize}
-    \item \textbf{SUP.R.1:} The system shall be released alongside a user manual to support users in helping them understand
+    \item \textbf{SUP.R.1:}\label{req:sup.r.1} The system shall be released alongside a user manual to support users in helping them understand
     the capabilities of the system and the methods for producing useful requests to the system.
-    \item \textbf{SUP.R.2:} The system shall be self-supporting outside of the user manual as the developers will not be able
+    \item \textbf{SUP.R.2:}\label{req:sup.r.2} The system shall be self-supporting outside of the user manual as the developers will not be able
     to provide support after the project concludes and the developers graduate.
 \end{itemize}
 
 \subsection{Adaptability Requirements}
 
 \begin{itemize}
-    \item \textbf{ADA.R.1:} The system is expected to run on Windows 10 and later, Linux and MacOS.
-    \item \textbf{ADA.R.2:} The system is expected to run on the top three most popular web browsers.
-    \item \textbf{ADA.R.3:} The system is expected to maintain reasonable performance for users using devices
+    \item \textbf{ADA.R.1:}\label{req:ada.r.1} The system is expected to run on Windows 10 and later, Linux and MacOS.
+    \item \textbf{ADA.R.2:}\label{req:ada.r.2} The system is expected to run on the top three most popular web browsers.
+    \item \textbf{ADA.R.3:}\label{req:ada.r.3} The system is expected to maintain reasonable performance for users using devices
     with poor processing power. 
 
 \end{itemize}
@@ -1110,7 +1152,7 @@ UC3: Deployment \& Access & DevOps Engineer & Deploy platform online or locally 
 
 \subsection{Integrity Requirements}
 
-\par{\textbf{INT.R.1:} The product shall prevent itself, the databases, and other files within it from intentional abuse.}
+\par{\textbf{INT.R.1:}\label{req:int.r.1} The product shall prevent itself, the databases, and other files within it from intentional abuse.}
 
 \subsection{Privacy Requirements}
 
@@ -1126,9 +1168,9 @@ and they only view already publicly available data, therefore no auditing is req
 \subsection{Immunity Requirements}
 
 \begin{itemize}
-    \item \textbf{IMM.R.1:} The system shall be immune to unauthorized attemps to alter data queries, inject code or exterior data, or overwhelm 
-the system with an excessive ammount of requests. 
-    \item \textbf{IMM.R.2:} All inputs must be validated with network traffic being served exclusively over HTTPS, 
+    \item \textbf{IMM.R.1:}\label{req:imm.r.1} The system shall be immune to unauthorized attemps to alter data queries, inject code or exterior data, or overwhelm 
+the system with an excessive ammount of requests, following OWASP Top 10 security guidelines \cite{OWASPTop10}. 
+    \item \textbf{IMM.R.2:}\label{req:imm.r.2} All inputs must be validated with network traffic being served exclusively over HTTPS \cite{HTTPSecurity2023}, 
 and users must be rate-limited to a maximum of 100 query requests per minute.
 \end{itemize}
 
@@ -1139,19 +1181,35 @@ and users must be rate-limited to a maximum of 100 query requests per minute.
 \section{Compliance Requirements}
 \subsection{Legal Requirements}
 
-\par{\textbf{LEG.R.1:} The system must uphold all software licenses of third-party and integrated systems, as well as adhere to the MIT license defined in the project repository. \newline \indent We have consent from our 
-supervisors, Dr. Henry Szechtman and Dr. Anna Dvorkin-Gheva to use their data set in the development of the project. Additionally, 
-we are allowed to reference the work of the capstone group, ratbat.mcmaster.ca, which they supervised during the previous year.}
+\par{\textbf{LEG.R.1:}\label{req:leg.r.1} The system must uphold all software licenses of third-party and integrated systems, as well as adhere to the MIT license defined in the project repository. \newline \indent We have consent from our 
+ supervisors, Dr. Henry Szechtman and Dr. Anna Dvorkin-Gheva to use their data set in the development of the project. Additionally, 
+ we are allowed to reference the work of the capstone group, ratbat.mcmaster.ca, which they supervised during the previous year.}
 
 \subsection{Standards Compliance Requirements}
 
+The system must comply with the following explicitly stated standards, codes, and regulatory frameworks:
+
 \begin{itemize}
-    \item \textbf{STA.R.1:} The platform should respect the licensing and citation requirements of \gls{frdr}. 
-    \item \textbf{STA.R.2:} The system must uphold all guidelines pertaining to ethical use of animal research data.
+    \item \textbf{STA.R.1:}\label{req:sta.r.1} \textbf{FRDR Data Standards:} The platform should respect the licensing and citation requirements of FRDR \cite{FRDR2024}. All dataset citations must follow FRDR guidelines for proper academic attribution.
+    
+    \item \textbf{STA.R.2:}\label{req:sta.r.2} \textbf{Animal Research Ethics Standards:} The system must uphold all guidelines pertaining to ethical use of animal research data, including compliance with institutional animal care and use protocols.
+    
+    \item \textbf{STA.R.3:} \textbf{Web Accessibility Standards (WCAG 2.1):} The system shall conform to Web Content Accessibility Guidelines Level AA \cite{WCAG2021}, including keyboard navigation, screen reader compatibility, and color contrast requirements (minimum 4.5:1 for normal text).
+    
+    \item \textbf{STA.R.4:} \textbf{ARIA Accessibility Standards:} User interface components must implement ARIA (Accessible Rich Internet Applications) specifications \cite{W3CARIA2022} for proper semantic markup and assistive technology support.
+    
+    \item \textbf{STA.R.5:} \textbf{HTTPS/HTTP Security Standards:} All network communications must be transmitted over HTTPS using current TLS standards \cite{HTTPSecurity2023}, with support for HTTP/2 to minimize latency.
+    
+    \item \textbf{STA.R.6:} \textbf{OWASP Top 10 Security Standards:} The system must implement security controls aligned with OWASP Top 10 \cite{OWASPTop10} to prevent SQL injection, cross-site scripting (XSS), cross-site request forgery (CSRF), and other common web vulnerabilities.
+    
+    \item \textbf{STA.R.7:} \textbf{JSON Data Format Standard:} All API responses and data exchange shall follow JSON standards for semantic clarity and cross-platform compatibility.
+    
+    \item \textbf{STA.R.8:} \textbf{Software Licensing Standards:} The system shall adhere to MIT License terms for source code distribution and properly attribute all third-party dependencies and their respective licenses.
+    
+    \item \textbf{STA.R.9:} \textbf{Semantic Versioning:} Software releases shall follow Semantic Versioning 2.0.0 (MAJOR.MINOR.PATCH format) to clearly communicate the nature of changes and backward compatibility implications.
+    
+    \item \textbf{STA.R.10:} \textbf{Docker Container Standards:} Container deployment shall follow Docker and Kubernetes best practices for reproducible, portable environments across heterogeneous systems.
 \end{itemize}
-
-\section{Open Issues}
-
 \begin{itemize}
     \item \textbf{OI.1:} Verification of the specific capabilities of the \gls{frdr} \gls{api} have not yet been investigated.
     \item \textbf{OI.2:} The extraction of the metadata of each data object is not complete and the process for extracting/referencing the metadata
@@ -1169,7 +1227,7 @@ Several open source or commercially available products provide out of the box fu
     \item Databases 
     \item[] Products like PostgreSQL, MongoDB, and AWS RDS are database offerings that provide robust data storage and indexing capabilities. These products meet the needs for data management at scale, but may require customization to fit the project's use. 
     \item Artificial Intelligence 
-    \item[] Google's Vertex AI and the OpenAI API offer a suite of products pertaining to natural language processing and image analysis. These may be effective tools for the natural language and data processing tools central to the project, but require integration with a third party API external to the system. Specialized tools like \href{https://github.com/DeepLabCut/DeepLabCut}{DeepLabCut} offer open-source tools for animal behavioral analysis. 
+    \item[] Google's Vertex AI and the OpenAI API offer a suite of products pertaining to natural language processing and image analysis. These may be effective tools for the natural language and data processing tools central to the project, but require integration with a third party API external to the system. Specialized tools like DeepLabCut \cite{GitHub_RatBAT} offer open-source tools for animal behavioral analysis. 
 
 \end{itemize}
 
@@ -1177,12 +1235,12 @@ Several open source or commercially available products provide out of the box fu
 
 \subsection{Reusable Components}
 
-Dr. Henry Szechtman and Dr. Anna Dvorkin-Gheva possess several pre-existing software modules that can be incorporated into the system with minimal modification. This suite of tools exists as a system called \href{https://github.com/brandonc-edu/RatBAT/tree/main}{RatBat}: a previous effort to implement an interactive data platform for the OCD rodent dataset. These modules include components for interfacing with the existing dataset, as well as tools for querying the dataset. The existing \href{https://doi.org/10.1093/gigascience/giac092}{database} includes an extensive set of trials, outcomes, and metadata comprising a core reusable project component.
+Dr. Henry Szechtman and Dr. Anna Dvorkin-Gheva possess several pre-existing software modules that can be incorporated into the system with minimal modification. This suite of tools exists as a system called RatBat \cite{GitHub_RatBAT}: a previous effort to implement an interactive data platform for the OCD rodent dataset. These modules include components for interfacing with the existing dataset, as well as tools for querying the dataset. The existing \href{https://doi.org/10.1093/gigascience/giac092}{database} includes an extensive set of trials, outcomes, and metadata comprising a core reusable project component.
 
 \subsection{Products That Can Be Copied}
 
 
-The client has provided several resources to serve as references for the implementation of the system. One similar interface is the \href{https://portal.gdc.cancer.gov/analysis_page?app=CohortBuilder&tab=general_diagnosis}{GDC Data Portal} which provides a querying interface that may be replicated by the system. Furthermore, the client expressed a goal of incorporating a user-friendly, e-commerce-like catalogue interface, citing retailers such as \href{https://amazon.ca}{Amazon} as a reference for user interface design. 
+The client has provided several resources to serve as references for the implementation of the system. One similar interface is the GDC Data Portal \cite{GDCDataPortal2024} which provides a querying interface that may be replicated by the system. Furthermore, the client expressed a goal of incorporating a user-friendly, e-commerce-like catalogue interface, citing retailers such as \href{https://amazon.ca}{Amazon} as a reference for user interface design. 
 
 
 \section{New Problems}
@@ -1253,7 +1311,7 @@ the operating environment can support the system.}
         \item User authentication service
         \item Basic web interface
     \end{itemize}
-    \item \textbf{Functional Requirements Included:} FUNC.R.1 (filter data), FUNC.R.2 (NLP query support)
+    \item \textbf{Functional Requirements Included:} \hyperref[req:func.r.1]{FUNC.R.1} (filter data), \hyperref[req:func.r.2]{FUNC.R.2} (NLP query support)
     \item \textbf{Non-Functional Requirements Included:} 
     \begin{itemize}
         \item Intuitive filtering and natural language querying
@@ -1273,7 +1331,7 @@ the operating environment can support the system.}
         \item Visualization library integration
         \item Enhanced storage for larger result sets
     \end{itemize}
-    \item \textbf{Functional Requirements Included:} FUNC.R.3 (categorized browsing), FUNC.R.4 (behavioral metrics), FUNC.R.5 (visuals)
+    \item \textbf{Functional Requirements Included:} \hyperref[req:func.r.3]{FUNC.R.3} (categorized browsing), \hyperref[req:func.r.4]{FUNC.R.4} (behavioral metrics), \hyperref[req:func.r.5]{FUNC.R.5} (visuals)
     \item \textbf{Non-Functional Requirements Included:}
     \begin{itemize}
         \item Appearance must resemble an online storefront with pre-packaged queries
@@ -1294,7 +1352,7 @@ the operating environment can support the system.}
         \item Export/download service
         \item Scalable cloud infrastructure
     \end{itemize}
-    \item \textbf{Functional Requirements Included:} FUNC.R.6 (download data), FUNC.R.7 (global accessibility)
+    \item \textbf{Functional Requirements Included:} \hyperref[req:func.r.6]{FUNC.R.6} (download data), \hyperref[req:func.r.7]{FUNC.R.7} (global accessibility)
     \item \textbf{Non-Functional Requirements Included:}
     \begin{itemize}
         \item Security standards: HTTPS, input validation, rate limiting
@@ -1344,9 +1402,40 @@ No explicit training will be needed }
     \item \textbf{WR.3:} The system will support reusability in a dataset-agnostic way, enabling system functionality to be applied to other behavioral datasets.
 \end{itemize}
 
-\pagebreak
+\section{Requirements Traceability}
 
-\section{Ideas for Solution}
+\subsection{Traceability Matrix}
+
+The following traceability matrix maps functional requirements to their related non-functional requirements, demonstrating how quality attributes support the core functionality of the system.
+
+\begin{longtblr}[
+  caption = {Requirements Traceability Matrix},
+  label = {tbl:traceability},
+]{
+  colspec = {Q[c,2.5cm] X[3,l] X[3,l]}, 
+  rowhead = 1,   
+  row{1} = {font=\bfseries},       
+  hlines,               
+}
+\textbf{Functional Req.} & \textbf{Related Non-Functional Requirements} & \textbf{Rationale for Relationship} \\
+
+\textbf{\hyperref[req:func.r.1]{FUNC.R.1}} & \hyperref[req:sal.r.1]{SAL.R.1}, \hyperref[req:poa.r.1]{POA.R.1}, \hyperref[req:poa.r.2]{POA.R.2}, \hyperref[req:roft.r.1]{ROFT.R.1}, \hyperref[req:roft.r.2]{ROFT.R.2} & Filtering accuracy requires fast response times, precision in results, error handling for invalid filters, and robust logging for debugging filter issues \\
+
+\textbf{\hyperref[req:func.r.2]{FUNC.R.2}} & \hyperref[req:sal.r.1]{SAL.R.1}, \hyperref[req:poa.r.1]{POA.R.1}, \hyperref[req:roft.r.1]{ROFT.R.1}, \hyperref[req:roft.r.2]{ROFT.R.2}, \hyperref[req:imm.r.1]{IMM.R.1}, \hyperref[req:imm.r.2]{IMM.R.2} & NLP queries need quick responses, accurate interpretation, error handling for malformed queries, security against injection attacks, and input validation \\
+
+\textbf{\hyperref[req:func.r.3]{FUNC.R.3}} & \hyperref[req:sal.r.1]{SAL.R.1}, \hyperref[req:poa.r.1]{POA.R.1}, \hyperref[req:app.r.1]{APP.R.1}, \hyperref[req:app.r.2]{APP.R.2}, \hyperref[req:app.r.3]{APP.R.3}, \hyperref[req:eou.r.1]{EOU.R.1}, \hyperref[req:eou.r.2]{EOU.R.2} & Pre-defined datasets require fast loading, accurate categorization, webstore-like appearance, intuitive browsing interface, and low learning curve \\
+
+\textbf{\hyperref[req:func.r.4]{FUNC.R.4}} & \hyperref[req:sal.r.1]{SAL.R.1}, \hyperref[req:poa.r.1]{POA.R.1}, \hyperref[req:poa.r.2]{POA.R.2}, \hyperref[req:roft.r.1]{ROFT.R.1}, \hyperref[req:roft.r.2]{ROFT.R.2} & Behavioral categorization needs fast processing, accurate metrics calculation, consistency with source data, and error logging for analysis failures \\
+
+\textbf{\hyperref[req:func.r.5]{FUNC.R.5}} & \hyperref[req:sal.r.1]{SAL.R.1}, \hyperref[req:poa.r.1]{POA.R.1}, \hyperref[req:poa.r.2]{POA.R.2}, \hyperref[req:roft.r.1]{ROFT.R.1}, \hyperref[req:roft.r.2]{ROFT.R.2}, \hyperref[req:acc.r.1]{ACC.R.1} & Data visualizations require quick rendering, accurate data representation, accessibility compliance, and error handling for visualization failures \\
+
+\textbf{\hyperref[req:func.r.6]{FUNC.R.6}} & \hyperref[req:sal.r.1]{SAL.R.1}, \hyperref[req:poa.r.1]{POA.R.1}, \hyperref[req:poa.r.2]{POA.R.2}, \hyperref[req:roft.r.1]{ROFT.R.1}, \hyperref[req:roft.r.2]{ROFT.R.2}, \hyperref[req:imm.r.1]{IMM.R.1}, \hyperref[req:imm.r.2]{IMM.R.2} & Data downloads need fast processing, accurate file generation, security against unauthorized access, input validation, and error handling for export failures \\
+
+\textbf{\hyperref[req:func.r.7]{FUNC.R.7}} & \hyperref[req:sal.r.2]{SAL.R.2}, \hyperref[req:cap.r.1]{CAP.R.1}, \hyperref[req:soe.r.2]{SOE.R.2}, \hyperref[req:lon.r.1]{LON.R.1}, \hyperref[req:ada.r.1]{ADA.R.1}, \hyperref[req:ada.r.2]{ADA.R.2}, \hyperref[req:ada.r.3]{ADA.R.3}, \hyperref[req:prod.r.1]{PROD.R.1} & Global accessibility requires low latency, concurrent user support, scalability under load, long-term maintainability, cross-platform compatibility, and containerized deployment \\
+
+\end{longtblr}
+
+\pagebreak
 
 \par{A potential solution is a multi-tiered architecture composed of a frontend web-based interface, a backend api layer, and a database. The division of the system into these three major modules helps establish separation of concerns, and enable parallel development of these sub-systems. }
 
@@ -1369,6 +1458,80 @@ No explicit training will be needed }
 
 \par{A relational database such as PostgreSQL enables the structured querying needs of the system. PostgreSQL is a strong option due to the tabular nature of the data, as well as its open-source license.   }
 
+\newpage{}
+\section*{Appendix --- Formal Mathematical Specifications}
+
+To rigorously define the system's core data processing logic, the following formal mathematical specifications are established.
+
+\subsection*{Trajectory Distance Calculation}
+Let a trajectory $T$ be defined as a time-ordered sequence of $n$ spatial coordinates:
+\begin{equation}
+T = \{(x_1, y_1, t_1), (x_2, y_2, t_2), \dots, (x_n, y_n, t_n)\}
+\end{equation}
+Where $t_i < t_{i+1}$ for all $1 \leq i < n$. The total distance $D(T)$ computed by the backend service is formally specified as:
+\begin{equation}
+D(T) = \sum_{i=1}^{n-1} \sqrt{(x_{i+1} - x_i)^2 + (y_{i+1} - y_i)^2}
+\end{equation}
+
+
+\newpage{}
+\section*{Appendix --- System Behavior Specification}
+\label{sec:system-behavior-spec}
+
+\subsection*{Formal Query Processing State Machine}
+
+The core behavioral functionality of the system centers on the query request processing pipeline. The following finite state machine (FSM) formally specifies the transitions and states involved in transforming user input into result sets.
+
+\par{\textbf{State Set Definition:}
+Let $S$ be the set of possible states in the query processing pipeline:
+$$S = \{s_0, s_1, s_2, s_3, s_4, s_5, s_6\}$$
+
+Where:
+\begin{itemize}
+    \item $s_0$ = \textit{Idle} (waiting for user input)
+    \item $s_1$ = \textit{Input Received} (user query captured)
+    \item $s_2$ = \textit{Parse \& Validate} (query syntax and filter validation)
+    \item $s_3$ = \textit{Database Execution} (query executed against PostgreSQL)
+    \item $s_4$ = \textit{Result Processing} (filtering results, applying metrics)
+    \item $s_5$ = \textit{Format Output} (serializing results to JSON or export format)
+    \item $s_6$ = \textit{Return Results} (results delivered to user)
+\end{itemize}
+}
+
+\par{\textbf{Input Alphabet Definition:}
+Let $\Sigma$ be the set of possible inputs:
+$$\Sigma = \{\text{filter\_query}, \text{nlp\_query}, \text{category\_select}, \text{validation\_error}, \text{execution\_error}\}$$
+}
+
+\par{\textbf{Transition Function:}
+The transition function $\delta: S \times \Sigma \rightarrow S$ is defined as follows:
+
+\begin{itemize}
+    \item $\delta(s_0, \text{filter\_query}) = s_1$ \quad (user submits filter-based query)
+    \item $\delta(s_0, \text{nlp\_query}) = s_1$ \quad (user submits natural language query)
+    \item $\delta(s_0, \text{category\_select}) = s_1$ \quad (user selects predefined category)
+    \item $\delta(s_1, \text{any input}) = s_2$ \quad (proceed to validation phase)
+    \item $\delta(s_2, \text{validation\_error}) = s_1$ \quad (reject invalid query, return to input state)
+    \item $\delta(s_2, \text{success}) = s_3$ \quad (valid query proceeds to execution)
+    \item $\delta(s_3, \text{execution\_error}) = s_2$ \quad (re-attempt query validation)
+    \item $\delta(s_3, \text{success}) = s_4$ \quad (database returns results)
+    \item $\delta(s_4, \text{success}) = s_5$ \quad (results processed and formatted)
+    \item $\delta(s_5, \text{success}) = s_6$ \quad (output ready for delivery)
+    \item $\delta(s_6, \text{any output}) = s_0$ \quad (return to idle state after delivery)
+\end{itemize}
+}
+
+\par{\textbf{Performance Constraints:}
+The state transitions must satisfy the following timing constraints:
+\begin{itemize}
+    \item Time in states $s_2$ (parse/validate): $t_{s_2} \leq 100\text{ ms}$
+    \item Time in states $s_3$ (database execution): $t_{s_3} \leq 1.5\text{ s}$ (for result sets $\leq 5000$ records)
+    \item Time in states $s_4, s_5$ (processing/formatting): $t_{s_4} + t_{s_5} \leq 300\text{ ms}$
+    \item Total time from $s_1$ to $s_6$: $t_{\text{total}} \leq 2\text{ s}$ (per \hyperref[req:sal.r.1]{SAL.R.1})
+\end{itemize}
+
+This formal specification ensures that all query processing follows a predictable and verifiable path through the system state space, with explicit performance bounds at each transition point.
+}
 
 \newpage{}
 \section*{Appendix --- Reflection}
@@ -1376,5 +1539,9 @@ No explicit training will be needed }
 \input{../Reflection.tex}
 
 \input{../SRS_Reflection.tex}
+
+\newpage
+\bibliographystyle{plain}
+\bibliography{../../refs/References}
 
 \end{document}

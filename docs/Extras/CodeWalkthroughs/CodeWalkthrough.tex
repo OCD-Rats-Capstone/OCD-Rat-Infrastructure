@@ -1,0 +1,441 @@
+\documentclass{article}
+
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{forest}
+\usepackage{hyperref}
+
+\newcommand{\progname}{InfraRAT}
+
+\title{Code Walkthrough\\\progname}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\begin{table}[hp]
+\caption{Revision History} \label{TblRevisionHistory}
+\begin{tabularx}{\textwidth}{llX}
+\toprule
+\textbf{Date} & \textbf{Developer(s)} & \textbf{Change}\\
+\midrule
+22 September 2025& All & Revision 0\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Introduction}
+
+\par{Please note: This extra documentation may not exactly follow the expectations laid down for a code walkthrough in the capstone template. 
+This is because, while it serves as one of our extras, its more primary purpose is to provide our supervisor (Dr. Henry Szechtman) a sufficient 
+amount of reference material for this codebase to be easily passed on to him and any future developers who seek to extend the project. As such, rather 
+than focusing on a few critical pieces of code, this document will go over most of the codebase at a high level, the critical sections at a finer level, 
+focus on areas for extension and improvement, and provide some maintenance instructions.}
+
+\par{Additionally, there is no sense in writing code here since it exists in our repo, so anytime a file is explicitly mentioned, I will make it a clickable hyperlink to the repository file.}
+
+\par{Link to GitHub}
+\par{\href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure}{OCD-Rat-Infrastructure on GitHub}}
+
+\section{CodeBase}
+
+\subsection{Code Structure}
+
+
+\begin{forest}
+for tree={
+    grow=east,           % grow to the right
+    draw,
+    rounded corners,
+    node options={align=left},
+    parent anchor=east,
+    child anchor=west,
+    edge path={
+        \noexpand\path [draw, \forestoption{edge}]
+        (!u.parent anchor) -- +(20pt,0) |- (.child anchor)\forestoption{edge label};
+    },
+    l sep=25pt,          % level separation
+    s sep=20pt           % sibling separation
+}
+  [src/
+    [ocd-rat-backend/
+      [core/]
+      [db/]
+      [llm/]
+      [routers/]
+      [schemas/]
+      [scripts/]
+      [services/]
+      [tests/]
+      [app.py]
+    ]
+    [ocd-rat-frontend/
+      [public/]
+      [src/
+        [assets/]
+        [components/]
+        [hooks/]
+        [lib/]
+        [pages/]
+        [App.tsx]
+        [main.tsx]
+      ]
+    ]
+  ]
+\end{forest}
+
+\subsection{FrontEnd}
+
+\subsubsection{Home Page}
+
+\par{\textbf{Current State:}}
+\par{The home page is rendered via \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-frontend/src/pages/Home.tsx}{\textbf{Home.tsx}} using mostly simple HTML with no dynamic TypeScript functionality. The graphics provided simply pull from the 'assets' folder in the main front end directory. This folder is essentially a collection
+of various different photos and videos, formatted in a specific way in cases such as the 'Home Carousel'.}
+\newline
+\par{\textbf{Next Steps:}}
+\par{No particular next steps needed for this page other than to potentially change the content or styling. It does not contain any specific business logic that needs to be extended.}
+
+\subsubsection{NavBar}
+
+\par{\textbf{Current State:}}
+\par{The NavBar is rendered via \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-frontend/src/components/navbar.tsx}{\textbf{navbar.tsx}}. This contains some React styling
+components to make the navbar look nice and have a flexible layout. However, the main logic for this is contained in the bottom section in the various \texttt{<Link>} tags inside of the 'NavigationMenuList'. Each
+link tag provides a link to another page, namely, the four main modules of the front end as well as a GitHub link and an issues link. The routes are specified by simply inputting the 'to' attribute in the link tag.}
+\newline
+\par{\textbf{Next Steps:}}
+\par{No explicit next steps for this section either, other than potentially adding more frontend modules. However, it is very important to note that when adding a new module, the link route should be specified in
+\href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-frontend/src/App.tsx}{\textbf{App.tsx}} where the link route is mapped to an existing front end element in the
+\texttt{<Routes>} tag (i.e. another TSX file
+in the pages section of the project).}
+
+\subsubsection{Inventory}
+
+\par{\textbf{Current State:}}
+\par{The inventory page is rendered via \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-frontend/src/pages/InventoryQuery.tsx}{\textbf{InventoryQuery.tsx}}.
+The HTML that it exports is broken down as follows:}
+
+\begin{enumerate}
+
+  \item{\textbf{AccordionContent}: The side menu is defined by the \texttt{<AccordionContent>} tag and is populated by various state variables defined at the top.
+  These values are populated by calling the 'inventory/filter-options' endpoint in the backend (refer to backend) in the useEffect function.}
+  \item{\textbf{Session Counts:} After applying session filters (handleApply \texttt{<Button>}), a breakdown and graph of session and file availability is provided.
+  This is done by calling the '/inventory/counts' endpoint in the backend (refer to backend) through the handleApply function. Once the results are loaded,
+  they are displayed in a div/card structure, mapping the results to various values. This layout can be seen contained within the portion of the file that
+  reads \{result \&\& $(<our~code>)$\} on line 592.}
+  \item{\textbf{Session Results:} After a user views sessions, (handleViewSessions \texttt{<Button>}), the session results are loaded which is done by
+  calling the '/inventory/sessions' endpoint in the backend (refer to backend). This is done inside the handleViewSessions function and the results
+  are mapped to a table shown in the portion of the file that reads sessions $!=$ null \&\& (\texttt{<our code>}) on line 661.}
+  \item{\textbf{Download Function:} When the user chooses \textbf{Download Session Files}, the \texttt{fetchFiles} function runs. It generates a unique \texttt{job\_id}, calls the backend \texttt{/files/} endpoint with \texttt{query\_type=FILTER} and boolean flags for file types (CSV, EWB, GIF, JPG, MPG), and polls \texttt{/files/status/} until the job reports \texttt{ready}. It then triggers a download from \texttt{/files/serve/} so the browser saves a ZIP (e.g.\ \texttt{FRDR\_FILES\_<job\_id>.zip}). Progress is reflected in UI state while polling.}
+
+\end{enumerate}
+
+\subsubsection{Query}
+
+\par{\textbf{Current State:}}
+\par{The query page is rendered via \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-frontend/src/pages/Query.tsx}{\textbf{Query.tsx}}. It provides a chat-like interface to interact with the FRDR using two modes: 'Ask' for direct LLM responses and 'Select' for executing NLP-to-SQL logic against the database. The breakdown of this page's functionality is as follows:}
+
+\begin{enumerate}
+
+  \item{\textbf{Toggle Modes}: The user interface offers a \texttt{<Switch>} component mapped via \texttt{useState} hooks setting the core \texttt{mode} to either 'Ask' or 'Select'.}
+  \item{\textbf{Fetching Ask Stream}: The \texttt{fetchAskStream} initiates a streaming POST request by calling \texttt{/ask/} on the backend, updating the chat bubbles dynamically as \texttt{TextMessage} interfaces utilizing TextDecoder.}
+  \item{\textbf{Executing Selection}: In 'Select' mode, the \texttt{fetchData} hits the \texttt{/nlp/} endpoint with queries to generate \texttt{SqlMessage} types. The \texttt{sessions} matrix dynamically renders into the chat bubble and a table below. It also renders the LLM's generated query plan and executed SQL statement into the chat window.}
+  \item{\textbf{Download Function}: The 'Download Session Files' flow fetches zipped files via \texttt{job\_id} tracking, polling \texttt{/files/status/} with interval promises, and tracking download percentages sequentially over React state flags.}
+
+\end{enumerate}
+\par{\textbf{Next Steps:}}
+\par{The front-end layout could be a bit better. The chat bubbles can look busy at times and the rendering of the session table after that input box
+could be improved.}
+
+\subsubsection{Visualizations}
+
+\par{\textbf{Current State:}}
+\par{The visualization dashboard, found in \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-frontend/src/pages/Visualizations.tsx}{\textbf{Visualizations.tsx}}, serves as an entry point for graphical tools. It seeks
+to redirect you to other visualization pages and this page itself only contains routers to other pages and SVGs for the dashboard graphics.}
+
+\begin{enumerate}
+
+  \item{\textbf{Bar Chart, Line Chart and Heatmap}: All three of these chart types call a \texttt{<VisualizationBuilder>} structure provided by \newline \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-frontend/src/components/VisualizationBuilder.tsx}{\textbf{components/VisualizationBuilder.tsx}}.
+  This visualization builder provides interfaces for the three basic visualization types and uses visualization react hooks, provided by \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-frontend/src/hooks/useVisualization.ts}{\textbf{hooks/useVisualization.ts}} to call the backend 
+  endpoints ('/visualizations/barchart',/visualizations/linechart',\newline'/visualizations/heatmap') and fetch the chart data. Once the data is fetched, the VisualizationBuilder calls one of the three structures: \texttt{<BarChartVisualization>,\newline <LineChartVisualization>,<HeatmapVisualization>} which
+  are provided by: \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-frontend/src/components/BarChartVisualization.tsx}{\textbf{components\/BarChartVisualization.tsx}}, \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-frontend/src/components/LineChartVisualization.tsx}{\textbf{components/LineChartVisualization.tsx}}, \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-frontend/src/components/HeatmapVisualization.tsx}{\textbf{components/HeatmapVisualization.tsx}}.}
+  \item{\textbf{Velocity Profile}: The velocity profile is routed from the base visualization page to \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-frontend/src/pages/VelocityProfile.tsx}{\textbf{VelocityProfile.tsx}}. This
+  uses the exact same session dropdown component as can be seen in the toolbox section, even calling the same endpoint. It provides an X and Y coordinate as well as a radius value
+  to submit to the backend at the endpoint '/toolbox/velocity-profile/' to determine the relevant datapoints. Once this data is fetched, it calls a \texttt{<VelocityProfileChart>} structure provided by \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-frontend/src/components/VelocityProfileChart.tsx}{\textbf{components/VelocityProfileChart.tsx}}.
+  to build the multi-line chart based on the data fetched from the backend.}
+  \item{\textbf{Spatial Heatmap}: The spatial heatmap additionally calls the same session dropdown component that can be found in the toolbox at the endpoint '/toolbox/dropdown/'. Additionally,
+  since this deals with the same data as the path plot also mentioned in the toolbox section, it also fetches the session data from the '/toolbox/session/' endpoint and does not need its own standalone endpoint.
+  The logic for rendering this visualization can be found at: \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-frontend/src/pages/SpatialHeatmap.tsx}{\textbf{SpatialHeatmap.tsx}}.
+  The component is broken down as follows:
+    \begin{itemize}
+      \item{\textbf{Session Selection and Caching}: A scrollable checklist of sessions is presented in a controls card. Toggling a session checkbox adds or removes it from the \texttt{selectedSessions} state array,
+      which triggers a \texttt{useEffect()} that fetches trajectory data from the \texttt{/toolbox/session/} endpoint for any newly selected sessions. Fetched results are stored in a \texttt{sessionCache} ref
+      so that re-selecting a previously loaded session does not require another API call. Sessions that return no trajectory data are collected into an \texttt{unsupportedSessions} state variable and displayed
+      as a warning banner in the UI.}
+      \item{\textbf{Heatmap Generation}: The \texttt{generateHeatmap()} function discretises the 160$\times$160\,cm arena into a configurable grid of square bins (selectable from a predefined list of valid bin sizes that evenly divide 160).
+      For each trajectory point it maps the raw $(X, Y)$ coordinates into the arena grid, determines the bin index, and increments either the entry count (only counted when the point falls in a different bin from the previous point)
+      or the cumulative dwell time (computed as the time delta to the next chronological point). The resulting 2D array of \texttt{HeatmapBin} objects and the observed maximum value are stored in state.}
+      \item{\textbf{Canvas Rendering}: A second \texttt{useEffect()} listens for changes to the heatmap data, bin size, metric, scale maximum and home base state. It draws the heatmap onto an HTML5 \texttt{<canvas>} element (640$\times$640\,px)
+      using an HSL colour ramp from blue (low) through cyan, green and yellow to red (high), with intensity non-linearly scaled via a power curve ($\text{exponent} = 0.4$) against the effective maximum.
+      Grid lines and centimetre labels are overlaid, and any defined region markers (permanent arena objects in orange, home base in purple) are stroked as polygons on top of the heatmap.
+      An \texttt{onMouseMove} handler on the canvas resolves the cursor position to a bin index and displays a floating tooltip with the bin's coordinates, aggregated value and contributing session IDs.}
+      \item{\textbf{Home Base Analysis}: Users can define a quadrilateral home base region by entering four corner coordinates (in cm) in the controls panel. When the ``Set Home Base'' button is pressed,
+      the corners are stored as a \texttt{RegionMarker}. A dedicated \texttt{useEffect()} then iterates over all loaded trajectory points, applies the coordinate mapping, and uses a ray-casting
+      point-in-polygon test (\texttt{isPointInPolygon()}) to accumulate dwell time inside versus total session time. The resulting home base occupancy percentage is rendered in a summary card below the heatmap.}
+      \item{\textbf{Custom Scale Maximum}: An optional numeric input allows the user to lock the colour-scale maximum to a fixed value instead of auto-scaling to the data.
+      This is useful when comparing multiple sessions side-by-side so that the same colour intensity represents the same absolute value across different heatmaps.}
+      \item{\textbf{Export Functions}: Two export actions are provided. \texttt{exportHeatmapCSV()} serialises all non-zero bins (coordinates, value, contributing sessions and the active metric) into a downloadable CSV file.
+      \texttt{exportHeatmapPNG()} captures the current canvas state as a PNG image via \texttt{canvas.toDataURL()}.}
+    \end{itemize}}
+
+\end{enumerate}
+\par{\textbf{Next Steps:}}
+\begin{itemize}
+  \item{Some of the labels are a bit busy, especially the full drug names. Making the axes more readable would be a good step.}
+  \item{The homebase percentage shown in the spatial heatmap does not render properly. This is a bug that needs to be fixed.}
+\end{itemize}
+\subsubsection{Toolbox}
+
+\par{\textbf{Current State:}}
+\par{The Toolbox component, \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-frontend/src/pages/ToolBox.tsx}{\textbf{ToolBox.tsx}}, provides analytical insights for specific rat sessions with the following functional sequence:}
+
+\begin{enumerate}
+
+  \item{\textbf{Session Selection}: An asynchronous search input via \texttt{filter\_dropdown} fetches options dynamically rendering into a \texttt{SessionOptions} local state array handling dropdown populations securely by calling the \texttt{/toolbox/dropdown/} endpoint.}
+  \item{\textbf{Session Loading}: The \texttt{select\_analysis} API engages the \texttt{/toolbox/session/} endpoint to fetch the relevant data points, a session info array, summary measures and image data for the path plot into \texttt{DataPoints, imageData, sessionInfo and other summary measure} state variables which
+  are then displayed within various \texttt{<Card>  and <Table> structures.}}
+  \item{\textbf{Error Handling}: If a call to the backend responds with an erroneous response, none of the toolbox features will become visible and rather a card with text indicating the session is not supported will appear to the user.
+  The most common reason for this is the lack of available track files.}
+  \item{\textbf{Path Plot Rendering}: (x,y) coordinates are provided by the API call and are fed into \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-frontend/src/pages/PathPlot.tsx}{\textbf{PathPlot.tsx}}. This file
+  provides a heavily styled \texttt{<div> structure} with several moving parts:
+    \begin{itemize}
+      \item{Path plot borders are determined based on the minimum and maximum values in the track file.}
+      \item{A \texttt{useEffect()} call is used to update the timeRange state variable when the slider at the bottom is changed.}
+      \item{A set of segments are generated as SVG points with an x, y and simple velocity calculation which is then mapped to a color value to provide visual 
+      styling of different speeds. These segments are then filtered through the above mentioned timeRange to provide the valid points.}
+      \item{When the animation is playing, a \texttt{tick()} function is used to iterate over the valid segments, making each new
+      point visible and rendering them as an SVG.}
+      \item{A play, pause and reset function exists, provided by buttons which stop and start the tick function and reset the visible points respectively.}
+    \end{itemize}}
+
+\end{enumerate}
+\par{\textbf{Next Steps:} More next steps related to business logic are covered in the backend portion of this section.}
+\begin{itemize}
+  \item{The most glaring issue is that the level of zoom on the browser causes the cards to behave strangely. Styling the \texttt{<Card> and <div> structures}
+  with proper flex dimensions to make it more adaptive is imperative.}
+  \item{The performance of this page is not optimal because over 20,000 points are sent to the frontend in the API request. The frame rate has already been lowered to only provide every fourth
+  point in the original track file. Looking into solutions such as iterative streaming of points as the animation progresses would be helpful to the functioning of this page.}
+\end{itemize}
+
+\subsubsection{Other}
+
+\par{\textbf{Current State:}}
+\par{Additional auxiliary frontend routes exist to resolve edge-cases and context:}
+
+\begin{enumerate}
+
+  \item{\textbf{About Page}: A static view found in \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-frontend/src/pages/About.tsx}{\textbf{About.tsx}} outlining the team and project objectives directly utilizing markdown templates.}
+  \item{\textbf{Error Resolving}: A \textbf{NotFound.tsx} acts as a catch-all route component rendering a 404 message for unknown paths matched statically over \texttt{<Routes>}.}
+
+\end{enumerate}
+\par{\textbf{Next Steps:}}
+\par{This list could grow to encompass global settings pages or experiment configuration forms in future expansions.}
+
+\subsection{BackEnd}
+
+\subsubsection{Inventory}
+
+\par{\textbf{Current State:}}
+\par{Backend Inventory operations are managed mainly in \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-backend/routers/inventory.py}{\textbf{inventory.py}}. Its endpoints invoke services that provide session counts, filter options and full sessions.}
+
+\begin{enumerate}
+
+  \item{\textbf{Session Counts}: The \texttt{@router.post("/counts")} accesses the \texttt{get\_inventory\_counts()} exposed through \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-backend/services/inventory_service.py}{\textbf{services/inventory\_service.py}}, which simply builds a SQL query to select the relevant sessions applied by the filters submitted from the frontend request. This query only returns the session counts so users can see the sample sizes of their filters. }
+  \item{\textbf{Session Retrieval}: The \texttt{@router.post("/sessions")} executes the filtering logic selected in the front end and returns the full experimental sessions to be displayed via \texttt{get\_filtered\_sessions()} which exists in \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-backend/services/inventory_service.py}{\textbf{services/inventory\_service.py}}. This is simply a boilerplate SQL query with filter parameters added to select the correct sessions through an additional function call, \texttt{\_build\_filtered\_sessions\_sql}, which sequentially appends SQL parameters to a list which is then passed into the SQL query.
+  Note that the \texttt{get\_inventory\_sessions()} function call also writes the selected session IDs to a JSON file. This is important for the download action.}
+  \item{\textbf{Session Options}: The \texttt{@router.get("/filter-options")} fetches enumerations of available sessions; this logic is provided by \texttt{get\_filter\_options()} in \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-backend/services/inventory_filter_options.py}{\textbf{services/inventory\_filter\_options.py}}. This function calls a set of SQL queries which provide all the relevant attributes that exist in the database for each filter and sends them to the frontend to be displayed.}
+  \item{\textbf{Download Action}: The download action will be covered in its own section as it has several moving parts and also applies to the query tab.}
+\end{enumerate}
+\par{\textbf{Next Steps:}}
+\begin{itemize}
+  \item{Performance improvements could be made by caching filter options, ensuring the initial frontend catalog state loads immediately without taxing the database.}
+  \item{More filter options could be added, or a new approach to filtering could be taken where the user can essentially filter on any attribute that exists in our schema in a way
+  that is not overwhelming (an advanced mode, potentially).}
+\end{itemize}
+
+\subsubsection{Query}
+
+\par{\textbf{Current State:}}
+\par{The query backend API is split across \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-backend/routers/nlp.py}{\textbf{nlp.py}} and \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-backend/routers/ask.py}{\textbf{ask.py}}. They feature distinct execution boundaries:}
+
+\begin{enumerate}
+  \item{\textbf{Ask Question}: A chat sent from the front-end in Ask mode hits the endpoint \texttt{@router.post("/ask/")} in \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-backend/routers/ask.py}{\textbf{ask.py}} which then feeds the question to: \texttt{ask\_question()} provided by \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-backend/llm/llm_service.py}{\textbf{services\/llm_service.py}}. This provides a simple system prompt to our model and tells it to produce a text output rather than SQL.}
+  \item{\textbf{Select Sessions}: A chat sent from the front-end in Select mode hits the endpoint \texttt{@router.post("/nlp/")} in \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-backend/routers/nlp.py}{\textbf{nlp.py}} which calls \texttt{execute\_nlp\_query()} provided by: \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-backend/services/nlp_service.py}{\textbf{services\/nlp_service.py}} This is a complex function call that does the following:
+        \begin{itemize}
+          \item{calls another function with the user's input: \texttt{plan\_and\_generate\_sql()\newline} provided by \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-backend/llm/llm_service.py}{\textbf{llm/llm\_service.py}}}
+          \item{The service then builds the system prompt calling \texttt{build\_system\_prompt()\newline} provided by \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-backend/llm/prompt_builder.py}{\textbf{llm/prompt\_builder.py}} which first inspects the current schema by selecting all the metadata from
+          the live database in \texttt{inspect\_schema()} provided by \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-backend/llm/schema_inspector}{\textbf{llm/schema\_inspector.py}} and then appending our custom written semantic context into the system prompt to complete the context grounding.}
+          \item{Call the llm API with the enhanced system prompt and the user query.}
+          \item{Clean output so that it is executable as a standalone SQL query and query the database with the LLM response, returning the results, model plan and the executed query to the front-end to be displayed to the user}
+          \item{Note that the SQL query is written to a JSON file, this is important for the download files action.}
+        \end{itemize}}
+  \item{\textbf{Download Action:} The download action will be covered in its own section as it has several moving parts and also applies to the inventory tab.}
+\end{enumerate}
+\par{\textbf{Next Steps:}}
+\par{The next step to focus on for this section is to improve the model. Dr. Szechtman provided several highly complex scientific queries for us to use as benchmarks for our model.
+Based on where we currently are, our model can handle the ones on the simpler end but still gets confused with the more complicated queries. Some options to bridge this gap are:}
+\begin{itemize}
+  \item{Fine-tune a model on the experimental data. Allow the LLM to perform training epochs on the experimental data to specifically fine-tune it for this purpose.}
+  \item{Refine the semantic context. Potentially add a module to feed Dr. Szechtman's queries directly into the model or simply build out the model's context in a more systematic way.}
+\end{itemize}
+\subsubsection{Visualizations}
+
+\par{\textbf{Current State:}}
+\par{Visualizations are supported through \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-backend/routers/visualizations.py}{\textbf{visualizations.py}}. This router aggregates data directly on the backend via explicit endpoints:}
+
+\begin{enumerate}
+
+  \item{\textbf{BarChart/LineChart/Heatmap}: The main visualization endpoints (e.g., \texttt{/barchart},\newline \texttt{/linechart}, \texttt{/heatmap}) defined in \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-backend/routers/visualizations.py}{\textbf{visualizations.py}} accept flexible X-axis and Y-axis query parameters. These are passed to \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-backend/services/visualization_service.py}{\textbf{services/visualization\_service.py}}, which utilizes configuration registries to dynamically build SQL queries, automatically resolving required table joins and aggregating metrics on the fly before returning formatted JSON data to the frontend.}
+  \item{\textbf{Velocity Profile}: Handled primarily through \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-backend/routers/toolbox.py}{\textbf{toolbox.py}}, specifically leveraging the \texttt{/toolbox/velocity-profile/} endpoint. This process interacts with \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-backend/services/summary_service.py}{\textbf{services/summary\_service.py}} to retrieve necessary rat tracking attributes, parsing coordinates and radius variables into summary velocity measures computed directly on the backend.}
+  \item{\textbf{Spatial Heatmap: }The spatial heatmap calls the \texttt{'/toolbox/session/'} endpoint as all of the needed data is provided in that request. Please refer to the toolbox section of the backend
+  for more information}
+\end{enumerate}
+
+\par{\textbf{Next Steps:}}
+\begin{itemize}
+  \item{The ability to create custom visualizations directly from user queries should be a top priority. Currently, users are restricted
+  to predefined metrics so a top priority should be generating a pipeline to take the generated table data from a user query and export it to a visualization
+  engine where a chart that dynamically captures the data is shown to the user.}
+\end{itemize}
+
+\subsubsection{Toolbox}
+
+\par{\textbf{Current State:}}
+\par{The Toolbox API is orchestrated by \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-backend/routers/toolbox.py}{\textbf{toolbox.py}}. It provides analytical information for the front-end to display to the user.}
+
+\begin{enumerate}
+
+  \item{\textbf{Session Dropdown}: A dynamic dropdown of the available sessions rendered on the front end has its data served from the endpoint \texttt{@router.get("/dropdown")} which calls the function \texttt{get\_relevant\_sessions()} in \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-backend/services/summary_service.py}{\textbf{services/summary\_service.py}}. This function simply returns the top 100 sessions in the database that have a session ID LIKE what the user has input in the frontend.}
+  \item{\textbf{Load Analytics}: The main analytical engine is powered at the endpoint \texttt{@router.get("/session")}, which calls the function \texttt{single\_smoothed\_download()} in \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-backend/services/download_service.py}{\textbf{services/download\_service.py}}. This is a large function which does the following:
+        \begin{itemize}
+          \item{Performs a large SQL query for the specific selected session, displaying most of the relevant experimental data columns.}
+          \item{Downloads the relevant track files and GIF \texttt{(path plot)} file from the FRDR.}
+          \item{Fetches summary measures including calculating distance based on track data and calling \texttt{total\_distance\_for\_session()} as well as \texttt{total\_checks\_for\_session()} from
+          \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-backend/services/summary_service.py}{\textbf{services\/summary\_service.py}} which fetch summary measures directly from the database.}
+          \item{It then returns the following \texttt{\{(x,y coordinates from the track files), (list of session details), (summary measure data), (GIF image binary data)\}}}
+          \item{If any errors occur during this process, namely, if needed files do not exist, all of the attributes will return to the front-end as none and an error handling module will be triggered on the front-end.}
+        \end{itemize}  
+          }
+\end{enumerate}
+\par{\textbf{Next Steps:} }
+\begin{itemize}
+  \item{There are currently three summary measures available on this page. These are not all of the existing summary measures; more summary measures for each session can be pulled from the database and displayed.}
+  \item{A specific request from our supervisor; not all of the summary measures are available for every session. A module to process the session files and produce
+  specific summary measures which can then be inserted into the database would be a great addition. The distance travelled summary measure calculation is actually implemented in \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-backend/services/download_service.py}{\textbf{services/download\_service.py}} but is not robust.}
+  \item{A very cool feature that we did not get to implement is a regression model for compulsive checking. Using summary measures, rat attributes and other session info as features,
+  creating a machine learning classifier that can be trained on the available sessions to determine if a rat is compulsive or not would be very useful.}
+
+\end{itemize}
+
+\subsubsection{File Downloads}
+\par{\textbf{Current State:}}
+\begin{itemize}
+\item{Currently, both the Inventory and the Query page access the file download API at the same location: \texttt{@router.get("/")} in \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-backend/routers/files.py}{files.py}.
+The API call contains the query type \texttt{(NLP or FILTERS)}, the selected file types and a unique job id generated through hashing. These API calls access the \texttt{NLP\_FileDownload() and FILTERS\_FileDownload()} functions respectively.
+The only difference between these is how the most recent queried sessions are accessed with the most previously queried sessions stored in \texttt{NLP\_query.json and Filter\_query.json}. Both calls then access  
+\texttt{FRDR\_Download() (All 3 of these functions exist in \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-backend/services/download_service.py}{\textbf{services/download\_service.py}}). FRDR\_Download() selects the file locations
+based on the session IDs from the database and sequentially receives them via HTTP requests. These are then packaged into a ZIP folder and served to the user. Note that to support asynchronous processing
+and concurrent requests, this process is deployed as a background task in the backend.}}
+\item{The \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-backend/routers/files.py}{\textbf{files.py}} router has a second endpoint called \texttt{@router.get("/status/)} which polls
+a status buffer JSON file to inform the frontend of the progress on the file download process \texttt{(i.e. number of files downloaded)}.}
+\item{The \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-backend/routers/files.py}{\textbf{files.py}} router has a third endpoint called \texttt{@router.get("/serve/")} which is what actually
+provides the downloaded files to the user when the status buffer indicates it is ready and then performs a cleanup job, deleting the temporary directory.}
+\end{itemize}
+
+\par{\textbf{Next Steps:}}
+\par{The process to download files is quite slow. There are a couple options that could be implemented to progress this module.}
+\begin{itemize}
+  \item{First, the bottleneck for this process is the HTTP requests. A potential solution to this is multithreading to deploy several requests at once 
+  and prepare multiple files concurrently.}
+  \item{The FRDR takes feature requests. Suggesting a feature where a file manifest file or something similar is submitted and a set of files is served
+  could optimize the process and the work could be done on the provider's end rather than ours.}
+  \item{If server resources are abundant, consider storing files on the server directly (especially video files), as this would greatly improve performance.}
+\end{itemize}
+
+\subsubsection{Database}
+
+\par{\textbf{Current State:}}
+\par{The necessary files for our database are located in the \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/tree/main/src/ocd-rat-backend/db}{DB}
+directory in the backend. It only consists of the Dockerfile for spinning up the database, the SQL schema dump and the SQL data dump. The database could be changed
+by simply replacing these files with a new file with a new name.}
+\newline
+\par{\textbf{Next Steps:}}
+\par{A new development that could be added to this is a module where you can append tables and data to these data dump files dynamically through a more
+user-friendly access point. This would make database updates more user-friendly for less technical people and would eliminate the need to fully replace these
+files to update the database.}
+\newline
+\par{\textbf{Note: }For Windows users, the script in this directory, 'restore.sh', may need to be converted to UNIX format when being run on their local machine.
+This can be done by running 'dos2unix restore.sh'.}
+
+\subsection{DevOps}
+\label{sec:devops-docker}
+
+\subsubsection{Deployment on Local}
+
+\par{When running the project on your local machine, follow the steps provided in \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/README.md}{\textbf{README.md}}.}
+
+\subsubsection{Deployment to McMaster Server}
+
+\begin{itemize}
+  \item{This website is running on a McMaster server at the URL: \texttt{http://ratbat.cas.mcmaster.ca (in the process of being migrated to http://infrarat.cas.mcmaster.ca)}. When an update to the main
+branch is completed, a GitHub Action is automatically run which deploys the updated version to this URL. This is done via \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/.github/workflows/deploy.yml}{\textbf{deploy.yml}} which
+is a simple Docker deploy file and is configured to run a GitHub Actions runner that exists on the McMaster server.}
+  \item{Another option is to deploy to the staging environment, which is at the above URL with port 8080 specified \texttt{(:8080 added to the end)}. This can be done to view a branch on GitHub that
+  is not the main branch. To execute this workflow, on GitHub go to: \texttt{Actions->Deploy RatBat2-> Run Workflow and select your branch.}}
+  \item{Note that sometimes the actions runner can fail on the server and needs to be rebooted. This can be done through the following steps:
+    \begin{enumerate}
+      \item{ssh into the server with: \texttt{ssh <macid>@<url>}.}
+      \item{cd into the /opt directory.}
+      \item{find the svc.sh script. Run sudo ./svc.sh stop.}
+      \item{Run sudo ./svc.sh start.}}
+    \end{enumerate}
+  \end{itemize}
+
+\subsubsection{Docker Deployment}
+
+\par{\textbf{Current State:}}
+\par{The repository encapsulates services via Docker, managed practically by \texttt{docker-compose.yml} scripts positioned at the project root level. The components build structurally as follows:}
+
+\begin{enumerate}
+
+  \item{\textbf{Frontend Image}: Constructed utilizing a multi-stage process from a generic \texttt{node:20-alpine} environment initializing NPM dependencies. A trailing context runs an \texttt{nginx:alpine} server, resolving the output via custom configuration port bindings on port 80.}
+  \item{\textbf{Backend Process}: Employs a \texttt{python:3.11-slim} shell container that implicitly installs required Linux binary packages such as \texttt{unixodbc-dev} and \texttt{libpq-dev} alongside application constraints defined in \texttt{requirements.txt}. Utilizing a FastAPI structure, the backend boots across the \texttt{uvicorn} ASGI framework pointing heavily to core internal bindings exposed on port 8000.}
+
+\end{enumerate}
+
+\subsubsection{Other}
+
+\begin{itemize}
+  \item{When adding new routers, you must add an \texttt{app.include\_router()} statement in \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure/blob/main/src/ocd-rat-backend/app.py}{\textbf{app.py}}}
+\end{itemize}
+
+\section{Adding to the Project}
+
+\begin{enumerate}
+  \item{Clone the GitHub repository to your local machine, available through: \textbf{git clone https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure.git}}
+  \item{Open gitBash in the \textbf{OCD-Rat-Infrastructure} directory}
+  \item{You should be on the main branch (the word in blue brackets), if you are not, you can switch to the main branch with \textbf{git checkout main}.}
+  \item{Pull the latest changes using \textbf{git pull}.}
+  \item{We recommend making a new branch to work on. Do this by running \textbf{\texttt{git checkout -b <your\_branch\_name>}} (the word in blue brackets should change).}
+  \item{Edit one or many files. After doing this, run \textbf{git status} to see the changed files. Sometimes this will show environment files. Don't worry about this;
+  only concern yourself with files you changed.}
+  \item{run \textbf{\texttt{git add <your\_file\_name>}} for every file you would like to push changes to the repository.}
+  \item{run \textbf{git commit} and write a commit message for your changes.}
+  \item{Since this is a branch that isn't main, you will have to set the origin so you can run \textbf{\texttt{git push --set-upstream origin <your\_branch\_name>}}. 
+  This will push your changes to the repository.}
+  \item{If you go to the \href{https://github.com/OCD-Rats-Capstone/OCD-Rat-Infrastructure.git}{\textbf{repository}}, your changes will automatically trigger a pull request prompt.
+  Click create pull request and follow the steps to make a pull request.}
+  \item{If there are no conflicts, you can merge your branch into the main branch and your changes are now live! It is recommended to delete your branch after this is completed.}
+\end{enumerate}
+\end{document}
