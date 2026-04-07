@@ -66,6 +66,17 @@ low.}
 
 \subsection{Design and Design Documentation}
 
+In response to feedback regarding the layout structure, requirement consistency, and precision of the module interface behaviors, we implemented several major corrections across the Module Interface Specification (MIS) and Module Guide (MG) documentation:
+\begin{itemize}
+    \item \textbf{Timeline and Formatting Overhaul}: We introduced a explicit margin limits and replaced statically defined tables (\texttt{tabular}) with dynamic \texttt{tabularx} structures bounded to \verb|\textwidth| to permanently cure severe horizontal margin overflow across the MIS. The MG timeline was completely overhauled to shift away from broad generalizations toward a heavily precise week-by-week layout reflecting git history.
+    \item \textbf{Mathematical Specification}: Based on feedback that the MIS lacked formalization, we drafted an explicit finite state machine (FSM) model and set-theoretic mathematical formalisms for the Natural Language Query Processor (M2). The "stateless" discrepancy previously noted in M6 was also rectified by formally documenting its active state variables 
+    
+    (\texttt{ActiveChartConfig}, \texttt{SupportedVTypes}).
+    \item \textbf{Design De-scoping and Traceability Consistency}: Recognizing hard time constraints, we officially marked the Authentication and Access Control Module (M8) as descoped. We heavily audited the Traceability Matrix to safely remap security proxy requirements (\texttt{INT.R.1}, \texttt{IMM.R.1}, \texttt{IMM.R.2}) over to the Fault and Error Management Module (M9) and purged redundant matrix rows. 
+    \item \textbf{Access Routine Coherence}: Across the MIS, we explicitly defined previously missing access routine semantics for the Front-End (M3), API Layer (M4), and Fault Management (M9) modules. We also introduced proper cross-document hyperlinking using \texttt{xurl}.
+    \item \textbf{Peer Feedback Integration}: In response to peer feedback from Team 7, we resolved several naming and hierarchy inconsistencies. We unified the naming of the NLP Query Processor Module (M2) across the MIS so that subsections consistently share terminology with their parent module title, mitigating reader confusion. Furthermore, in the MG, we decomposed Anticipated Change AC1 into three separate, atomic concerns (layout, accessibility, and responsiveness) rather than bundling them, and we corrected a structural discrepancy where the NLP Query Processor was categorized inconsistently between the module hierarchy table and its section description.
+\end{itemize}
+
 \subsection{VnV Plan and Report}
 
 \section{Extras}
