@@ -2,6 +2,7 @@
 
 \usepackage{tabularx}
 \usepackage{booktabs}
+\usepackage{float}
 
 \title{Reflection and Traceability Report on \progname}
 
@@ -86,18 +87,80 @@ it led to.}
 
 \section{Design Decisions (LO12)}
 
-\plt{Reflect and justify your design decisions.  How did limitations,
- assumptions, and constraints influence your decisions?  Discuss each of these
- separately.}
+% \plt{Reflect and justify your design decisions.  How did limitations,
+%  assumptions, and constraints influence your decisions?  Discuss each of these
+%  separately.}
+
+\subsection{Limitations}
+
+The principal limitation of the project is its reliance on a massive, read-only external dataset hosted on the Federated Research Data Repository (FRDR). Because the multi-terabyte raw video and tracking files are immutable and externally managed, our system was designed to focus exclusively on indexing and querying the metadata rather than replicating the raw assets. Furthermore, the integration of a Large Language Model (LLM) for natural language querying introduces financial and rate-limiting bottlenecks; we purposefully designed the system to decouple the NLP processing from the core database queries to ensure that the system is still functional even if the LLM is unavailable.
+
+\subsection{Assumptions}
+
+Our architecture was heavily influenced by the assumption that the target users (neuroscience researchers and clinical students) possess domain expertise but lack technical software engineering skills (e.g., writing SQL). This drove the decision to build a highly intuitive web interface that bridges natural language and structured property filters instead of exposing a raw database connection. We also assumed that users would access the platform through standard, modern web browsers from varied network environments, justifying the stateless API layer and the decision to offload heavy data processing to backend cloud infrastructure rather than the client device.
+
+\subsection{Constraints}
+
+Since this project serves a niche research community and has no commercial revenue model, economic constraints played a central role in our design. The architecture is deliberately lightweight, designed to be containerized and run on a single, low-cost virtual machine, while keeping token usage within a strict monthly budget. Furthermore, time constraints bounded the scope of our data processing pipeline; we elected to prioritize generalized backend filtering and indexing tools rather than building highly specialized, domain-specific machine learning models, ensuring we met the immediate needs of the lab within the Capstone timeframe. These constraints shaped the project into an extensible tool, that can be built upon by future researchers to enable more functionality. 
+
 
 \section{Economic Considerations (LO23)}
 
-\plt{Is there a market for your product? What would be involved in marketing your 
-product? What is your estimate of the cost to produce a version that you could 
-sell?  What would you charge for your product?  How many units would you have to 
-sell to make money? If your product isn't something that would be sold, like an 
-open source project, how would you go about attracting users?  How many potential 
-users currently exist?}
+% \plt{Is there a market for your product? What would be involved in marketing your 
+% product? What is your estimate of the cost to produce a version that you could 
+% sell?  What would you charge for your product?  How many units would you have to 
+% sell to make money? If your product isn't something that would be sold, like an 
+% open source project, how would you go about attracting users?  How many potential 
+% users currently exist?}
+
+\subsection{Market Considerations}
+
+There is no commercial market for this product. From its inception, the project was intended to be an open source platform to provide access to data analysis tools for researchers and students studying OCD in rats. 
+
+\subsection{Production Cost Estimate}
+
+Throughout the development of this platform, the resources and infrastructure required to support this project have been provided by the Computing and Software Department. As the project transitions out of its development phase and into a maintenance phase, the costs associated with running the platform will need to be assumed by its primary stakeholders, namely Dr. Szechtman's research group. 
+
+Due to the project's self-contained nature, the most advisable path would be to move the platform to a cloud compute service such as AWS EC2. The two main cost consideration factors that dominate are the compute costs of running the docker containers, and the token costs incurred by the use of the natural language service. Naturally, costs are a function of demand, and so the estimates below are based on the assumption that the maximum concurrent users of the tool will be 50, and that approximately 3000 deep queries will be performed per month. 
+
+\begin{table}[H]
+\centering
+\caption{Estimated Monthly Production Costs on AWS}
+\label{tab:ProductionCosts}
+\begin{tabularx}{0.8\textwidth}{Xr}
+\toprule
+\textbf{Component} & \textbf{Estimated Monthly Cost} \\
+\midrule
+Compute (\texttt{t3.medium}) & \$30.00 \\
+Storage (30GB gp3 EBS) & \$2.40 \\
+Public IPv4 Address & \$3.60 \\
+Data Transfer & \$5.00 \\
+\midrule
+\textbf{Total} & \textbf{\$41.00} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Estimated Monthly LLM Token Costs Per 3000 Deep Queries}
+\label{tab:LLMCosts}
+\begin{tabularx}{\textwidth}{>{\hsize=2.2\hsize}X >{\raggedleft\arraybackslash\hsize=0.6\hsize}X >{\raggedleft\arraybackslash\hsize=0.6\hsize}X >{\raggedleft\arraybackslash\hsize=0.6\hsize}X}
+\toprule
+\textbf{Model Tier} & \textbf{Input Cost} & \textbf{Output Cost} & \textbf{Estimated Monthly Cost} \\
+\midrule
+Budget (Gemini 2.5 Flash-Lite) & \$0.10 & \$0.40 & \$3.60 \\
+Mid-Tier (GPT-5 Mini) & \$0.25 & \$2.00 & \$10.50 \\
+Flagship (GPT-5.4 / Claude Opus 4.6) & \$2.50 & \$15.00 & \$97.50 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Based on the estimates above, the total monthly cost of running the platform would be approximately \$44.60 to \$138.50, depending on the model tier chosen. This is a highly cautious estimate, as it assumes the maximum concurrent users and deep queries will be reached. If scale ever exceeds this, our system lends itself well to replication, and so costs would scale according to the number of replicas. 
+
+\subsection{User Estimates and Market Size}
+
+Due to the niche nature of the research domain, the number of potential users is relatively limited to those interested in behavioral neuroscience and obsessive-compulsive disorder research. A reasonable estimate of the number of potential users of this tool is approximately 100-200 researchers worldwide. However, the availability of this tool is intended to garner student interest in the dataset, and so the number of users is expected to grow over time as the tool becomes more widely known. 
 
 \section{Reflection on Project Management (LO24)}
 
