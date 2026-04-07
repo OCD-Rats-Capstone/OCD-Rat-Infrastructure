@@ -2,6 +2,7 @@
 
 \usepackage{tabularx}
 \usepackage{booktabs}
+\usepackage{float}
 
 \title{Reflection and Traceability Report on \progname}
 
@@ -18,6 +19,29 @@
 
 
 \section{Changes in Response to Feedback}
+
+\subsection{Design and Design Documentation}
+
+In response to feedback regarding the layout structure, requirement consistency, and precision of the module interface behaviors, we implemented several major corrections across the Module Interface Specification (MIS) and Module Guide (MG) documentation:
+\begin{itemize}
+    \item \textbf{Timeline and Formatting Overhaul}: We introduced a explicit margin limits and replaced statically defined tables (\texttt{tabular}) with dynamic \texttt{tabularx} structures bounded to \verb|\textwidth| to permanently cure severe horizontal margin overflow across the MIS. The MG timeline was completely overhauled to shift away from broad generalizations toward a heavily precise week-by-week layout reflecting git history.
+    \item \textbf{Mathematical Specification}: Based on feedback that the MIS lacked formalization, we drafted an explicit finite state machine (FSM) model and set-theoretic mathematical formalisms for the Natural Language Query Processor (M2). The "stateless" discrepancy previously noted in M6 was also rectified by formally documenting its active state variables 
+    
+    (\texttt{ActiveChartConfig}, \texttt{SupportedVTypes}).
+    \item \textbf{Design De-scoping and Traceability Consistency}: Recognizing hard time constraints, we officially marked the Authentication and Access Control Module (M8) as descoped. We heavily audited the Traceability Matrix to safely remap security proxy requirements (\texttt{INT.R.1}, \texttt{IMM.R.1}, \texttt{IMM.R.2}) over to the Fault and Error Management Module (M9) and purged redundant matrix rows. 
+    \item \textbf{Access Routine Coherence}: Across the MIS, we explicitly defined previously missing access routine semantics for the Front-End (M3), API Layer (M4), and Fault Management (M9) modules. We also introduced proper cross-document hyperlinking using \texttt{xurl}.
+    \item \textbf{Peer Feedback Integration}: In response to peer feedback from Team 7, we resolved several naming and hierarchy inconsistencies. We unified the naming of the NLP Query Processor Module (M2) across the MIS so that subsections consistently share terminology with their parent module title, mitigating reader confusion. Furthermore, in the MG, we decomposed Anticipated Change AC1 into three separate, atomic concerns (layout, accessibility, and responsiveness) rather than bundling them, and we corrected a structural discrepancy where the NLP Query Processor was categorized inconsistently between the module hierarchy table and its section description.
+    
+\end{itemize}
+
+\subsection{VnV Plan and Report}
+
+\begin{itemize}
+    \item \textbf{VnV Plan:} Our TA supervisor noted that Sections 2.2--2.3 were too vague and that several fit criteria were ambiguous. In response, we restructured the General Information content to make the scope more explicit in terms of Primary Objectives vs.
+    Out-of-Scope Objectives, we also clarified the role of the extras we chose for our project. We also refined test wording to make interpretation more consistent: FR2 now explicitly uses a manual and automatic hybrid testing with defined execution steps, NFR6 explicitly anchors understandability to non-technical users and a measurable 90\% threshold, and NFR11 is framed as a concrete static/manual maintainability review with explicit an review procedure and associated artifacts. These changes were made directly applied to the VnV Plan to reduce reviewer subjectivity and improve traceability from requirements to their respective verification methods.
+    \item \textbf{VnV Report:} Feedback from our TA supervisor and peer teams (Team 7 and Team 15) emphasized that the report needed clearer presentation, stronger traceability, and more consistent formatting. In response, we reorganized Section 6 by grouping unit tests by module instead of presenting a single raw PyTest dump, and we improved readability by restructuring long test-output presentation. We also tightened reproducibility and traceability by clarifying specific test inputs/outputs in key cases (including FR5-T4), and by connecting quantitative outcomes and "changes due to testing" back to concrete test evidence. Formatting and flow issues were also addressed: coverage tables were reformatted for consistency, the table layout being cutoff was fixed, survey-related content and revision metadata were included and updated, and cross-section references were adjusted to improve reading order. Finally, based on peer feedback for Section 5, we expanded the comparison to prior implementations by grounding UI claims in concrete HCI rationale, such as considering the usability intent, rather than just using broad statements.
+    
+\end{itemize}
 
 \subsection{SRS and Hazard Analysis}
 
@@ -90,10 +114,6 @@
     \end{itemize}
 \end{itemize}
 
-\subsection{Design and Design Documentation}
-
-\subsection{VnV Plan and Report}
-
 \section{Extras}
 
 \begin{itemize}
@@ -109,32 +129,124 @@
 \end{itemize}
 \section{Design Iteration (LO11 (PrototypeIterate))}
 
-\plt{Explain how you arrived at your final design and implementation.  How did
-the design evolve from the first version to the final version?} 
 
-\plt{Don't just say what you changed, say why you changed it.  The needs of the
-client should be part of the explanation.  For example, if you made changes in
-response to usability testing, explain what the testing found and what changes
-it led to.}
+
+\subsection{Starting point and client needs}
+
+\par{The problem context is documented in the problem statement: FRDR exposes the Szechtman lab dataset but offers limited ways to search by experimental attributes, align trajectories with video, or summarize behaviour across thousands of trials. The prior student implementation (RatBat~1.0) improved on FRDR with filtering, summaries, and structured querying, but still demanded substantial configuration and technical comfort. Our stakeholders---behavioural neuroscience researchers, graduate students, and lab members---needed paths that work for people \emph{without} software backgrounds: natural-language access, clearer browsing of ``what exists,'' and visual analytics grounded in how the lab compares cohorts and injections. Those needs anchored every major feature area (metadata inventory, NLP query, visualization suite, per-session toolbox, downloads).}
+
+\subsection{From proof-of-concept to a calmer first impression}
+
+\par{The proof-of-concept and early Rev~0 demos prioritized \textbf{showing capability}: NLP-backed query, hooks for visualization, and enough UI surface to convince supervisors that integration risks were manageable. Some controls that existed for demonstration (for example, exposing advanced NLP-related parameters on the main experience) were never intended as the long-term default for first-time users.}
+
+\par{Heuristic evaluation against our simplicity requirement (NFR2 / APP.R.2) recorded \textbf{seven} primary interactive elements on the homepage and described the first load as somewhat ``intimidating.'' The \textbf{why} for change was direct: our target users are non-technical researchers; cognitive load on entry conflicts with the goal of inviting exploration. We responded by \textbf{scoping the default experience} so that advanced or demo-only controls are not part of the initial path, aligning the landing story with orientation and example prompts instead of parameter panels. This was not abandonment of power-user features---it was \textbf{progressive disclosure}: keep the default surface small, route depth to Query, Inventory, and Visualizations as users need it.}
+
+\subsection{Client conversations and requirements clarification}
+
+\par{Ongoing discussion with Dr.~Henry Szechtman shaped data and user-facing structure. As noted in our detailed design reflection, schema and catalogue decisions for experimental sessions, and priorities for what the system should \emph{do} with data and visualizations, were refined with him as domain expert. One concrete clarification was the ``predefined datasets'' idea: the client was less interested in fixed ``product'' bundles and more in a \textbf{web-store-style browse}---sorting and narrowing available records by categories the lab cares about (drugs, apparatus, session types, and related metadata). That shift steered the \textbf{Inventory} experience toward familiar filter-and-apply patterns rather than a rigid product grid, while still satisfying the intent of making the corpus navigable. Dr.~Anna Dvorkin-Gheva and the same supervisory line provided design walkthrough and validation touchpoints through the year (as planned in the V\&V plan).}
+
+\subsection{What usability testing changed}
+
+\par{We did not rely only on intuition. Structured checks against look-and-feel and usability requirements informed iteration:}
+
+\begin{itemize}
+    \item \textbf{E-commerce metaphor (NFR1):} Five non-technical evaluators in a design walkthrough consistently related the interface to familiar e-commerce layouts (cards, holding areas for selections). The finding \textbf{validated} the direction---researchers should feel they are ``shopping'' the corpus for trials, not operating a database console---and we kept reinforcing familiar layout patterns where they helped recognition.
+    \item \textbf{Inventory filters (NFR3):} All five participants rated filter intuition highly; average time to complete a filter task was about forty seconds. Participants especially valued a clear \textbf{Clear} / reset affordance. That feedback reinforced keeping accordion filters, visible Apply/Clear actions, and predictable feedback after Apply rather than introducing novel interaction models.
+    \item \textbf{End-to-end task study (NFR4--NFR5):} Participants completed standard workflows (prepackaged query path, custom NLP search, visualization) within time targets, and time-to-proficiency stayed under the thirty-minute learning-curve goal. Observational notes still flagged \textbf{hesitation at the first NLP query}; the verification report therefore called for a dismissible quick-start or in-field hint---a small change aimed at \textbf{reducing first-query friction} without dumbing down the tool.
+    \item \textbf{Language in the UI (NFR6):} Content review with non-technical reviewers showed that internal or implementation-heavy labels (for example around NLP confidence) hurt understandability. We iterated copy and tooltips toward \textbf{domain-friendly wording} so the UI reads like neuroscience and experiment design, not like model internals---because the client's users are scientists, not ML engineers.
+    \item \textbf{Accessibility audit (NFR7):} Automated checks exposed low ARIA coverage on dynamic pieces (e.g.\ filter panels and chart regions). The immediate lesson was that ``semantic HTML is not enough'' for our level of interactivity; the planned response (tracked issues, \texttt{aria-live} for dynamic filter results, richer roles on figures, and tooling such as axe-core in the workflow) is part of the same iteration loop, prioritizing \textbf{equitable access} for assistive technologies even when primary users are sighted researchers.
+\end{itemize}
+
+\subsection{Correctness and robustness iterations}
+
+\par{Functional verification also forced design-adjacent changes. For example, NLP queries that referenced non-existent schema concepts initially failed tests; we improved the system's \textbf{grounding in the actual schema} (context supplied to the LLM pipeline) so answers stay tied to real tables and columns---because the client needs \textbf{trustworthy} retrieval, not plausible hallucination. Another failure mode was empty visualization results; we added explicit handling so the UI fails gracefully instead of presenting broken or blank charts, preserving user confidence during exploratory analysis.}
+
+\subsection{Documentation and handoff as part of design}
+
+\par{Iteration was not only code. Feedback that the system is ``not self-explanatory'' without domain context led to a \textbf{user manual} extra so workflows are documented for new lab members and external collaborators. Dr.~Szechtman also asked for a \textbf{code walkthrough}-style artifact oriented toward future maintenance and extension; that shaped how we document module structure and next steps, so the \emph{design} of the delivery includes sustainability for the lab after the capstone team steps back.}
+
+\subsection{Summary: first version versus final}
+
+\par{In summary, the \textbf{first versions} emphasized demonstrable integration (NLP, DB, early UI) and sometimes exposed too much surface at once. The \textbf{final direction} aligns with client needs: browse-and-filter inventory, conversational and tabular query paths, visualization and dashboard views that match how papers compare injections and behaviour, single-session depth in the toolbox, and downloads that support offline analysis---all wrapped in patterns that verification showed non-technical users can recognize and complete within acceptable time. Iteration closed the gap between ``technically possible'' and ``useful and approachable for the lab,'' with measurable criteria from the V\&V report as the forcing function for several concrete UI and content changes.}
 
 \section{Design Decisions (LO12)}
 
-\plt{Reflect and justify your design decisions.  How did limitations,
- assumptions, and constraints influence your decisions?  Discuss each of these
- separately.}
+% \plt{Reflect and justify your design decisions.  How did limitations,
+%  assumptions, and constraints influence your decisions?  Discuss each of these
+%  separately.}
+
+\subsection{Limitations}
+
+The principal limitation of the project is its reliance on a massive, read-only external dataset hosted on the Federated Research Data Repository (FRDR). Because the multi-terabyte raw video and tracking files are immutable and externally managed, our system was designed to focus exclusively on indexing and querying the metadata rather than replicating the raw assets. Furthermore, the integration of a Large Language Model (LLM) for natural language querying introduces financial and rate-limiting bottlenecks; we purposefully designed the system to decouple the NLP processing from the core database queries to ensure that the system is still functional even if the LLM is unavailable.
+
+\subsection{Assumptions}
+
+Our architecture was heavily influenced by the assumption that the target users (neuroscience researchers and clinical students) possess domain expertise but lack technical software engineering skills (e.g., writing SQL). This drove the decision to build a highly intuitive web interface that bridges natural language and structured property filters instead of exposing a raw database connection. We also assumed that users would access the platform through standard, modern web browsers from varied network environments, justifying the stateless API layer and the decision to offload heavy data processing to backend cloud infrastructure rather than the client device.
+
+\subsection{Constraints}
+
+Since this project serves a niche research community and has no commercial revenue model, economic constraints played a central role in our design. The architecture is deliberately lightweight, designed to be containerized and run on a single, low-cost virtual machine, while keeping token usage within a strict monthly budget. Furthermore, time constraints bounded the scope of our data processing pipeline; we elected to prioritize generalized backend filtering and indexing tools rather than building highly specialized, domain-specific machine learning models, ensuring we met the immediate needs of the lab within the Capstone timeframe. These constraints shaped the project into an extensible tool, that can be built upon by future researchers to enable more functionality. 
 
 \section{Economic Considerations (LO23)}
 
-\plt{Is there a market for your product? What would be involved in marketing your 
-product? What is your estimate of the cost to produce a version that you could 
-sell?  What would you charge for your product?  How many units would you have to 
-sell to make money? If your product isn't something that would be sold, like an 
-open source project, how would you go about attracting users?  How many potential 
-users currently exist?}
+% \plt{Is there a market for your product? What would be involved in marketing your 
+% product? What is your estimate of the cost to produce a version that you could 
+% sell?  What would you charge for your product?  How many units would you have to 
+% sell to make money? If your product isn't something that would be sold, like an 
+% open source project, how would you go about attracting users?  How many potential 
+% users currently exist?}
+
+\subsection{Market Considerations}
+
+There is no commercial market for this product. From its inception, the project was intended to be an open source platform to provide access to data analysis tools for researchers and students studying OCD in rats. 
+
+\subsection{Production Cost Estimate}
+
+Throughout the development of this platform, the resources and infrastructure required to support this project have been provided by the Computing and Software Department. As the project transitions out of its development phase and into a maintenance phase, the costs associated with running the platform will need to be assumed by its primary stakeholders, namely Dr. Szechtman's research group. 
+
+Due to the project's self-contained nature, the most advisable path would be to move the platform to a cloud compute service such as AWS EC2. The two main cost consideration factors that dominate are the compute costs of running the docker containers, and the token costs incurred by the use of the natural language service. Naturally, costs are a function of demand, and so the estimates below are based on the assumption that the maximum concurrent users of the tool will be 50, and that approximately 3000 deep queries will be performed per month. 
+
+\begin{table}[H]
+\centering
+\caption{Estimated Monthly Production Costs on AWS}
+\label{tab:ProductionCosts}
+\begin{tabularx}{0.8\textwidth}{Xr}
+\toprule
+\textbf{Component} & \textbf{Estimated Monthly Cost} \\
+\midrule
+Compute (\texttt{t3.medium}) & \$30.00 \\
+Storage (30GB gp3 EBS) & \$2.40 \\
+Public IPv4 Address & \$3.60 \\
+Data Transfer & \$5.00 \\
+\midrule
+\textbf{Total} & \textbf{\$41.00} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Estimated Monthly LLM Token Costs Per 3000 Deep Queries}
+\label{tab:LLMCosts}
+\begin{tabularx}{\textwidth}{>{\hsize=2.2\hsize}X >{\raggedleft\arraybackslash\hsize=0.6\hsize}X >{\raggedleft\arraybackslash\hsize=0.6\hsize}X >{\raggedleft\arraybackslash\hsize=0.6\hsize}X}
+\toprule
+\textbf{Model Tier} & \textbf{Input Cost} & \textbf{Output Cost} & \textbf{Estimated Monthly Cost} \\
+\midrule
+Budget (Gemini 2.5 Flash-Lite) & \$0.10 & \$0.40 & \$3.60 \\
+Mid-Tier (GPT-5 Mini) & \$0.25 & \$2.00 & \$10.50 \\
+Flagship (GPT-5.4 / Claude Opus 4.6) & \$2.50 & \$15.00 & \$97.50 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Based on the estimates above, the total monthly cost of running the platform would be approximately \$44.60 to \$138.50, depending on the model tier chosen. This is a highly cautious estimate, as it assumes the maximum concurrent users and deep queries will be reached. If scale ever exceeds this, our system lends itself well to replication, and so costs would scale according to the number of replicas. 
+
+\subsection{User Estimates and Market Size}
+
+Due to the niche nature of the research domain, the number of potential users is relatively limited to those interested in behavioral neuroscience and obsessive-compulsive disorder research. A reasonable estimate of the number of potential users of this tool is approximately 100-200 researchers worldwide. However, the availability of this tool is intended to garner student interest in the dataset, and so the number of users is expected to grow over time as the tool becomes more widely known. 
 
 \section{Reflection on Project Management (LO24)}
 
-\plt{This question focuses on processes and tools used for project management.}
 
 \subsection{How Does Your Project Management Compare to Your Development Plan}
 
@@ -181,12 +293,13 @@ elicit feedback out of our supervisor.}
 
 \section{Ethics and Equity (LO18)}
 
-\plt{Describe how your team applied the principle of equity and universal design
-to ensure equitable treatment of all stakeholders.}
+\par{Our team treated ethics and equity as design constraints, not optional features. The primary stakeholders were our supervisors, Dr. Szechtman and Dr. Dvorkin-Gheva, who are both behavioural neuroscience researchers, but we intentionally designed for a broader user base that includes collaborators with varying technical backgrounds. This directly affected our interface and workflow choices: we prioritized plain-language labels, guided filtering, natural-language querying, and a user manual so that users without software engineering experience could still use the system independently. In this sense, equity meant reducing technical gatekeeping and ensuring that access to research insights was not limited to users with SQL or programming expertise.}
+
+\par{We also considered responsible stewardship of a high-value research dataset. Although the platform exposes rat-trial metadata and linked files, we treated data integrity and controlled access as ethical responsibilities. Our architecture preserved the original source-of-truth relationship to FRDR, kept the application focused on read-oriented research workflows, and incorporated verification activities for robustness, security, and compliance. Throughout development, we treated failures such as weak error handling and injection vulnerabilities as ethical issues (not only technical bugs) because they can undermine trust in scientific outputs and disproportionately impact non-technical users who cannot easily detect system faults.}
+
+\par{Finally, we recognized that this project has indirect human impact through OCD research outcomes. While the software does not make clinical decisions, better accessibility and reliability can accelerate how quickly researchers explore behavioural patterns and generate hypotheses. To support equitable treatment of stakeholders, we used iterative supervisor feedback, non-technical usability testing, and accessibility checks to reduce bias toward developer assumptions. In future iterations, we would strengthen this further with earlier accessibility integration (including ARIA coverage targets), broader participant diversity in usability studies, and a more explicit governance process for ethically handling model-assisted query behavior.}
 
 \section{Reflection on Capstone}
-
-\subsection{Which Courses Were Relevant}
 
 \subsection{Which Courses Were Relevant}
 
