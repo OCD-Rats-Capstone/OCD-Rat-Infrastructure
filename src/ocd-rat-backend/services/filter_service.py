@@ -44,6 +44,22 @@ FIELD_MAPPINGS = {
     "room": "E1.room_id",
 }
 
+# Mapping for pseudo-fields representing summary measures
+SUMMARY_MEASURE_FILTERS = {
+    "distance_travelled": {
+        "table": "session_sm_locomotion",
+        "condition": "sm.component_measure = 'Amount of locomotion' AND sm.measure_variable = 'Total distance (m)'"
+    },
+    "total_checking": {
+        "table": "session_sm_checking",
+        "condition": "sm.component_measure = 'Frequency of checking' AND sm.measure_variable = 'Returns to key locale (#)'"
+    },
+    "length_of_check": {
+        "table": "session_sm_checking",
+        "condition": "sm.component_measure = 'Length of check' AND sm.measure_variable = 'Duration of visit to key locale (log s)'"
+    }
+}
+
 
 def _build_where_clause(filters: List[FilterItem]) -> tuple[str, list]:
     """
@@ -59,25 +75,49 @@ def _build_where_clause(filters: List[FilterItem]) -> tuple[str, list]:
     params = []
     
     for f in filters:
-        # Resolve field name using mapping or default to E1 alias
-        field_name = FIELD_MAPPINGS.get(f.field, f"E1.{f.field}")
-        
-        if f.operator == "range":
-            # Range format is "low$high"
-            parts = f.value.split("$")
-            if len(parts) != 2:
-                raise ValueError(f"Range value must be in 'low$high' format, got: {f.value}")
-            
-            low, high = parts
-            conditions.append(f"{field_name} >= %s AND {field_name} <= %s")
-            params.extend([low, high])
+        if f.field in SUMMARY_MEASURE_FILTERS:
+            sm = SUMMARY_MEASURE_FILTERS[f.field]
+            table = sm["table"]
+            cond = sm["condition"]
+
+            if f.operator == "range":
+                # Range format is "low$high"
+                parts = f.value.split("$")
+                if len(parts) != 2:
+                    raise ValueError(f"Range value must be in 'low$high' format, got: {f.value}")
+                
+                low, high = parts
+                subquery = f"EXISTS (SELECT 1 FROM {table} sm WHERE sm.session_id = E1.session_id AND {cond} AND sm.measure_value >= %s AND sm.measure_value <= %s)"
+                conditions.append(subquery)
+                params.extend([low, high])
+            else:
+                sql_op = OPERATORS.get(f.operator)
+                if not sql_op:
+                    raise ValueError(f"Unknown operator: {f.operator}")
+                
+                subquery = f"EXISTS (SELECT 1 FROM {table} sm WHERE sm.session_id = E1.session_id AND {cond} AND sm.measure_value {sql_op} %s)"
+                conditions.append(subquery)
+                params.append(f.value)
         else:
-            sql_op = OPERATORS.get(f.operator)
-            if not sql_op:
-                raise ValueError(f"Unknown operator: {f.operator}")
+            # Resolve field name using mapping or default to E1 alias
+            field_name = FIELD_MAPPINGS.get(f.field, f"E1.{f.field}")
             
-            conditions.append(f"{field_name} {sql_op} %s")
-            params.append(f.value)
+            if f.operator == "range":
+                # Range format is "low$high"
+                parts = f.value.split("$")
+                if len(parts) != 2:
+                    raise ValueError(f"Range value must be in 'low$high' format, got: {f.value}")
+                
+                low, high = parts
+                conditions.append(f"{field_name} >= %s AND {field_name} <= %s")
+                params.extend([low, high])
+            else:
+                sql_op = OPERATORS.get(f.operator)
+                if not sql_op:
+                    raise ValueError(f"Unknown operator: {f.operator}")
+                
+                conditions.append(f"{field_name} {sql_op} %s")
+                params.append(f.value)
     
     where_clause = " WHERE " + " AND ".join(conditions)
     return where_clause, params
