@@ -1,6 +1,6 @@
 name: buildtex-all
 on:
-  workflow_dispatch:  # Manual trigger from GitHub UI
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -17,7 +17,6 @@ jobs:
           CHANGED_FILES=$(find docs -name "*.tex" | xargs)
           echo "All .tex files: $CHANGED_FILES"
           echo "CHANGED_FILES=$CHANGED_FILES" >> $GITHUB_ENV
-
           CHANGED_FILENAMES=$(for file in $CHANGED_FILES; do basename "$file"; done | xargs)
           echo "CHANGED_FILENAMES=$CHANGED_FILENAMES" >> $GITHUB_ENV
 
@@ -29,10 +28,18 @@ jobs:
           run: |
             apk add make
             cd docs
+            FAILED=0
             for file in ${{ env.CHANGED_FILES }}; do
               dir=$(dirname "$file" | cut -d'/' -f2-)
-              make -B "$dir/$(basename "$file" .tex).pdf"
+              base=$(basename "$file" .tex)
+              echo "Compiling $dir/$base.tex..."
+              make -B "$dir/$base.pdf" || {
+                echo "======= ERROR in $dir/$base.tex ======="
+                grep -A 5 "^!" "$dir/$base.log" || cat "$dir/$base.log"
+                FAILED=1
+              }
             done
+            [ $FAILED -eq 0 ] || exit 1
 
       - name: Commit and push PDFs
         uses: stefanzweifel/git-auto-commit-action@v4
